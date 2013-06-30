@@ -7,6 +7,16 @@
 // , "log"   : true
 // }
 
+exports.commands = function(doc,req) {
+  if (doc.type && doc.type == 'command') return true;
+  return false;
+}
+
+exports.data = function(doc,req) {
+  if (doc.type && doc.type == 'data') return true;
+  return false;
+}
+
 exports.refilter = function(doc, req) {
   var field = req.query.field
     , regex = req.query.regex

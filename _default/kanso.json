@@ -6,6 +6,7 @@
   "modules" : ["lib"],
   "dependencies": {
     "modules" : null,
-    "properties" : null
+    "properties" : null,
+    "couchtypes" : null
   } 
 }
