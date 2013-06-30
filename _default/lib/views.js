@@ -19,3 +19,45 @@ exports.conflicts = {
   },
   reduce : "_count"
 }
+
+exports.slow_control_time = {
+  map: function(doc) {
+           if (!doc.type || doc.type != "data") return;
+           var then = new Date(Date.parse(doc.timestamp));
+           emit([doc.name,
+                 then.getFullYear(), then.getMonth(), 
+                 then.getDay(), then.getHours(), 
+                 then.getMinutes(), then.getSeconds()], doc.value);
+  },
+  reduce : function(keys, values, rereduce) {
+           if (!rereduce) {
+               var length = values.length;
+               return [sum(values) / length, length];
+           } else {
+               var length = sum(values.map(function(v){return v[1]}));
+               var avg = sum(values.map(function(v){
+                          return v[0] * (v[1] / length) }));
+               return [avg, length];
+           }
+  }
+ 
+}
+
+exports.latest_value = {
+  map: function(doc) {
+           if (!doc.type || doc.type != "data") return;
+           emit(doc.name, {"value" : doc.value, "timestamp" : doc.timestamp}); 
+  },
+  reduce : function(keys, values, rereduce) {
+      var latest_time = "0";
+      var val = values[0].value;
+      for (var i=0;i<values.length;i++) {
+          if (values[i].timestamp > latest_time) {
+              val = values[i].value;
+              latest_time = values[i].timestamp;
+          }
+      }
+      return {"value" : val, "timestamp" : latest_time};
+  }
+ 
+}
