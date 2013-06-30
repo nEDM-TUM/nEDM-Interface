@@ -13,6 +13,6 @@ exports.data = new Type('data', {
     fields : {
                  name: fields.string(),
                  value: fields.number(),
-                 timestamp : fields.createdTime()
+                 timestamp : fields.string()
              }
 });
