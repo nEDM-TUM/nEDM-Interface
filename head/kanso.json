@@ -1,0 +1,16 @@
+{ 
+  "name": "nedm_head", 
+  "version": "0.0.1", 
+  "description": "nEDM-Interface default",
+  "attachments": ["index.html", "header.html", "login.html", "scripts", "style"],
+  "load"    : "lib/app",
+  "modules" : ["lib"],
+  "dependencies": {
+    "modules" : null,
+    "attachments" : null,
+    "properties" : null,
+    "users" : null,
+    "session" : null,
+    "couchtypes" : null
+  } 
+}
