@@ -1,0 +1,19 @@
+/* add styles here */
+
+.account {
+  float:right;
+  margin-right: 20px;
+  margin-top: -35px;
+}
+
+#container {
+	color: black;
+	background-color:#fff;
+	margin:0 auto;
+}
+
+#livecontainer {
+	color: black;
+	background-color:#fff;
+	margin:0 auto;
+}
