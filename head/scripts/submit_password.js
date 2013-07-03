@@ -23,13 +23,11 @@ function logout()
 
 function validate(form, callback)
 {
-    var success = true;
     session.login(form.uid_r.value, form.pwd_r.value, 
             function(err, response) {
-                if(err) {
-                    success = false;
-                }
+                var success = true;
+                if(err) success = false;
+                if (callback) callback(success); 
             });
 
-    if (callback) callback(success); 
 }

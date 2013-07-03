@@ -45,29 +45,16 @@
             if (success) {
                 history.back();
             } else {
-                $('#badUN').click();  
+                $('#warningText').text("Password or UN not correct");  
             }
         }
         </script> 
         <a href="#" data-role="button" data-theme="b"  data-inline="true" onClick="validate(document.forms.HLogin, login_callback)">Login</a>
+        <p id="warningText" style="color:red;"></p>
     </div>
 </div>
 
 <!-- /splash page #one -->
-
-<div data-role="dialog" id="badusername">
-	
-		<div data-role="header" data-theme="d">
-			<h1>Bad input</h1>
-		</div>
-
-		<div data-role="content" data-theme="c">
-			<h1>Incorrect Username or Password</h1>
-			<a href="#" data-role="button" data-rel="back" data-theme="b">OK</a>       
-		</div>
-    </div>
-<a id='badUN' href="#badusername" data-rel="dialog" data-transition="pop" style='display:none;'></a>
-
 
 </body>
 </html>
