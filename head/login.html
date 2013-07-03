@@ -3,12 +3,13 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1"> 
 	<title>nEDM Base</title> 
-	
-	<link rel="stylesheet" href="style/jquery.mobile-1.1.1.css" />
-	<script src="scripts/jquery-1.9.0.js"></script>
-	<script src="scripts/jquery.mobile-1.3.1.js"></script>
+
+    <link rel="stylesheet" href="../../../nedm%2Fhead/_design/nedm_head/style/jquery.mobile-1.1.1.css" />
+	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/jquery-1.9.0.js"></script>
+	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/jquery.mobile-1.3.1.js"></script>
 	<script src="modules.js"></script>
-	<script src="scripts/submit_password.js"></script>
+	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
+
 	<style> .center { text-align: center; } </style>
 
 </head> 
@@ -49,7 +50,9 @@
             }
         }
         </script> 
-        <a href="#" data-role="button" data-theme="b"  data-inline="true" onClick="validate(document.forms.HLogin, login_callback)">Login</a>
+        <a href="#" data-role="button" data-theme="b"  data-inline="true" 
+            onClick="nedm.validate($('#Lusername').val(), $('#Lpassword').val(),
+              login_callback)">Login</a>
         <p id="warningText" style="color:red;"></p>
     </div>
 </div>
