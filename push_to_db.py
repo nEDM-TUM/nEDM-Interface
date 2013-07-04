@@ -140,6 +140,8 @@ def main(server = None):
     for db_path in ["head"]:
         db_name = "nedm%2F" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
+        server_path = "http://" + server + "/" + db_name
+        execute_kanso("kanso push " + db_path  + " " + server_path)
 
 
 
