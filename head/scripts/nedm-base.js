@@ -6,7 +6,8 @@ nedm.logged_in_as = null;
 
 session.on('change', function(userCtx) {
   nedm.set_user_name(userCtx);
-  nedm.update_header();
+  nedm.update_buttons();
+  //nedm.update_header();
 });
 
 
@@ -40,17 +41,19 @@ nedm.update_buttons = function() {
 
 }
 
-nedm.update_header = function() {
-  console.log("Updating header");
-  var hc = $('.headerChild');
-
-  .each(function( ind, elem ) {
-    if (elem.find("[data-role=header]").length == 0) {
-      elem.load("header.html", nedm.update_buttons); 
-    } else {
+nedm.update_header = function(event, ui) {
+  $('.headerChild:not(:has(div))').load("_rewrite/_couchdb/nedm%2Fhead/_design/nedm_head/header.html", function() {
+      //$(this).find("[data-role=header]").header();
+      $(this).trigger('create');
       nedm.update_buttons();
-    }
   });
+
+  nedm.update_buttons();
+  //if (hc.find("[data-role=header]").length == 0) {
+  //  hc.load("header.html", nedm.update_buttons); 
+  //} else {
+  //  nedm.update_buttons();
+  //}
   
 }
 
@@ -81,4 +84,7 @@ nedm.validate = function(un, pw, callback)
 }
 
 //$(document).off('pageinit', 'update_header');
-$(document).on('pageinit', nedm.update_header); 
+$(document).on('mobileinit', function() {
+  $(document).on('pageinit', nedm.update_header); 
+  $.extend( $.mobile, { ajaxEnabled : false } );
+});
