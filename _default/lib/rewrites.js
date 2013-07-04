@@ -1,6 +1,10 @@
 module.exports = [ 
-
-{ "description": "Access to this database"
+  { "description": "Access to index"
+  , "from": ""
+  , "to"  : "index.html"
+  }
+,
+  { "description": "Access to this database"
   , "from": "_db"
   , "to"  : "../.."
   }

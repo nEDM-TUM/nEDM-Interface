@@ -132,7 +132,7 @@ def main(server = None):
 
     dbnames = [db for db in glob.glob("subsystems/*") if os.path.isdir(db)] 
 
-    dbnames.append("head")
+    #dbnames.append("head")
     for db_path in dbnames:
         db_name = "nedm%2F" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
