@@ -117,7 +117,6 @@ def push_database(host, db_name, folder):
     db_path = "http://" + host + "/" + db_name
     execute_kanso("kanso push _default " +  db_path) 
 
-    update_security(host, db_name, folder) 
        
 
 """
@@ -134,6 +133,11 @@ def main(server = None):
 
     #dbnames.append("head")
     for db_path in dbnames:
+        db_name = "nedm%2F" + os.path.basename(db_path)
+        push_database(server, db_name, db_path)
+        update_security(server, db_name, db_path) 
+
+    for db_path in ["head"]:
         db_name = "nedm%2F" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
 
