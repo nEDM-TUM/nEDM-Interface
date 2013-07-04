@@ -3,9 +3,11 @@
   "version": "0.0.1", 
   "description": "nEDM-Interface default",
   "load"    : "lib/app",
+  "attachments": ["index.html"],
   "modules" : ["lib"],
   "dependencies": {
     "modules" : null,
+    "attachments" : null,
     "properties" : null,
     "couchtypes" : null
   } 

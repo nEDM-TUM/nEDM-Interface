@@ -11,41 +11,6 @@
 	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
 	<style> .center { text-align: center; } </style>
 
-    <script>
-    // We build the list of DBs to point to.  This is simply subsystems
-    var dict_of_dbs = {}
-    function buildDBList() {
-       if ($('#listofdbs').length == 0) return;
-       $.getJSON('_rewrite/_couchdb/_all_dbs', function(data) {
-           var html ='';
-           var patt = /^nedm\//;
-           var number_of_current_dbs = Object.keys(dict_of_dbs).length;
-           $.each(data, function(key, val) {
-               if (patt.exec(val) != null) {
-                   var db_name = val.substring(5);
-                   if (db_name == 'head') return;
-                   if (db_name in dict_of_dbs) return;
-                   dict_of_dbs[db_name] = [];
-                   var esc_name = val.replace("\/", "%2F"); 
-                   html += '<li><a href="_rewrite/_couchdb/' + esc_name + 
-                       '/_design/nedm_default/index.html">' + db_name + '</a></li>';
-               }       
-           });
-           $('#listofdbs').append($(html));
-           if (number_of_current_dbs == 0) {
-               $('#listofdbs').trigger('create');
-               } else { 
-               $('#listofdbs').listview('refresh');
-           }
-       }); 
-    }
-    $(document).bind('pageinit', function(event, ui) {
-      buildDBList(); 
-    });
-
-
-    </script>
-
 </head> 
 
 <body class="ui-mobile-viewport ui-overlay-c"> 
@@ -68,11 +33,51 @@
     </div>
     <script>$('headerKid').load('./index.html #standardHeader');</script> -->
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
-        <h1>Subsystems</h1>
+        <h1 >Default</h1>
         <ul data-role="listview" id="listofdbs">
+            <li><a href="#monitor">Monitor</a></li>
+            <li><a href="#history">History</a></li>
+            <li><a href="#control">Control</a></li>
         </ul>
     </div>
 </div>
+
+<div data-role="page" id="monitor">
+    <div class="headerChild"> 
+    </div>
+
+    <!--<div class="headerKid">
+    </div>
+    <script>$('headerKid').load('./index.html #standardHeader');</script> -->
+    <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
+        <h1 >Monitor</h1>
+    </div>
+</div>
+
+<div data-role="page" id="history">
+    <div class="headerChild"> 
+    </div>
+
+    <!--<div class="headerKid">
+    </div>
+    <script>$('headerKid').load('./index.html #standardHeader');</script> -->
+    <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
+        <h1 >History</h1>
+    </div>
+</div>
+
+<div data-role="page" id="control">
+    <div class="headerChild"> 
+    </div>
+
+    <!--<div class="headerKid">
+    </div>
+    <script>$('headerKid').load('./index.html #standardHeader');</script> -->
+    <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
+        <h1 >Control</h1>
+    </div>
+</div>
+
 
 
 </body>

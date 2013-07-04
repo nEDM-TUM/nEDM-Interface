@@ -3,9 +3,6 @@ var session = require("session");
 var nedm = nedm || {};
 nedm.logged_in_as = null;
 
-$(document).bind('pageinit', function(event, ui) {
-  nedm.update_header();
-});
 
 session.on('change', function(userCtx) {
   nedm.set_user_name(userCtx);
@@ -44,12 +41,16 @@ nedm.update_buttons = function() {
 }
 
 nedm.update_header = function() {
+  console.log("Updating header");
   var hc = $('.headerChild');
-  if (hc.find("[data-role=header]").length == 0) {
-    hc.load("header.html", nedm.update_buttons); 
-  } else {
-    nedm.update_buttons();
-  }
+
+  .each(function( ind, elem ) {
+    if (elem.find("[data-role=header]").length == 0) {
+      elem.load("header.html", nedm.update_buttons); 
+    } else {
+      nedm.update_buttons();
+    }
+  });
   
 }
 
@@ -78,3 +79,6 @@ nedm.validate = function(un, pw, callback)
                 if (callback) callback(success); 
             });
 }
+
+//$(document).off('pageinit', 'update_header');
+$(document).on('pageinit', nedm.update_header); 
