@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html class="ui-mobile"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<title>nEDM Base</title> 
+
+    <link rel="stylesheet" href="../../../nedm%2Fhead/_design/nedm_head/style/jquery.mobile-1.4.0-pre.css" />
+	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/jquery-1.9.0.js"></script>
+	<script src="modules.js"></script>
+	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
+	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/jquery.mobile-1.4.0-pre.js"></script>
+
+	<style> .center { text-align: center; } </style>
+
+</head> 
+
+<body class="ui-mobile-viewport ui-overlay-c"> 
+
+    <!--<div id="standardHeader">
+        <div data-role="header" data-position="fixed" data-theme="b">
+            <h1>nEDM Interface</h1>
+            <a href="#login" data-rel="dialog" class="ui-btn-right">Login</a>
+        </div>
+    </div> -->
+
+
+<!-- Start of splash page: #one -->
+
+<!-- /splash page #one -->
+<div data-role="dialog" id="errorDialog">
+    <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
+        <h1 id="nedm_errorType">Error:</h1>
+        <p id="errorText" style="color:red;"></p>
+        <a data-role="button" data-rel="back" data-theme="c" data-inline="true">Ok</a>
+    </div>
+    <script>
+        $( document ).one( "pagebeforechange", function( e, data ) {
+          var opts = data.options.target.split("?")[1].split("&"); 
+          var adict = {}
+          for(var i=0;i<opts.length;i++) {
+              var splits = opts[i].split('=');
+              if (splits.length != 2) continue;
+              adict[splits[0]] = unescape(splits[1]);
+          }
+          $("#nedm_errorType").text(adict["error"]);
+          $("#errorText").text(adict["message"]);
+        });
+    </script>
+</div>
+
+<!-- /splash page #one -->
+
+</body>
+</html>
