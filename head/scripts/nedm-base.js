@@ -84,5 +84,31 @@ nedm.validate = function(un, pw, callback)
 //$(document).off('pageinit', 'update_header');
 $(document).on('mobileinit', function() {
   $(document).on('pageinit', nedm.update_header); 
+
+  // Handle page load fails from couchDB, forward to error.html
+  $(document).on('pageloadfailed', function( event, data) {
+
+    // Let the framework know we're going to handle things.
+    event.preventDefault();
+
+    // Remove loading message.
+    setTimeout(function() {
+                $.mobile.hidePageLoadingMsg();
+    }, $.mobile.loadPage.defaults.loadMsgDelay);
+
+    // parse the error/reason 
+    var error = escape(JSON.parse(data.xhr.responseText)["error"]);
+    var msg = escape(JSON.parse(data.xhr.responseText)["reason"]);
+    var page = "../../../nedm%2Fhead/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
+
+    // Call the change in a moment.
+    setTimeout(function() {
+      $.mobile.changePage(page, {transition: 'pop', role: 'dialog'});
+    }, 100);
+
+    // Resolve the deferred object.
+    data.deferred.reject(data.absUrl, data.options);    
+  }); 
+  
   //$.extend( $.mobile, { ajaxEnabled : false } );
 });
