@@ -34,7 +34,7 @@ nedm.update_buttons = function() {
             loginbtn.show();
             logoutbtn.hide();
         } else {
-            logoutbtn.find(".ui-btn-text").text("Logout (" + user_status + ")");
+            logoutbtn.text("Logout (" + user_status + ")");
             logoutbtn.show();
             loginbtn.hide();
         }
@@ -42,13 +42,11 @@ nedm.update_buttons = function() {
 }
 
 nedm.update_header = function(event, ui) {
-  $('.headerChild:not(:has(div))').load("_rewrite/_couchdb/nedm%2Fhead/_design/nedm_head/header.html", function() {
-      //$(this).find("[data-role=header]").header();
-      $(this).trigger('create');
+  $("#" + event.target.id + " .headerChild").load("../../../nedm%2Fhead/_design/nedm_head/header.html", function() {
+      $(this).find("[data-role=header]").trigger("create").toolbar();
       nedm.update_buttons();
   });
 
-  nedm.update_buttons();
   //if (hc.find("[data-role=header]").length == 0) {
   //  hc.load("header.html", nedm.update_buttons); 
   //} else {
@@ -63,7 +61,7 @@ nedm.set_user_name = function(userCtx) {
 
 nedm.check_user_status = function() {
     session.info(function(err, info) {
-       nedm.set_user_name(info.userCtx); 
+       if (info) nedm.set_user_name(info.userCtx); 
     });
     return nedm.logged_in_as;
 }
@@ -86,5 +84,5 @@ nedm.validate = function(un, pw, callback)
 //$(document).off('pageinit', 'update_header');
 $(document).on('mobileinit', function() {
   $(document).on('pageinit', nedm.update_header); 
-  $.extend( $.mobile, { ajaxEnabled : false } );
+  //$.extend( $.mobile, { ajaxEnabled : false } );
 });
