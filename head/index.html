@@ -16,7 +16,7 @@
     var dict_of_dbs = {}
     function buildDBList() {
        if ($('#listofdbs').length == 0) return;
-       $.getJSON('_rewrite/_couchdb/_all_dbs', function(data) {
+       $.getJSON('../../../_all_dbs', function(data) {
            var html ='';
            var patt = /^nedm\//;
            var number_of_current_dbs = Object.keys(dict_of_dbs).length;
@@ -27,7 +27,7 @@
                    if (db_name in dict_of_dbs) return;
                    dict_of_dbs[db_name] = [];
                    var esc_name = val.replace("\/", "%2F"); 
-                   html += '<li><a href="_rewrite/_couchdb/' + esc_name + 
+                   html += '<li><a href="../../../' + esc_name + 
                        '/_design/nedm_default/index.html">' + db_name + '</a></li>';
                }       
            });
@@ -41,6 +41,16 @@
        }); 
     }
     </script>
+    <script>
+    $(document).on('pageinit', '#base_home', function() {
+        buildDBList();
+    }); 
+    $(document).on('pagebeforeshow', '#base_home', function() {
+    //    $('#listofdbs').listview('refresh');
+    }); 
+</script>
+
+
 
 </head> 
 
@@ -65,16 +75,12 @@
     <script>$('headerKid').load('./index.html #standardHeader');</script> -->
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
         <h1>Subsystems</h1>
+        <a href="#" id="refresh_all_dbs" data-role="button" data-theme="b"  data-inline="true" 
+            onClick="buildDBList()">Refresh Subsystems</a><p>
         <ul data-role="listview" id="listofdbs">
         </ul>
     </div>
 </div>
-<script>
-    $("#base_home").on('pageinit', function(event, ui) {
-      buildDBList(); 
-    });
-</script>
-
 
 
 
