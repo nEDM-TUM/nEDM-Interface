@@ -26,8 +26,8 @@ except ImportError:
 
 
 _have_tried = False
-_username = None 
-_password = None 
+_username = "solar" 
+_password = "abcdef" #None
 
 def populate_username_pw():
     global _username, _password, _have_tried
