@@ -27,34 +27,25 @@
 <!-- Start of splash page: #one -->
 
 <!-- /splash page #one -->
-<div data-role="dialog" id="login">
+<div data-role="dialog" id="errorDialog">
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
-        <h1>Login:</h1><h2></h2>
-        <form id="HLogin">
-            <div data-role="fieldcontain">
-                <label for="url">Username:*</label>
-                <input class="required" id="Lusername" name="uid_r" type="text" value="">          
-            </div>
-            <div data-role="fieldcontain">
-                <label for="url">Password:*</label>
-                <input id="Lpassword" name="pwd_r" type="password" value="">          
-            </div>
-        </form> 
-        <a data-role="button" data-rel="back" data-theme="c" data-inline="true">Cancel</a>
-        <script type="text/javascript">
-        function login_callback(success) {
-            if (success) {
-                history.back();
-            } else {
-                $('#warningText').text("Password or UN not correct");  
-            }
-        }
-        </script> 
-        <a href="#" data-role="button" data-theme="b"  data-inline="true" 
-            onClick="nedm.validate($('#Lusername').val(), $('#Lpassword').val(),
-              login_callback)">Login</a>
-        <p id="warningText" style="color:red;"></p>
+        <h1 id="nedm_errorType">Error:</h1>
+        <p id="errorText" style="color:red;"></p>
+        <a data-role="button" data-rel="back" data-theme="c" data-inline="true">Ok</a>
     </div>
+    <script>
+        $( document ).one( "pagebeforechange", function( e, data ) {
+          var opts = data.options.target.split("?")[1].split("&"); 
+          var adict = {}
+          for(var i=0;i<opts.length;i++) {
+              var splits = opts[i].split('=');
+              if (splits.length != 2) continue;
+              adict[splits[0]] = unescape(splits[1]);
+          }
+          $("#nedm_errorType").text(adict["error"]);
+          $("#errorText").text(adict["message"]);
+        });
+    </script>
 </div>
 
 <!-- /splash page #one -->
