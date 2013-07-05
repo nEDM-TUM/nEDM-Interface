@@ -54,45 +54,56 @@
 <div data-role="page" id="monitor">
     <div class="headerChild"> 
     </div>
-
     <!--<div class="headerKid">
     </div>
     <script>$('headerKid').load('./index.html #standardHeader');</script> -->
-    
         <div id="div_g">
-<script type="text/javascript">
-      var data = [];
-      var t = new Date();
-      for (var i = 10; i >= 0; i--) {
-        var x = new Date(t.getTime() - i * 1000);
-        data.push([x, Math.random()]);
-      }
-
-      var g = new Dygraph(document.getElementById("div_g"), data,
-                          {
-                            drawPoints: true,
-                            showRoller: true,
-                            valueRange: [0.0, 1.2],
-                            labels: ['Time', 'Random']
-                          });
+		<script type="text/javascript">
+      			var data = [];
+      			/*var t = new Date();
       
-      g.resize(window.innerWidth,400);
-      setInterval(function() {
-        var x = new Date();  // current time
-        var y = Math.random();
-        data.push([x, y]);
-	if (data.length>20) {
-		data.shift()
-	}
-        g.updateOptions( { 'file': data } );
-      }, 1000);
+			for (var i = 10; i >= 0; i--) {
+			        var x = new Date(t.getTime() - i * 1000);
+			        data.push([x, Math.random()]);
+			}*/
 
-    </script>
+
+			var g = new Dygraph(
+				document.getElementById("div_g"),
+				data,
+                          	{
+                            		drawPoints: true,
+                            		showRoller: true,
+                            		//valueRange: [0.0, 1.2],
+                            		labels: ['Time', 'Value']
+                          	}
+			);
+      
+      			g.resize(window.innerWidth,400);
+    
+			// define the event handling function
+			if (window.EventSource) {
+				var source = new EventSource("/nedm%2Ftemperature/_changes?feed=eventsource&since=now");
+  
+				var sourceListener = function(e) {
+					var change = JSON.parse(e.data);
+
+					$.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
+        					data.push([
+							new Date(f.timestamp),
+							f.value
+						]);
+						if (data.length>20) {data.shift();}
+        					g.updateOptions( { 'file': data } );
+	 
+           				});
+				}; 
+			}; 
+
+			// start listening for events
+			source.addEventListener('message', sourceListener , false);
+	    </script>
     </div>
-
-
-
-
 </div>
 
 <div data-role="page" id="history">
