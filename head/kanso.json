@@ -11,6 +11,8 @@
     "properties" : null,
     "users" : null,
     "session" : null,
+    "handlebars" : null,
+    "db" : null,
     "couchtypes" : null
   } 
 }
