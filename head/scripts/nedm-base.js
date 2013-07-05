@@ -1,4 +1,6 @@
 var session = require("session");
+var db = require("db");
+var handlebars = require("handlebars");
 
 var nedm = nedm || {};
 nedm.logged_in_as = null;
@@ -81,6 +83,54 @@ nedm.validate = function(un, pw, callback)
             });
 }
 
+nedm.compile = function(astr) {
+    return handlebars.compile(astr);
+}
+
+// Returns all the most recent database info
+nedm.get_database_info = function( callback ) {
+
+    // First define a function to grab all the information
+    function getDBInfo(db_name) {
+           var esc_name = "nedm%2F" + db_name; 
+           var dfd = new $.Deferred();
+           var callback = function (data, msg) {
+               return [db_name, data, msg]; 
+           };
+           var json_subm = $.getJSON("/" + esc_name + "/subsystem_information"); 
+           json_subm.done( function(data) {
+               dfd.resolve( callback(data, "found") );
+           });
+           json_subm.fail( function(data) {
+               dfd.resolve( callback(data), "notfound" );
+           });
+           return dfd.promise();
+    };
+
+    $.getJSON('/_all_dbs', function(data) {
+        var patt = /^nedm\//;
+        var db_infos = [];
+        $.each(data, function(key, val) {
+            if (patt.exec(val) != null) {
+                var db_name = val.substring(5);
+                db_infos.push(getDBInfo(db_name));
+            }       
+        });
+        $.when.apply($, db_infos).done(function() {
+            var current_database_info = {};
+            for(var i=0;i<arguments.length;i++) {
+                var obj = arguments[i];
+                if (obj[2] != "found") continue;
+                current_database_info[obj[0]] = obj[1];
+            }
+            callback( current_database_info );
+        });
+    });
+        
+
+}
+
+
 //$(document).off('pageinit', 'update_header');
 $(document).on('mobileinit', function() {
   $(document).on('pageinit', nedm.update_header); 
@@ -110,5 +160,4 @@ $(document).on('mobileinit', function() {
     data.deferred.reject(data.absUrl, data.options);    
   }); 
   
-  //$.extend( $.mobile, { ajaxEnabled : false } );
 });
