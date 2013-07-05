@@ -44,8 +44,18 @@ nedm.update_buttons = function() {
 }
 
 nedm.update_header = function(event, ui) {
-  $("#" + event.target.id + " .headerChild").load("../../../nedm%2Fhead/_design/nedm_head/header.html", function() {
+
+  $("#" + event.target.id + " .headerChild").load("/nedm%2Fhead/_design/nedm_head/header.html", function() {
       $(this).find("[data-role=header]").trigger("create").toolbar();
+      var hn = $(this).find('#nedm_header_name');
+      var callback = function(dbs) {
+        var db = /nedm%2F(.*?)\//g.exec(document.URL)[1];
+        if (db in dbs) {
+          hn.text("nEDM Interface: " + dbs[db].prettyname);
+        } 
+      };
+      nedm.get_database_info(callback);
+
       nedm.update_buttons();
   });
 

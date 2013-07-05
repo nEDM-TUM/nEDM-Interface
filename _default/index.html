@@ -33,14 +33,22 @@
     </div>
     <script>$('headerKid').load('./index.html #standardHeader');</script> -->
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
-        <h1 >Default</h1>
+        <h1 id="dbname">Default</h1>
         <ul data-role="listview" id="listofpages">
             <li><a href="monitor.html">Monitor</a></li>
             <li><a href="history.html">History</a></li>
             <li><a href="control.html">Control</a></li>
         </ul>
         <script>
-            $('#listofpages').trigger("create");
+            $(document).on("pageinit", function() {
+              $('#listofpages').trigger("create");
+              nedm.get_database_info( function(dbs)  {
+                var db = /nedm%2F(.*?)\//g.exec(document.URL)[1];
+                if (db in dbs) {
+                  $('#dbname').text(dbs[db].prettyname);
+                } 
+              });
+            });
         </script>
     </div>
 </div>
