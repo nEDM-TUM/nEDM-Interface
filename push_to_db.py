@@ -29,6 +29,11 @@ _have_tried = False
 _username = None 
 _password = None 
 
+def set_username_pw(un, pw):
+    global _username, _password
+    _username = un
+    _password = pw
+
 def populate_username_pw():
     global _username, _password, _have_tried
     if _have_tried or _username is None: _username = getpass.getpass("Username: ")
@@ -44,7 +49,6 @@ def execute_kanso(kanso_str):
 
     child = pexpect.spawn(kanso_str)
 
-    print kanso_str
     try:
         while 1:
             child.expect(".*Username:")
@@ -117,27 +121,54 @@ def push_database(host, db_name, folder):
     db_path = "http://" + host + "/" + db_name
     execute_kanso("kanso push _default " +  db_path) 
 
+"""
+upload data 
+
+"""
+def upload_data(host, db_name, folder):
+
+    # push defaults
+
+    db_path = "http://" + host + "/" + db_name
+    execute_kanso(" ".join(["kanso upload", "-f", folder, db_path]))
+
        
 
 """
 push to a given server, the databases will be automatically collected from the
 current folders.
 """
-
 def main(server = None):
 
     if server is None:
         server = "localhost:5984"
 
+    if os.path.exists(".nedmrc"):
+        try:
+            obj = json.load(open(".nedmrc"))
+            if "server" in obj: server = obj["server"]
+            try:
+                set_username_pw(obj["username"], obj["password"])
+            except KeyError: pass
+        except ValueError:
+            print ".nedmrc found, but not formatted properly.  Ignoring..."
+            pass
+
     dbnames = [db for db in glob.glob("subsystems/*") if os.path.isdir(db)] 
 
-    #dbnames.append("head")
+    
     for db_path in dbnames:
+        print "Pushing to: ", db_path
         db_name = "nedm%2F" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
         update_security(server, db_name, db_path) 
+        data_dir = os.path.join(db_path, "data")
+        if os.path.isdir(data_dir): 
+            upload_data(server, db_name, data_dir) 
 
+    # Handle head specially
     for db_path in ["head"]:
+        print "Pushing to: ", db_path
         db_name = "nedm%2F" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
         server_path = "http://" + server + "/" + db_name
