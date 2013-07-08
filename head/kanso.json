@@ -13,6 +13,8 @@
     "session" : null,
     "handlebars" : null,
     "db" : null,
-    "couchtypes" : null
+    "couchtypes" : null,
+    "jquery" : "1.9.1-kanso.2", 
+    "jquery-mobile" : "1.4.0pre"
   } 
 }

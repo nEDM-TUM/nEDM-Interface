@@ -1,6 +1,7 @@
 var session = require("session");
 var db = require("db");
 var handlebars = require("handlebars");
+require("jquery");
 
 var nedm = nedm || {};
 nedm.logged_in_as = null;
@@ -159,7 +160,7 @@ $(document).on('mobileinit', function() {
     // parse the error/reason 
     var error = escape(JSON.parse(data.xhr.responseText)["error"]);
     var msg = escape(JSON.parse(data.xhr.responseText)["reason"]);
-    var page = "../../../nedm%2Fhead/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
+    var page = "/nedm%2Fhead/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
 
     // Call the change in a moment.
     setTimeout(function() {
@@ -171,3 +172,5 @@ $(document).on('mobileinit', function() {
   }); 
   
 });
+
+require("jquery-mobile");
