@@ -7,7 +7,17 @@
 	<link rel="stylesheet" href="/nedm%2Fhead/_design/nedm_head/style/jquery.mobile-1.4.0-pre.css" />
 	<script src="/nedm%2Fhead/_design/nedm_head/modules.js"></script>
 	<script src="/nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
+	<script src="/nedm%2Fhead/_design/nedm_head/scripts/dygraph-combined.js"></script>
 	<style> .center { text-align: center; } </style>
+	<style> type="text/css">
+	#div_g {
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	top: 40px;
+	bottom: 100px;
+	}
+	</style>
 
 </head> 
 
@@ -24,6 +34,58 @@
     <script>$('headerKid').load('./index.html #standardHeader');</script> -->
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
         <h1 >Monitor</h1>
+	<div id="div_g">
+
+    </div>
+		<script type="text/javascript">
+      			var data = [];
+      			var t = new Date();
+      
+			for (var i = 10; i >= 0; i--) {
+			        var x = new Date(t.getTime() - i * 1000);
+			        data.push([x, Math.random()]);
+			}
+
+
+			var g = new Dygraph(
+				document.getElementById("div_g"),
+				data,
+                          	{
+                            		drawPoints: true,
+                            		showRoller: true,
+                            		//valueRange: [0.0, 1.2],
+                            		labels: ['Time', 'Value']
+                          	}
+			);
+      
+      			g.resize(window.innerWidth,400);
+    
+                        var eventHandling = function () {
+			// define the event handling function
+			if (window.EventSource) {
+				var source = new EventSource("/nedm%2Ftemperature/_changes?feed=eventsource&since=now");
+  
+				var sourceListener = function(e) {
+					var change = JSON.parse(e.data);
+
+					$.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
+        					data.push([
+							new Date(f.timestamp),
+							f.value
+						]);
+						if (data.length>20) {data.shift();}
+        					g.updateOptions( { 'file': data } );
+	 
+           				});
+				}; 
+			};
+                        source.addEventListener('message', sourceListener , false);
+ 
+                        };
+                        $(document).on('pageinit', eventHandling);
+			// start listening for events
+			
+	    </script>
     </div>
 </div>
 
