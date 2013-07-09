@@ -16,6 +16,57 @@ session.on('change', function(userCtx) {
 
 
 
+// Wrap for db function until the db package is updated
+nedm.use_db = function(url) {
+    /* Force leading slash; make absolute path. */
+ 
+    // From https://gist.github.com/jlong/2428561
+    // We use the DOM to get us info about the url 
+    var parse = document.createElement('a');
+    parse.href = url; 
+ 
+    // First check if it's already absolute:
+    if (parse.href != url) {
+        // We are on the same host
+        // Now ensure we have a relative root-path
+        if (url[0] != '/') parse.href = '/' + url; 
+    }    
+ 
+    // Make absolute path
+    url = parse.href;
+    var db = require("db").use(url);
+
+    // hack to fix version 0.13 of db
+    if (db.url[0] =='/') db.url = db.url.substr(1);
+    db.updateDoc = function (doc, designname, updatename, callback) {
+        var method, url = this.url;
+        url += '/_design/' + designname + '/_update/' + updatename;
+        if (doc._id === undefined) {
+            method = "POST";
+        }
+        else {
+            method = "PUT";
+            url += '/' + doc._id;
+        }
+        try {
+            var data = JSON.stringify(doc);
+        }
+        catch (e) {
+            return callback(e);
+        }
+        var req = {
+            type: method,
+            url: url,
+            data: data,
+            processData: false,
+            contentType: 'application/json',
+            expect_json: true
+        };
+        this.request(req, callback);
+    };
+    return db;
+}
+
 nedm.namespace = function(namespaceString) {
     var parts = namespaceString.split('.'),
     parent = window,
