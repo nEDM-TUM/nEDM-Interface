@@ -17,31 +17,30 @@ session.on('change', function(userCtx) {
 
 
 nedm.namespace = function(namespaceString) {
-        var parts = namespaceString.split('.'),
-            parent = window,
-            currentPart = '';    
-            
-        for(var i = 0, length = parts.length; i < length; i++) {
-            currentPart = parts[i];
-            parent[currentPart] = parent[currentPart] || {};
-            parent = parent[currentPart];
-        }
-        return parent;
+    var parts = namespaceString.split('.'),
+    parent = window,
+    currentPart = '';    
+    for(var i = 0, length = parts.length; i < length; i++) {
+        currentPart = parts[i];
+        parent[currentPart] = parent[currentPart] || {};
+        parent = parent[currentPart];
+    }
+    return parent;
 }
 
 
 nedm.update_buttons = function() {
-        var user_status = nedm.check_user_status();
-        var loginbtn = $("a[id*=loginbtn]"); 
-        var logoutbtn = $("a[id*=logoutbtn]"); 
-        if (user_status == null) {
-            loginbtn.show();
-            logoutbtn.hide();
-        } else {
-            logoutbtn.text("Logout (" + user_status + ")");
-            logoutbtn.show();
-            loginbtn.hide();
-        }
+    var user_status = nedm.check_user_status();
+    var loginbtn = $("a[id*=loginbtn]"); 
+    var logoutbtn = $("a[id*=logoutbtn]"); 
+    if (user_status == null) {
+        loginbtn.show();
+        logoutbtn.hide();
+    } else {
+        logoutbtn.text("Logout (" + user_status + ")");
+        logoutbtn.show();
+        loginbtn.hide();
+    }
 
 }
 
@@ -143,7 +142,6 @@ nedm.get_database_info = function( callback ) {
 }
 
 
-//$(document).off('pageinit', 'update_header');
 $(document).on('mobileinit', function() {
   $(document).on('pageinit', nedm.update_header); 
 
@@ -174,4 +172,5 @@ $(document).on('mobileinit', function() {
   
 });
 
+// Load jquery-mobile at the very end
 require("jquery-mobile");
