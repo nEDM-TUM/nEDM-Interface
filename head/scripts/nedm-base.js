@@ -1,6 +1,7 @@
 var session = require("session");
 var db = require("db");
 var handlebars = require("handlebars");
+var dygraphs = require("dygraph-combined");
 require("jquery");
 
 var nedm = nedm || {};
