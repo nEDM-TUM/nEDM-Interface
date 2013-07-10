@@ -51,6 +51,8 @@
                     title = arr[3]; 
                     $("#controlDiv").append("<div><h3>" + title + "<\/h3>" + html +
                                             "<script>" + script + "<\/script></div>");
+                    $("#controlDiv").append('<a href="#help' + key + '" data-rel="popup"  data-role="button" class="ui-icon-alt" data-inline="true" data-transition="pop" data-icon="info" data-theme="e" data-iconpos="notext">Help<\/a>');
+                    $("#controlDiv").append('<div data-role="popup" id="help' + key + '"><p>' + helptext + '<\/p><\/div>');
                     $("#controlDiv").trigger("create");
             }
         });
