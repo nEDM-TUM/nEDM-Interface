@@ -44,24 +44,22 @@ require("db").guessCurrent = function (loc) {
 
 nedm.open_changes_feeds = {};
 
-nedm.build_url = function(db, options) {
-    options.feed = "eventsource";
-    var url = db.url + "/_changes?";
+nedm.build_url = function(options) {
+    var url = ""; 
 
     var first = true;
     for(var key in options) {
-        if (!first) {
-            first = false;
-            url += "&";
-        }
+        if (!first) url += "&";
+        else url = "?";
+        first = false;
         url += key + "=" + options[key];
     }
-    return url;
+    return encodeURI(url);
 }
 
 nedm.listen_to_changes_feed = function(db, tag, callback, options) {
-
-    var url = nedm.build_url(db, options);
+    options.feed = "eventsource";
+    var url = db.url + "/_changes" + nedm.build_url(options);
 
     if (!(url in nedm.open_changes_feeds)) {
         // start a new listener
@@ -75,7 +73,8 @@ nedm.listen_to_changes_feed = function(db, tag, callback, options) {
 
 nedm.cancel_changes_feed = function(db, tag, options) {
 
-    var url = nedm.build_url(db, options);
+    options.feed = "eventsource";
+    var url = db.url + "/_changes" + nedm.build_url(options);
     if (!(url in nedm.open_changes_feeds)) return; 
     
     if (!(tag in nedm.open_changes_feeds[url][1])) return;
@@ -115,6 +114,30 @@ nedm.update_db_interface = function(db) {
         };
         this.request(req, callback);
     };
+    db.getView = function(name, view, options, callback) {
+        if (!callback) {
+            callback = options;
+            options = {};
+        }
+        if (!options.keys) options.keys = {};
+        if (!options.opts) options.opts = {};
+        var viewname = this.encode(view);
+        try {
+            var data = this.stringifyQuery(options.keys);
+        }
+        catch (e) {
+            return callback(e);
+        }
+        var req = {
+            url: this.url +
+                '/_design/' + this.encode(name) +
+                '/_view/' + viewname + nedm.build_url(options.opts),
+            expect_json: true,
+            data: data
+        };
+        this.request(req, callback);
+    };
+
 
 }
 
