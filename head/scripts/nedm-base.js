@@ -139,6 +139,15 @@ nedm.update_db_interface = function(db) {
     };
 
 
+    db.listen_to_changes_feed = function(tag, callback, options) {
+        return nedm.listen_to_changes_feed(this, tag, callback, options);
+    }
+
+    db.cancel_changes_feed = function(tag, options) {
+        return nedm.cancel_changes_feed(this, tag, callback);
+    }
+
+
 }
 
 
