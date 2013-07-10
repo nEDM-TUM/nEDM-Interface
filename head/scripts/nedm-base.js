@@ -16,28 +16,51 @@ session.on('change', function(userCtx) {
 
 
 
-// Wrap for db function until the db package is updated
-nedm.use_db = function(url) {
-    /* Force leading slash; make absolute path. */
- 
-    // From https://gist.github.com/jlong/2428561
-    // We use the DOM to get us info about the url 
-    var parse = document.createElement('a');
-    parse.href = url; 
- 
-    // First check if it's already absolute:
-    if (parse.href != url) {
-        // We are on the same host
-        // Now ensure we have a relative root-path
-        if (url[0] != '/') parse.href = '/' + url; 
-    }    
- 
-    // Make absolute path
-    url = parse.href;
-    var db = require("db").use(url);
 
-    // hack to fix version 0.13 of db
-    if (db.url[0] =='/') db.url = db.url.substr(1);
+// Fix db guessCurrent
+require("db").guessCurrent = function (loc) {
+    var loc = loc || window.location;
+
+    /**
+     * A database must be named with all lowercase letters (a-z), digits (0-9),
+     * or any of the _$()+-/ characters and must end with a slash in the URL.
+     * The name has to start with a lowercase letter (a-z).
+     *
+     * http://wiki.apache.org/couchdb/HTTP_database_API
+     */
+
+    var re = /\/([a-z][a-z0-9_(%2F)\$\(\)\+-\/]*)\/_design\/([^\/]+)\//;
+    var match = re.exec(loc.pathname);
+
+    if (match) {
+        return {
+            db: match[1],
+            design_doc: match[2],
+            root: '/'
+        }
+    }
+    return null;
+};
+
+nedm.open_changes_feeds = {};
+
+nedm.build_url = function(db, options) {
+    options.feed = "eventsource";
+    var url = db.url + "/_changes?";
+
+    var first = true;
+    for(var key in options) {
+        if (!first) {
+            first = false;
+            url += "&";
+        }
+        url += key + "=" + options[key];
+    }
+    return url;
+}
+
+nedm.update_db_interface = function(db) {
+    // Add updateDoc to the API
     db.updateDoc = function (doc, designname, updatename, callback) {
         var method, url = this.url;
         url += '/_design/' + designname + '/_update/' + updatename;
@@ -64,6 +87,37 @@ nedm.use_db = function(url) {
         };
         this.request(req, callback);
     };
+
+}
+
+
+// Fix db function use 
+nedm.old_use = require("db").use;
+// overwrite faulty db functions
+require("db").use = function (url) {
+    /* Force leading slash; make absolute path. */
+ 
+    // From https://gist.github.com/jlong/2428561
+    // We use the DOM to get us info about the url 
+    var parse = document.createElement('a');
+    parse.href = url; 
+ 
+    // First check if it's already absolute:
+    if (parse.href != url) {
+        // We are on the same host
+        // Now ensure we have a relative root-path
+        if (url[0] != '/') parse.href = '/' + url; 
+    }    
+ 
+    // Make absolute path
+    url = parse.href;
+    var db = nedm.old_use(url); 
+
+    // hack to fix version 0.13 of db
+    if (db.url[0] =='/') db.url = db.url.substr(1);
+
+    nedm.update_db_interface(db);
+
     return db;
 }
 
