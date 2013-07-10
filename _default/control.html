@@ -32,8 +32,31 @@
     <script>$('headerKid').load('./index.html #standardHeader');</script> -->
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
         <h1 >Control</h1>
+        <div id="controlDiv">
+        </div>
     </div>
 </div>
+
+<script>
+    function loadControls() {
+        var mydb = db.current();
+        mydb.getView("nedm_default", "controls", function(err, objs) { 
+            if (err != null) return; 
+            for(var i=0;i<objs.rows.length;i++) {
+                var arr = objs.rows[i].value;
+                var key = objs.rows[i].key;
+                var html = arr[0],
+                    script = arr[1],
+                    helptext = arr[2],
+                    title = arr[3]; 
+                    $("#controlDiv").append("<div><h3>" + title + "<\/h3>" + html +
+                                            "<script>" + script + "<\/script></div>");
+                    $("#controlDiv").trigger("create");
+            }
+        });
+    }
+    $(document).on("pageinit", loadControls);
+</script>
 
 
 </body>
