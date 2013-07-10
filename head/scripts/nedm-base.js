@@ -59,6 +59,34 @@ nedm.build_url = function(db, options) {
     return url;
 }
 
+nedm.listen_to_changes_feed = function(db, tag, callback, options) {
+
+    var url = nedm.build_url(db, options);
+
+    if (!(url in nedm.open_changes_feeds)) {
+        // start a new listener
+        var listener = new EventSource(url);
+        nedm.open_changes_feeds[url] = [listener, {}];
+
+    }
+    nedm.open_changes_feeds[url][1][tag] = callback; 
+    nedm.open_changes_feeds[url][0].addEventListener("message", callback, false); 
+}
+
+nedm.cancel_changes_feed = function(db, tag, options) {
+
+    var url = nedm.build_url(db, options);
+    if (!(url in nedm.open_changes_feeds)) return; 
+    
+    if (!(tag in nedm.open_changes_feeds[url][1])) return;
+
+    var src = nedm.open_changes_feeds[url][0];
+    var callb = nedm.open_changes_feeds[url][1][tag];
+    src.removeEventListener("message", callb, false); 
+    delete nedm.open_changes_feeds[url][1][tag];
+}
+
+
 nedm.update_db_interface = function(db) {
     // Add updateDoc to the API
     db.updateDoc = function (doc, designname, updatename, callback) {
