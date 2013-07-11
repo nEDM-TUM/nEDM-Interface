@@ -23,11 +23,11 @@ exports.insert_with_timestamp = function(doc, req) {
 
     var ts  = new Date().toUTCString();
     var user = req.userCtx.name;
-    var message = 'insert with user (time) ' + user +
+    var message = 'insert with user (time): ' + user +
                   ' (' + ts + ')'; 
 
     // Always update the created_by and timestamp
     doc.created_by = user;
     doc.timestamp  = ts;
-    return [doc, message]; 
+    return [doc, JSON.stringify({msg : message})]; 
 };
