@@ -24,10 +24,12 @@ exports.slow_control_time = {
   map: function(doc) {
            if (!doc.type || doc.type != "data") return;
            var then = new Date(Date.parse(doc.timestamp));
-           emit([doc.name,
-                 then.getFullYear(), then.getMonth(), 
-                 then.getDay(), then.getHours(), 
-                 then.getMinutes(), then.getSeconds()], doc.value);
+           for (var key in doc.value) {
+               emit([key,
+                     then.getFullYear(), then.getMonth(), 
+                     then.getDay(), then.getHours(), 
+                     then.getMinutes(), then.getSeconds()], doc.value[key]);
+           }
   },
   reduce : function(keys, values, rereduce) {
            if (!rereduce) {
@@ -46,7 +48,9 @@ exports.slow_control_time = {
 exports.latest_value = {
   map: function(doc) {
            if (!doc.type || doc.type != "data") return;
-           emit(doc.name, {"value" : doc.value, "timestamp" : doc.timestamp}); 
+           for (var key in doc.value) {
+               emit(key, {"value" : doc.value[key], "timestamp" : doc.timestamp}); 
+           }
   },
   reduce : function(keys, values, rereduce) {
       var latest_time = "0";
