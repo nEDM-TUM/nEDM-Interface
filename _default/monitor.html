@@ -7,6 +7,7 @@
 	<link rel="stylesheet" href="/nedm%2Fhead/_design/nedm_head/style/jquery.mobile-1.4.0-pre.css" />
 	<script src="/nedm%2Fhead/_design/nedm_head/modules.js"></script>
 	<script src="/nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
+	<script src="../../../nedm%2Fhead/_design/nedm_head/scripts/dygraph-combined.js"></script>
 	<style> .center { text-align: center; } </style>
 	<style> type="text/css">
 	#div_g {
@@ -36,57 +37,18 @@
 	<div id="div_g">
 
     </div>
-		<script type="text/javascript">
-      			var data = [];
-      			var t = new Date();
-      
-			for (var i = 10; i >= 0; i--) {
-			        var x = new Date(t.getTime() - i * 1000);
-			        data.push([x, Math.random()]);
-			}
+<!--		<select id="entry_14" onchange="myfunction(this.value);">-->
+<!--    				<option value=30>big</option> -->
+<!--  				<option  value=20>small</option>-->
+<!--			</select>-->
 
+		<label for="size">number of displayed values</label>
+		<input type="number" step="1" value="10" id="size" onchange="changeSize(this.value)"/>
 
-			var g = new dygraphs.Dygraph(
-				document.getElementById("div_g"),
-				data,
-                          	{
-                            		drawPoints: true,
-                            		showRoller: true,
-                            		//valueRange: [0.0, 1.2],
-                            		labels: ['Time', 'Value']
-                          	}
-			);
-      
-      			g.resize(window.innerWidth,400);
-    
-                        var eventHandling = function () {
-			// define the event handling function
-			if (window.EventSource) {
-				var source = new EventSource("/nedm%2Ftemperature/_changes?feed=eventsource&since=now");
-  
-				var sourceListener = function(e) {
-					var change = JSON.parse(e.data);
+<!--		<div><input type="submit" value="Submit" id="submit" onsubmit="myfunction2()"></div>-->
 
-					$.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
-        					data.push([
-							new Date(f.timestamp),
-							f.value
-						]);
-						if (data.length>20) {data.shift();}
-        					g.updateOptions( { 'file': data } );
-	 
-           				});
-				}; 
-			};
-                        source.addEventListener('message', sourceListener , false);
- 
-                        };
-                        $(document).on('pageinit', eventHandling);
-			// start listening for events
-			
-	    </script>
+		<script src="monitor.js" type="text/javascript"></script>
     </div>
 </div>
-
 </body>
 </html>
