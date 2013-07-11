@@ -1,0 +1,46 @@
+{
+  "_id" : "switch_template",
+  "type" : "control_template",
+  "title" : "{{title}}",
+  "description" : "{{description}}",
+
+  "html" : "
+<!--  Here we input html that should be added to the page for this control -->
+<select id='{{{switch_name}}}-a' data-role='slider'>
+  <option value=0>Off</option>
+  <option value=1>On</option>
+</select>
+<p id='{{{switch_name}}}_text' style='color:blue;'></p>
+",
+
+  "script" : "
+
+  var sync_func = function() {
+    db.current().getView('nedm_default', 'latest_value', 
+      { opts : {group : true}, keys : {keys : ['{{{switch_name}}}']} }, 
+      function(err, objs) {  
+         if (err != null) return;
+         if (objs.rows.length != 1) return; 
+         var arr = objs.rows[0];
+         $('#{{{switch_name}}}-a').val(arr.value.value);
+         $('#{{{switch_name}}}-a').slider('refresh');
+         $('#{{{switch_name}}}_text').text('Last updated: ' + arr.value.timestamp);
+    })
+  };
+
+  // On a change in the button, upload a document into the database
+  $('#{{{switch_name}}}-a').on( 'change' , function (event, ui) { 
+    db.current().updateDoc({ type : 'data', value : { '{{{switch_name}}}' : this.value} }, 
+        'nedm_default', 'insert_with_timestamp', function(err, obj) { 
+           if (err != null) {
+               nedm.show_error_window(err.error, err.reason);
+               sync_func();
+           }
+    } ); 
+  });
+
+  sync_func(); // Make sure we have the right value now.
+  db.current().listen_to_changes_feed('{{{switch_name}}}', sync_func, {since : 'now'});
+"
+
+}
