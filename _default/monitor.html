@@ -39,23 +39,63 @@
 	<div id="div_g">
 
     </div>
+<!--		<select id="entry_14" onchange="myfunction(this.value);">-->
+<!--    				<option value=30>big</option> -->
+<!--  				<option  value=20>small</option>-->
+<!--			</select>-->
+
+		<label for="size">number of displayed values</label>
+		<input type="number" step="1" value="10" id="size" onchange="changeSize(this.value)"/>
+
+<!--		<div><input type="submit" value="Submit" id="submit" onsubmit="myfunction2()"></div>-->
+
 		<script type="text/javascript">
+			
+			var size = document.getElementById('size').value;
+			
+			function changeSize(val) {
+        			size=val;
+				if (data.length>size) {
+					var len = data.length-size;
+					for (var i = 0; i< len; i++) {
+						data.shift();
+					}
+				}
+				if (data.length<size) {
+					$.getJSON( "/nedm%2Ftemperature/_changes?limit="+size+"&include_docs=true&descending=true", function(f)
+						{
+						for (var i=data.length; i < size; i++) {
+							if (f.results[i].id!="_design/nedm_default") {							
+								data.unshift([
+								new Date(f.results[i].doc.timestamp),
+								f.results[i].doc.valdict['fake_device']
+								]);}
+						}
+	 				});
+				}
+        			g.updateOptions( { 'file': data } );
+    			}
+
       			var data = [];
       			var t = new Date();
+
+			$.getJSON( "/nedm%2Ftemperature/_changes?limit="+size+"&include_docs=true&descending=true", function(f) {
+				for (var i=size-1; i >= 0; i--) {
+					if (f.results[i].id!="_design/nedm_default") {
+						data.push([
+						new Date(f.results[i].doc.timestamp),
+						f.results[i].doc.valdict['fake_device']
+						]);
+					}
+				}
+	 		});
       
-			for (var i = 10; i >= 0; i--) {
-			        var x = new Date(t.getTime() - i * 1000);
-			        data.push([x, Math.random()]);
-			}
-
-
 			var g = new Dygraph(
 				document.getElementById("div_g"),
 				data,
                           	{
                             		drawPoints: true,
-                            		showRoller: true,
-                            		//valueRange: [0.0, 1.2],
+                            		showRoller: false,
                             		labels: ['Time', 'Value']
                           	}
 			);
@@ -71,11 +111,13 @@
 					var change = JSON.parse(e.data);
 
 					$.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
-        					data.push([
-							new Date(f.timestamp),
-							f.value
-						]);
-						if (data.length>20) {data.shift();}
+							if (f.id!="_design/nedm_default") {
+								data.push([
+								new Date(f.timestamp),
+								f.valdict['fake_device']
+								]);
+							}
+						data.shift();
         					g.updateOptions( { 'file': data } );
 	 
            				});
