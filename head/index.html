@@ -9,34 +9,6 @@
 	<script src="/nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
 	<style> .center { text-align: center; } </style>
 
-    <script>
-    // We build the list of DBs to point to.  This is simply subsystems
-    var listview_made = false;
-    function buildDBList() {
-       if (listview_made) $('#listofdbs').empty(); 
-       nedm.get_database_info( function( dbs ) {
-           var totalhtml = '';
-           for(var key in dbs) {
-               var esc_name = "nedm%2F" + key; 
-               var html = '<li><a href="../../../' + esc_name + 
-                   '/_design/nedm_default/index.html">{{prettyname}}</a></li>';
-               totalhtml += nedm.compile(html)(dbs[key]);     
-           }
-           if (totalhtml == '') return;
-           $('#listofdbs').append($(totalhtml));
-           if (!listview_made) {
-               $('#listofdbs').trigger('create').listview('refresh');
-               listview_made = true;
-           } else {
-               $('#listofdbs').listview('refresh');
-           }
-       }); 
-    }
-    </script>
-    <script>
-    require("session").on("change", buildDBList);
-</script>
-
 
 
 </head> 
@@ -67,6 +39,36 @@
         <ul data-role="listview" id="listofdbs">
         </ul>
     </div>
+    <script>
+    // We build the list of DBs to point to.  This is simply subsystems
+    var listview_made = false;
+    function buildDBList() {
+       if (listview_made) $('#listofdbs').empty(); 
+       nedm.get_database_info( function( dbs ) {
+           var totalhtml = '';
+           for(var key in dbs) {
+               var esc_name = "nedm%2F" + key; 
+               var html = '<li><a href="../../../' + esc_name + 
+                   '/_design/nedm_default/index.html">{{prettyname}}</a></li>';
+               totalhtml += nedm.compile(html)(dbs[key]);     
+           }
+           if (totalhtml == '') return;
+           $('#listofdbs').append($(totalhtml));
+           if (!listview_made) {
+               $('#listofdbs').trigger('create').listview('refresh');
+               listview_made = true;
+           } else {
+               $('#listofdbs').listview('refresh');
+           }
+       }); 
+    }
+    </script>
+    <script>
+    require("session").on("change", buildDBList);
+    //$("#base_home").on("pageshow", buildDBList);
+    </script>
+
+
 </div>
 
 
