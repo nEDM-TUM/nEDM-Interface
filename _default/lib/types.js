@@ -12,8 +12,6 @@ exports.execute = new Type('execute', {
 
 exports.data = new Type('data', {
     fields : {
-                 name: fields.string(),
-                 value: fields.number(),
                  timestamp : fields.string(),
                  created_by : fields.string()
              }
