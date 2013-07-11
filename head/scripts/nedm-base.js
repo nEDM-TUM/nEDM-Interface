@@ -307,6 +307,29 @@ nedm.get_database_info = function( callback ) {
 
 }
 
+nedm.show_error_window = function(error, msg) {
+    var page = "/nedm%2Fhead/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
+
+    // First check to see if we are in the middle of a chain of authorization
+    // errors
+    var cIndex = $.mobile.urlHistory.activeIndex;
+    var stck = $.mobile.urlHistory.stack;
+    if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) != null) {
+        // Ok, we've seen an error.
+        // Pop this page out
+        stck.splice(cIndex, 1);
+        setTimeout(function() {
+          $.mobile.back();
+        }, 100);
+
+    } else {
+        // Call the change in a moment.
+        setTimeout(function() {
+          $.mobile.changePage(page, {transition: 'pop', role: 'dialog'});
+        }, 100);
+    }
+}
+
 
 $(document).on('mobileinit', function() {
   $(document).on('pageinit', nedm.update_header); 
@@ -325,17 +348,21 @@ $(document).on('mobileinit', function() {
     // parse the error/reason 
     var error = escape(JSON.parse(data.xhr.responseText)["error"]);
     var msg = escape(JSON.parse(data.xhr.responseText)["reason"]);
-    var page = "/nedm%2Fhead/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
-
-    // Call the change in a moment.
-    setTimeout(function() {
-      $.mobile.changePage(page, {transition: 'pop', role: 'dialog'});
-    }, 100);
+    nedm.show_error_window(error, msg);
 
     // Resolve the deferred object.
     data.deferred.reject(data.absUrl, data.options);    
   }); 
-  
+
+  $(document).on('pageload', function( event, data) {
+    var cIndex = $.mobile.urlHistory.activeIndex;
+    var stck = $.mobile.urlHistory.stack;
+    if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) != null) {
+        // Ok, we moved back successfully after an error, Pop this page out
+        stck.splice(cIndex+1, 1);
+
+    }
+  });  
 });
 
 // Load jquery-mobile at the very end
