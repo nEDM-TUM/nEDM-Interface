@@ -71,7 +71,7 @@
             });
         }
         $("#db_control").on("pageinit", function() { $("#controlDiv").trigger("create"); });
-        $("#db_control").on("pageshow", loadControls);
+        $("#db_control").on("pagebeforeshow", loadControls);
     </script>
 
 </div>
