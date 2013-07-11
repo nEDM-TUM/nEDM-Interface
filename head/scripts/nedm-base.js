@@ -135,10 +135,8 @@ nedm.update_db_interface = function(db) {
                 '/_view/' + viewname + nedm.build_url(options.opts),
             data: data,
             type: "POST",
-            dataType: "json",
-            success: callback
         };
-        $.ajax(req);
+        this.request(req, callback);
     };
 
 
