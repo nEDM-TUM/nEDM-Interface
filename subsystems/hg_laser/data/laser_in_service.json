@@ -1,0 +1,8 @@
+{
+  "_id" : "laser_in_service",
+  "type" : "control",
+  "title" : "Laser in Service",
+  "description" : "Determine if the Hg laser is in service or not",
+  "template" : "/nedm%2Fhead/switch_template",
+  "switch_name" : "laser_in_service"
+}
