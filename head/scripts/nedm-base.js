@@ -330,9 +330,38 @@ nedm.show_error_window = function(error, msg) {
     }
 }
 
+// We build the list of DBs to point to.  This is simply subsystems
+var listview_made = false;
+nedm.buildDBList = function(ev, id) {
+   nedm.get_database_info( function( x, y ) { return function( dbs ) {
+       var totalhtml = '';
+       for(var key in dbs) {
+           var esc_name = "nedm%2F" + key; 
+           var html = '<div data-role="collapsible"><h3>{{prettyname}}</h3>';
+           html    += '<ul data-role="listview" data-inset="false">';
+           if ("pages" in dbs[key]) {
+               for(var pg in dbs[key]["pages"]) {
+                   html += nedm.compile('<li><a href="/{{esc_name}}/_design/nedm_default/{{pgsrc}}">{{pgname}}</a></li>')(
+                     {esc_name : esc_name, pgsrc : dbs[key]["pages"][pg], pgname : pg});
+               }
+           }
+           html    += '</ul></div>';
+           totalhtml += nedm.compile(html)(dbs[key]);     
+       }
+       if (totalhtml == '') return;
+  
+       $("#" + x.target.id + " .listofdbs").append(totalhtml);
+       $("#" + x.target.id + " .listofdbs").trigger("create");
+   }}(ev,id)); 
+}
+
 
 $(document).on('mobileinit', function() {
-  $(document).on('pageinit', nedm.update_header); 
+
+  $(document).on('pageinit', function(x, y) {
+      nedm.update_header(x, y);
+      nedm.buildDBList(x, y);
+  }); 
 
   // Handle page load fails from couchDB, forward to error.html
   $(document).on('pageloadfailed', function( event, data) {

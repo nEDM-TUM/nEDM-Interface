@@ -8,6 +8,7 @@
 * http://jquery.org/license
 *
 */
+@import url("jqm-docs.css");
 
 
 /* Globals */
@@ -4205,4 +4206,3 @@ for Android 4.1 */
 		display: none;
 	}	
 }
-@import url("jqm-docs.css")
