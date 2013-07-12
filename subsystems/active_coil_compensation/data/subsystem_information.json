@@ -1,4 +1,9 @@
 {
   "_id" : "subsystem_information",
-  "prettyname" : "Active Coil Compensation"
+  "prettyname" : "Active Coil Compensation",
+  "pages" : {
+        "Control" : "control.html",
+        "Monitor" : "monitor.html",
+        "History" : "history.html"
+  }
 }
