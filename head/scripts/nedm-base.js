@@ -12,6 +12,7 @@ session.on('change', function(userCtx) {
   nedm.set_user_name(userCtx);
   nedm.update_buttons();
   //nedm.update_header();
+  nedm.buildDBList();
 });
 
 
@@ -348,10 +349,17 @@ nedm.buildDBList = function(ev, id) {
            html    += '</ul></div>';
            totalhtml += nedm.compile(html)(dbs[key]);     
        }
-       if (totalhtml == '') return;
   
-       $("#" + x.target.id + " .listofdbs").append(totalhtml);
-       $("#" + x.target.id + " .listofdbs").trigger("create");
+       if (x == null) {
+           // Means we have no specific event, change them all
+           $(".listofdbs").empty();
+           $(".listofdbs").append(totalhtml);
+           $(".listofdbs").trigger("create");
+       } else {
+           $("#" + x.target.id + " .listofdbs").empty();
+           $("#" + x.target.id + " .listofdbs").append(totalhtml);
+           $("#" + x.target.id + " .listofdbs").trigger("create");
+       }
    }}(ev,id)); 
 }
 
