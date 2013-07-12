@@ -53,10 +53,10 @@ exports.latest_value = {
            }
   },
   reduce : function(keys, values, rereduce) {
-      var latest_time = "0";
+      var latest_time = values[0].timestamp;;
       var val = values[0].value;
       for (var i=0;i<values.length;i++) {
-          if (values[i].timestamp > latest_time) {
+          if (Date.parse(values[i].timestamp) > Date.parse(latest_time)) {
               val = values[i].value;
               latest_time = values[i].timestamp;
           }
