@@ -121,20 +121,6 @@ p.intro strong {
 .type-interior .ui-content {
 	padding-bottom: 0;
 }
-.content-secondary .ui-collapsible {
-	padding: 10px 15px;
-}
-.content-secondary .ui-collapsible-inset {
-	margin: 0;
-}
-.content-secondary .ui-collapsible-content {
-	padding: 0;
-	background: none;
-}
-.content-secondary .ui-listview {
-	margin: 0;
-}
-/* new API additions */
 
 dt {  
 	margin: 35px 0 15px 0; 
@@ -319,17 +305,6 @@ dd h4 { margin:15px 0 0 0; }
 	.type-index .content-secondary {
 		padding: 0;
 	}
-	.content-secondary .ui-collapsible {
-		margin: 0;
-		padding: 0;
-	}
-	.content-secondary .ui-collapsible-content {
-		border-left: none;
-		border-right: none;
-	}
-	.type-index .content-secondary .ui-listview {
-		margin: 0;
-	}
 	.ui-mobile #jqm-homeheader {
 		padding: 0;
 	}
@@ -344,9 +319,6 @@ dd h4 { margin:15px 0 0 0; }
 		margin-top: 0;
 	}
 	/* collapsible non-inset example */
-	.content-primary .ui-collapsible-content ul:first-child {
-		margin-top: -10px;
-	}
 	.content-secondary h2 {
 		position: absolute;
 		left: -9999px;
@@ -356,25 +328,6 @@ dd h4 { margin:15px 0 0 0; }
 		margin: 0;
 	}
 	/* fix up the collapsibles - expanded on desktop */
-	.content-secondary .ui-collapsible-inset {
-		margin-bottom: -1px;
-	}
-	.content-secondary .ui-collapsible-heading {
-		display: none;
-	}
-	.content-secondary .ui-collapsible-contain {
-		margin:0;
-	}
-	.content-secondary .ui-collapsible-content {
-		display: block;
-		margin: 0;
-		padding: 0;
-	}
-	.content-secondary .ui-collapsible-content,
-	.content-secondary .ui-collapsible-content > .ui-listview .ui-li-last {
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
-	}
 	.type-interior  .content-secondary .ui-li-divider {
 		padding-top: 1em;
 		padding-bottom: 1em;

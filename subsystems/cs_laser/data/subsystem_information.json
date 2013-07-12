@@ -1,4 +1,10 @@
 {
   "_id" : "subsystem_information",
-  "prettyname" : "Cs System"
+  "prettyname" : "Cs System",
+  "pages" : {
+        "Control" : "control.html",
+        "Monitor" : "monitor.html",
+        "History" : "history.html"
+  }
+
 }
