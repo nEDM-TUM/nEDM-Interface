@@ -4,7 +4,9 @@ import subprocess
 import tempfile
 import os
 import glob
-import shutil
+import httplib
+import base64
+
 try:
     import pexpect
 except ImportError:
@@ -24,6 +26,7 @@ except ImportError:
 [sudo] easy_install json
 """
     sys.exit(1)
+import yaml
 
 
 _have_tried = False
@@ -133,24 +136,28 @@ def upload_data(host, db_name, folder):
     un, pw = populate_username_pw()
 
     # We have to explicitly call the server, with un, and pw if it's not yet there... 
-    db_path = "http://%s:%s@%s/%s" % (un, pw, host, db_name)
 
     # Unfortunately, due to a limitation in the kanso upload command, we need
     # to preprocess the files to remove new-lines
 
-    # copy to temp directory
-    tempd = tempfile.mkdtemp()
-
-    for af in glob.iglob(db_name + "/*"):
+    bulk_docs = {"docs" : []}
+    for af in glob.iglob(folder + "/*.json"):
         base_n = os.path.basename(af)
-        with open(af) as f: astr = f.read()
-        astr = astr.replace("\n", "\\n").replace("\r", "\\n")
-        with open(os.path.join(tempd, base_n), "w") as f: f.write(astr)
+        with open(af) as f: 
+            astr = '\n'.join([x for x in f.readlines() if x[0] != '#'])
 
-    execute_kanso(" ".join(["kanso upload", "-f", tempd, db_path]))
+        bulk_docs["docs"].append(yaml.load(astr))
 
-    # remove temp directory
-    shutil.rmtree(tempd)
+    headers = {"Content-type" : "application/json", 
+       "Authorization" : "Basic %s" % (base64.encodestring('%s:%s' % (un, pw)).rstrip()) }
+    conn = httplib.HTTPConnection(host) 
+    conn.request("POST", "/" + db_name + "/_bulk_docs", json.dumps(bulk_docs), headers)
+
+    resp = conn.getresponse()
+    if resp.status/100 != 2: 
+        print resp.status, resp.reason
+        sys.exit(1)
+
 
        
 
