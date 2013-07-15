@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import os
 import glob
+import shutil
 try:
     import pexpect
 except ImportError:
@@ -129,8 +130,27 @@ def upload_data(host, db_name, folder):
 
     # push defaults
 
-    db_path = "http://" + host + "/" + db_name
-    execute_kanso(" ".join(["kanso upload", "-f", folder, db_path]))
+    un, pw = populate_username_pw()
+
+    # We have to explicitly call the server, with un, and pw if it's not yet there... 
+    db_path = "http://%s:%s@%s/%s" % (un, pw, host, db_name)
+
+    # Unfortunately, due to a limitation in the kanso upload command, we need
+    # to preprocess the files to remove new-lines
+
+    # copy to temp directory
+    tempd = tempfile.mkdtemp()
+
+    for af in glob.iglob(db_name + "/*"):
+        base_n = os.path.basename(af)
+        with open(af) as f: astr = f.read()
+        astr = astr.replace("\n", "\\n").replace("\r", "\\n")
+        with open(os.path.join(tempd, base_n), "w") as f: f.write(astr)
+
+    execute_kanso(" ".join(["kanso upload", "-f", tempd, db_path]))
+
+    # remove temp directory
+    shutil.rmtree(tempd)
 
        
 
@@ -173,6 +193,9 @@ def main(server = None):
         push_database(server, db_name, db_path)
         server_path = "http://" + server + "/" + db_name
         execute_kanso("kanso push " + db_path  + " " + server_path)
+        data_dir = os.path.join(db_path, "data")
+        if os.path.isdir(data_dir): 
+            upload_data(server, db_name, data_dir) 
 
 
 
