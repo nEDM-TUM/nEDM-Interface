@@ -13,9 +13,19 @@
 <p id='{{{switch_name}}}_text' style='color:blue;'></p>
 ",
 
+  "pageevents" : {
+      "pagehide" :  "function() {
+        db.current().cancel_changes_feed('{{{switch_name}}}');
+      }"
+      "pageshow" :  "function() {
+        db.current().listen_to_changes_feed('{{{switch_name}}}');
+      }"
+  },
   "script" : "
 
-  var sync_func = function() {
+  // We define a synchronization function which synchronizes the web-site with
+  // the database
+  var sync_func_{{switch_name}} = function() {
     db.current().getView('nedm_default', 'latest_value', 
       { opts : {group : true}, keys : {keys : ['{{{switch_name}}}']} }, 
       function(err, objs) {  
@@ -34,13 +44,13 @@
         'nedm_default', 'insert_with_timestamp', function(err, obj) { 
            if (err != null) {
                nedm.show_error_window(err.error, err.reason);
-               sync_func();
+               sync_func_{{switch_name}}();
            }
     } ); 
   });
+  sync_func_{{switch_name}}();
+  db.current().listen_to_changes_feed('{{{switch_name}}}', sync_func_{{switch_name}}, {since : 'now'});
+  
 
-  sync_func(); // Make sure we have the right value now.
-  db.current().listen_to_changes_feed('{{{switch_name}}}', sync_func, {since : 'now'});
 "
-
 }
