@@ -43,8 +43,6 @@ require("db").guessCurrent = function (loc) {
     return null;
 };
 
-nedm.open_changes_feeds = {};
-
 nedm.build_url = function(options) {
     var url = ""; 
 
@@ -58,32 +56,38 @@ nedm.build_url = function(options) {
     return encodeURI(url);
 }
 
+nedm.open_changes_feeds = { taglist: {}, urllist: {}};
+
 nedm.listen_to_changes_feed = function(db, tag, callback, options) {
     options.feed = "eventsource";
     var url = db.url + "/_changes" + nedm.build_url(options);
 
-    if (!(url in nedm.open_changes_feeds)) {
+    if (!(url in nedm.open_changes_feeds.urllist)) {
         // start a new listener
         var listener = new EventSource(url);
-        nedm.open_changes_feeds[url] = [listener, {}];
+        nedm.open_changes_feeds.urllist[url] = {src: listener, taglist: {}};
 
     }
-    nedm.open_changes_feeds[url][1][tag] = callback; 
-    nedm.open_changes_feeds[url][0].addEventListener("message", callback, false); 
+    if (tag in nedm.open_changes_feeds.taglist) {
+        console.log("Warning: removing tag '" + tag +"'");
+        nedm.cancel_changes_feed(db, tag)
+    }
+    nedm.open_changes_feeds.taglist[tag] = {callb: callback, url: url}; 
+    nedm.open_changes_feeds.urllist[url].src.addEventListener("message", callback, false); 
+    nedm.open_changes_feeds.urllist[url].taglist[tag] = {};
 }
 
-nedm.cancel_changes_feed = function(db, tag, options) {
+nedm.cancel_changes_feed = function(db, tag) {
 
-    options.feed = "eventsource";
-    var url = db.url + "/_changes" + nedm.build_url(options);
-    if (!(url in nedm.open_changes_feeds)) return; 
+    if (!(tag in nedm.open_changes_feeds.taglist)) return; 
     
-    if (!(tag in nedm.open_changes_feeds[url][1])) return;
+    var obj = nedm.open_changes_feeds.taglist[tag]; 
+    var src = nedm.open_changes_feeds.urllist[obj.url].src;
+    
+    src.removeEventListener("message", obj.callb, false); 
 
-    var src = nedm.open_changes_feeds[url][0];
-    var callb = nedm.open_changes_feeds[url][1][tag];
-    src.removeEventListener("message", callb, false); 
-    delete nedm.open_changes_feeds[url][1][tag];
+    delete nedm.open_changes_feeds.urllist[obj.url].taglist[tag];
+    delete nedm.open_changes_feeds.taglist[tag];
 }
 
 
@@ -145,8 +149,8 @@ nedm.update_db_interface = function(db) {
         return nedm.listen_to_changes_feed(this, tag, callback, options);
     }
 
-    db.cancel_changes_feed = function(tag, options) {
-        return nedm.cancel_changes_feed(this, tag, callback);
+    db.cancel_changes_feed = function(tag) {
+        return nedm.cancel_changes_feed(this, tag);
     }
 
 
