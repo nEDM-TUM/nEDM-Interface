@@ -1,3 +1,14 @@
+# Switch template.   
+#
+# A template for a simple switch that stores and retrieves status from the
+# database.
+#
+# Required fields:
+#   @title
+#   @description
+#   @switch_name
+#
+
 {
   "_id" : "switch_template",
   "type" : "control_template",
