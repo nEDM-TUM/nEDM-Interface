@@ -51,7 +51,7 @@ nedm.build_url = function(options) {
         if (!first) url += "&";
         else url = "?";
         first = false;
-        url += key + "=" + options[key];
+        url += key + "=" + JSON.stringify(options[key]);
     }
     return encodeURI(url);
 }
