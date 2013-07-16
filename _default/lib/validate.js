@@ -4,6 +4,8 @@ var couchtypes = require('couchtypes/types'),
 
 module.exports = function(newDoc, oldDoc, userCtx, secObj) {
   var ddoc = this;
+  couchtypes.validate_doc_update(types, newDoc, oldDoc, userCtx);
+  return;
 
   secObj.admins  = secObj.admins || {};
   secObj.admins.names = secObj.admins.names || [];

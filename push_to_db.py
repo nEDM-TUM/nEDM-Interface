@@ -80,6 +80,7 @@ Updates the security, this has to be done delicately.
 def update_security(host, db_name, folder):
 
 
+    return
     un, pw = populate_username_pw()
 
     # We have to explicitly call the server, with un, and pw if it's not yet there... 

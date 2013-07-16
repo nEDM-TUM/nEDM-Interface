@@ -36,53 +36,129 @@
 	<div id="div_g">
 
     </div>
+
+		<label for="size">number of displayed values</label>
+		<input type="number" step="1" value="100" id="size" onchange="changeSize(this.value)"/>
+
 		<script type="text/javascript">
-      			var data = [];
-      			var t = new Date();
-      
-			for (var i = 10; i >= 0; i--) {
-			        var x = new Date(t.getTime() - i * 1000);
-			        data.push([x, Math.random()]);
+      			var size = $('#size')[0].value;
+			
+function changeSize(val) {
+	size=val;
+
+	if (data.length>size) {
+		var len = data.length-size;
+		for (var i = 0; i< len; i++) {
+			data.shift();
+		}
+	}
+	if (data.length<size) {
+		/*$.getJSON( "/nedm%2Ftemperature/_changes?limit="+size+"&include_docs=true&descending=true", function(f)
+			{
+			for (var i=data.length; i < size; i++) {
+				if (f.results[i].id!="_design/nedm_default") {	
+				//if (f.results[i].type=="data2") {						
+					data.unshift([
+						new Date(f.results[i].doc.timestamp),
+						f.results[i].doc.value['fake_device']
+					]);
+				}
 			}
 
+		});*/
+		$.getJSON( "/nedm%2Ftemperature/_design/nedm_default/_view/slow_control_time?group=true&descending=true&limit="+size, function(f)
+			{
+			for (var i=data.length; i < size; i++) {
+				//if (f.results[i].type=="data2") {										
+					data.unshift([
+						new Date(
+							f.rows[i].key[1],
+							f.rows[i].key[2],
+							f.rows[i].key[3],
+							f.rows[i].key[4],
+							f.rows[i].key[5],
+							f.rows[i].key[6],0
+							),
+						f.rows[i].value[0]
+					]);
+			}
+		});
+	}
 
-			var g = new dygraphs.Dygraph(
-				document.getElementById("div_g"),
-				data,
-                          	{
-                            		drawPoints: true,
-                            		showRoller: true,
-                            		//valueRange: [0.0, 1.2],
-                            		labels: ['Time', 'Value']
-                          	}
-			);
+	g.updateOptions( { 'file': data } );
+}
+
+var data = [];
+
+/*$.getJSON( "/nedm%2Ftemperature/_changes?limit="+size+"&include_docs=true&descending=true", function(f) {
+	for (var i=size-1; i >= 0; i--) {
+		if (f.results[i].id!="_design/nedm_default") {
+		//if (f.results[i].type=="data2") {
+			data.push([
+				new Date(f.results[i].doc.timestamp),
+				f.results[i].doc.value['fake_device']
+			]);
+		}
+	}
+});*/
+
+//http://localhost:5984/nedm%2Ftemperature/_design/nedm_default/_view/slow_control_time?group=true&descending=true&limit=10
+
+$.getJSON( "/nedm%2Ftemperature/_design/nedm_default/_view/slow_control_time?group=true&descending=true&limit="+size, function(f) {
+	for (var i=0; i < size; i++) {
+		data.push([
+			new Date(
+				f.rows[i].key[1],
+				f.rows[i].key[2],
+				f.rows[i].key[3],
+				f.rows[i].key[4],
+				f.rows[i].key[5],
+				f.rows[i].key[6],0
+				),
+			f.rows[i].value[0]
+		]);
+	}
+});
+
       
-      			g.resize(window.innerWidth,400);
+var g = new dygraphs.Dygraph(
+	$('#div_g')[0],
+	data,
+      	{
+		drawPoints: true,
+      		showRoller: false,
+      		labels: ['Time', 'Value']
+      	}
+);
+     
+g.resize(window.innerWidth,400);
+g.updateOptions( { 'file': data } );
     
-                        var eventHandling = function () {
-			// define the event handling function
-			if (window.EventSource) {
-				var source = new EventSource("/nedm%2Ftemperature/_changes?feed=eventsource&since=now");
+var eventHandling = function () {
+	// define the event handling function
+	if (window.EventSource) {
+		var source = new EventSource("/nedm%2Ftemperature/_changes?feed=eventsource&since=now");
   
-				var sourceListener = function(e) {
-					var change = JSON.parse(e.data);
-
-					$.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
-        					data.push([
-							new Date(f.timestamp),
-							f.value
+		var sourceListener = function(e) {
+			var change = JSON.parse(e.data);
+				$.getJSON( "/nedm%2Ftemperature/_design/nedm_default/_view/latest_value?group=true", function(f) {
+					if (data.length == 0 || f.rows[1].value.timestamp!=data[data.length-1][0]) {
+						data.push([
+							new Date(f.rows[1].value.timestamp),
+							f.rows[1].value.value
 						]);
-						if (data.length>20) {data.shift();}
-        					g.updateOptions( { 'file': data } );
-	 
-           				});
-				}; 
-			};
-                        source.addEventListener('message', sourceListener , false);
- 
-                        };
-                        $(document).on('pageinit', eventHandling);
-			// start listening for events
+					
+						data.shift();
+       						g.updateOptions( { 'file': data } );
+					}
+       				});
+			}; 
+	};
+	source.addEventListener('message', sourceListener , false);
+};
+
+$(document).on('pageinit', eventHandling);
+// start listening for events
 			
 	    </script>
     </div>
