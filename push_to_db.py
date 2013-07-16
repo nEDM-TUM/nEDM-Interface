@@ -148,6 +148,28 @@ def upload_data(host, db_name, folder):
 
         bulk_docs["docs"].append(yaml.load(astr))
 
+    grab_bulk = { "keys" : [] }
+    for adoc in bulk_docs["docs"]:
+        if "_id" in adoc:
+            grab_bulk["keys"].append(adoc["_id"]) 
+
+    
+    # We need to deal with possible conflicts
+    # Here we grab the rev number from current documents
+    headers = {"Content-type" : "application/json", 
+       "Authorization" : "Basic %s" % (base64.encodestring('%s:%s' % (un, pw)).rstrip()) }
+    conn = httplib.HTTPConnection(host) 
+    conn.request("POST", "/" + db_name + "/_all_docs", json.dumps(grab_bulk), headers)
+
+    new_obj = json.loads(conn.getresponse().read())
+
+    uids = dict([(d["id"], d["value"]["rev"]) for d in new_obj["rows"]])
+    for adoc in bulk_docs["docs"]:
+        if "_id" in adoc:
+            if adoc["_id"] in uids: 
+                adoc["_rev"] = uids[adoc["_id"]]
+
+    # Now push 
     headers = {"Content-type" : "application/json", 
        "Authorization" : "Basic %s" % (base64.encodestring('%s:%s' % (un, pw)).rstrip()) }
     conn = httplib.HTTPConnection(host) 
@@ -157,6 +179,14 @@ def upload_data(host, db_name, folder):
     if resp.status/100 != 2: 
         print resp.status, resp.reason
         sys.exit(1)
+    resp_obj = json.loads(resp.read())
+    should_die = False
+    for d in resp_obj:
+        if "ok" not in d:
+            print "Problem in ", d 
+            should_die = True
+
+    if should_die: sys.exit(1)
 
 
        
