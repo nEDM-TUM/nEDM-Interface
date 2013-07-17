@@ -29,7 +29,7 @@
         db.current().cancel_changes_feed('{{{switch_name}}}');
       }",
       "pageshow" :  "function() {
-        db.current().listen_to_changes_feed('{{{switch_name}}}');
+        db.current().listen_to_changes_feed('{{{switch_name}}}', sync_func_{{switch_name}}, {since : 'now'});
       }"
   },
   "script" : "
