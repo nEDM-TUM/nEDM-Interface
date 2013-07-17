@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html class="ui-mobile"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1"> 
-	<title>nEDM Base</title> 
-	
-	<link rel="stylesheet" href="/nedm%2Fhead/_design/nedm_head/style/jquery.mobile-1.4.0-pre.css" />
-	<script src="/nedm%2Fhead/_design/nedm_head/modules.js"></script>
-	<script src="/nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
-	<style> .center { text-align: center; } </style>
-	<style> type="text/css">
-	#div_g {
-	position: absolute;
-	left: 10px;
-	right: 10px;
-	top: 40px;
-	bottom: 100px;
-	}
-	</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <title>nEDM Base</title> 
+    
+    <link rel="stylesheet" href="/nedm%2Fhead/_design/nedm_head/style/jquery.mobile-1.4.0-pre.css" />
+    <script src="/nedm%2Fhead/_design/nedm_head/modules.js"></script>
+    <script src="/nedm%2Fhead/_design/nedm_head/scripts/nedm-base.js"></script>
+    <style> .center { text-align: center; } </style>
+    <style> type="text/css">
+    #monitor_div {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 40px;
+    bottom: 100px;
+    }
+    </style>
 
 </head> 
 
@@ -34,7 +34,7 @@
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
         <div class="content-primary">
             <h1 >Monitor</h1>
-		    <div id="div_g">
+            <div id="monitor_div">
             
             </div>
         </div> <!-- content-primary -->
@@ -42,55 +42,59 @@
             <div data-role="collapsible-set" class="listofdbs" data-inset="false"> 
             </div>
         </div> <!-- content-secondary -->
-		<script type="text/javascript">
-      			var data = [];
-      			var t = new Date();
-      
-			for (var i = 10; i >= 0; i--) {
-			        var x = new Date(t.getTime() - i * 1000);
-			        data.push([x, Math.random()]);
-			}
+        <script type="text/javascript">
+        var beginGraph = function () {
 
-
-			var g = new dygraphs.Dygraph(
-				document.getElementById("div_g"),
-				data,
-                          	{
-                            		drawPoints: true,
-                            		showRoller: true,
-                            		//valueRange: [0.0, 1.2],
-                            		labels: ['Time', 'Value']
-                          	}
-			);
+            var data = [];
+            var t = new Date();
       
-      			g.resize(window.innerWidth,400);
+            for (var i = 10; i >= 0; i--) {
+                    var x = new Date(t.getTime() - i * 1000);
+                    data.push([x, Math.random()]);
+            }
+
+            var g = new dygraphs.Dygraph(
+                document.getElementById("monitor_div"),
+                data,
+                              {
+                                    drawPoints: true,
+                                    showRoller: true,
+                                    //valueRange: [0.0, 1.2],
+                                    labels: ['Time', 'Value'],
+                                    xAxisLabelWidth: 60
+                              }
+            );
+      
+            return {g: g, data: data};
+        };
     
-                        var eventHandling = function () {
-			// define the event handling function
-			if (window.EventSource) {
-				var source = new EventSource("/nedm%2Ftemperature/_changes?feed=eventsource&since=now");
-  
-				var sourceListener = function(e) {
-					var change = JSON.parse(e.data);
+        var generateSourceListener = function(g, data) {
+            return function(e) {
+                var change = JSON.parse(e.data);
+                
+                $.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
+                        data.push([new Date(f.timestamp), f.value]);
+                    if (data.length>20) {data.shift();}
+                    g.updateOptions( { 'file': data } );
+                
+                       });
+                }; 
+        };
+        $("#db_monitor").on('pageshow', function() {
+            var obj = beginGraph();
+            
+            db.current().listen_to_changes_feed('monitor', generateSourceListener(obj.g, obj.data), {since : 'now'});
+            // start listening for events
+            var res = function(g) { return function() { 
+                var obj = $("div[class=content-primary]");
+                g.resize(0.95*obj.width()); 
+              };
+            };
 
-					$.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
-        					data.push([
-							new Date(f.timestamp),
-							f.value
-						]);
-						if (data.length>20) {data.shift();}
-        					g.updateOptions( { 'file': data } );
-	 
-           				});
-				}; 
-			};
-                        source.addEventListener('message', sourceListener , false);
- 
-                        };
-                        $(document).on('pageinit', eventHandling);
-			// start listening for events
-			
-	    </script>
+            $(window).on("resize", res(obj.g));
+        });
+            
+        </script>
     </div>
 </div>
 
