@@ -37,64 +37,32 @@
             <div id="monitor_div">
             
             </div>
+     		<label for="size">Number of displayed values</label>
+	    	<input type="range" step="1" value="10" min="0" max="100" id="size" data-highlight="true"/>
         </div> <!-- content-primary -->
         <div class="content-secondary">
             <div data-role="collapsible-set" class="listofdbs" data-inset="false"> 
             </div>
         </div> <!-- content-secondary -->
         <script type="text/javascript">
-        var beginGraph = function () {
-
-            var data = [];
-            var t = new Date();
-      
-            for (var i = 10; i >= 0; i--) {
-                    var x = new Date(t.getTime() - i * 1000);
-                    data.push([x, Math.random()]);
-            }
-
-            var g = new dygraphs.Dygraph(
-                document.getElementById("monitor_div"),
-                data,
-                              {
-                                    drawPoints: true,
-                                    showRoller: true,
-                                    //valueRange: [0.0, 1.2],
-                                    labels: ['Time', 'Value'],
-                                    xAxisLabelWidth: 60
-                              }
-            );
-      
-            return {g: g, data: data};
-        };
-    
-        var generateSourceListener = function(g, data) {
-            return function(e) {
-                var change = JSON.parse(e.data);
-                
-                $.getJSON( "/nedm%2Ftemperature/"+change.id, function(f) {
-                        data.push([new Date(f.timestamp), f.value]);
-                    if (data.length>20) {data.shift();}
-                    g.updateOptions( { 'file': data } );
-                
-                       });
-                }; 
-        };
+     
         $("#db_monitor").on('pageshow', function() {
-            var obj = beginGraph();
-            
-            db.current().listen_to_changes_feed('monitor', generateSourceListener(obj.g, obj.data), {since : 'now'});
+            var obj = new nedm.MonitoringGraph($("#monitor_div")[0], "laser_in_service", $("#size").val()) 
+            obj.beginListening();
+
             // start listening for events
             var res = function(g) { return function() { 
                 var obj = $("div[class=content-primary]");
                 g.resize(0.95*obj.width()); 
               };
             };
-
-            $(window).on("resize", res(obj.g));
+            $(window).on("resize", res(obj.graph));
+            var more_pts = function(ano) { return function() { ano.changeSize(this.value); } ; };
+            $("#size").change(more_pts(obj)); 
         });
-            
-        </script>
+// start listening for events
+			
+	    </script>
     </div>
 </div>
 

@@ -51,7 +51,9 @@ nedm.build_url = function(options) {
         if (!first) url += "&";
         else url = "?";
         first = false;
-        url += key + "=" + JSON.stringify(options[key]);
+        url += key + "=";
+        if (typeof options[key] === 'string') url += options[key];
+        else url += JSON.stringify(options[key]);
     }
     return encodeURI(url);
 }
@@ -366,6 +368,114 @@ nedm.buildDBList = function(ev, id) {
        }
    }}(ev,id)); 
 }
+
+nedm.dateFromKey = function(arr) {
+  var obj =  new Date(Date.UTC(arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]));
+  return obj;
+}
+
+nedm.MonitoringGraph = function (adiv, data_name, asize) {
+
+    this.data = [];
+    this.graph = new dygraphs.Dygraph(adiv, this.data,
+          {
+            drawPoints: true,
+              showRoller: false,
+              labels: ['Time', 'Value'],
+            xAxisLabelWidth: 60
+          });
+
+    this.name = data_name;
+ 
+    this.changeSize(asize);
+};
+
+nedm.MonitoringGraph.prototype.prependData = function(r) {
+     for (var i=0;i<r.length;i++) { 
+         this.data.unshift(r[i]);
+     }
+};
+
+nedm.MonitoringGraph.prototype.update = function() {
+     this.graph.updateOptions( { 'file': this.data } );
+}
+
+nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
+    return [ nedm.dateFromKey(obj.key), obj.value[0] ]; 
+}
+
+nedm.MonitoringGraph.prototype.appendData = function(r) {
+     var append = 0;
+     for (var i=0;i<r.length;i++) { 
+         this.data.push(r[i]);
+         append++;
+     }
+     return append;
+};
+
+
+nedm.MonitoringGraph.prototype.changeSize = function (size) {
+
+    var data = this.data;
+    if (data.length > size) {
+        data.splice(0, data.length-size);
+        this.update();
+    }
+    if (data.length < size) {
+        // first determine what the earliest date is
+        var last_key = [this.name, 9999];
+        if (data.length > 0) {
+            var then = data[0][0];
+            last_key = [this.name, 
+                     then.getUTCFullYear(), then.getUTCMonth(), 
+                     then.getUTCDate(), then.getUTCHours(), 
+                     then.getUTCMinutes(), then.getUTCSeconds()-1];
+        }
+        db.current().getView("nedm_default", "slow_control_time", 
+                { opts : { group : true, descending: true, limit : size-data.length, reduce : true,
+                  startkey : last_key, endkey : [this.name, 0]} },
+                function(obj) { return function(e, o) { 
+                    if (e != null) return;
+                    var all_data = o.rows.map(obj.dataFromKeyVal);
+                    obj.prependData(all_data); 
+                    obj.update(); 
+                } 
+                } (this));
+    }
+
+};
+
+nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
+     //if (data.length == 0 || obj.rows[1].value.timestamp!=data[-1][0]) {
+     if (err != null) return;
+     if (obj.rows.length != 1) return;
+     var o = obj.rows[0].value;
+     var app = this.appendData([[new Date(Date.parse(o.timestamp)), o.value ]]);
+     this.data.splice(0, app);
+     this.update();
+};
+
+nedm.MonitoringGraph.prototype.syncFunction = function () {
+    db.current().getView('nedm_default', 'latest_value', 
+      { opts : {group : true}, keys : {keys : [this.name]} }, 
+      function(o) { return function(err, objs) {  
+           if (err != null) return;
+           if (objs.rows.length != 1) return; 
+           o.processChange(err,objs); 
+        } }(this));
+};
+
+nedm.MonitoringGraph.prototype.beginListening = function () {
+  this.endListening(); 
+  db.current().listen_to_changes_feed(this.name, 
+          function(o) { return function(err, obj) { o.syncFunction(err,obj); } } (this), 
+          {since : 'now'});
+};
+
+nedm.MonitoringGraph.prototype.endListening = function () {
+  db.current().cancel_changes_feed(this.name);
+};
+
 
 
 $(document).on('mobileinit', function() {
