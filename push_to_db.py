@@ -163,7 +163,7 @@ def upload_data(host, db_name, folder):
 
     new_obj = json.loads(conn.getresponse().read())
 
-    uids = dict([(d["id"], d["value"]["rev"]) for d in new_obj["rows"]])
+    uids = dict([(d["id"], d["value"]["rev"]) for d in new_obj["rows"] if "id" in d])
     for adoc in bulk_docs["docs"]:
         if "_id" in adoc:
             if adoc["_id"] in uids: 
