@@ -34,11 +34,19 @@
     <div align="center" data-role="content" id="contentConfirmation" name="contentConfirmation">
         <div class="content-primary">
             <h1 >Monitor</h1>
+            <div data-role="controlgroup" data-type="horizontal">
+                <a href="#" data-role="button" data-inline="true" id="makeNewPlot">Insert New Graph</a>
+                <select name="selectCurrentPlot" id="selectCurrentPlot">
+                </select>
+                <a href="#" data-role="button" data-inline="true" id="removePlot" class="ui-disabled">Remove Selected</a>
+            </div>
             <div id="monitor_div">
             
             </div>
-     		<label for="size">Number of displayed values</label>
-	    	<input type="range" step="1" value="10" min="0" max="100" id="size" data-highlight="true"/>
+            <form>
+     			<label for="size">Number of displayed values</label>
+	    		<input type="range" id="size" data-highlight="true" min="0" max="100" value="10"/>
+            </form>
         </div> <!-- content-primary -->
         <div class="content-secondary">
             <div data-role="collapsible-set" class="listofdbs" data-inset="false"> 
@@ -46,20 +54,49 @@
         </div> <!-- content-secondary -->
         <script type="text/javascript">
      
-        $("#db_monitor").on('pageshow', function() {
-            var obj = new nedm.MonitoringGraph($("#monitor_div")[0], "laser_in_service", $("#size").val()) 
-            obj.beginListening();
+        
+        var makeNewGraph = function() {
+            var new_name = Math.random().toString(36).substr(2,9);
+            var new_div = $("<div></div>");
+            new_div.attr("id", "div_" + new_name);
+            //var obj = new nedm.MonitoringGraph(new_div, "", 0); 
 
-            // start listening for events
-            var res = function(g) { return function() { 
-                var obj = $("div[class=content-primary]");
-                g.resize(0.95*obj.width()); 
-              };
-            };
-            $(window).on("resize", res(obj.graph));
-            var more_pts = function(ano) { return function() { ano.changeSize(this.value); } ; };
-            $("#size").change(more_pts(obj)); 
-        });
+            var selection = $("#selectCurrentPlot");
+            var anum = selection.find("option").length;
+            new_div.append("<p>Window " + anum + "</p>");
+            new_div.trigger("create");
+
+            selection.append('<option value='+new_name+'>Window ' + anum +'</option>');
+            selection[0].selectedIndex = anum;
+            $("#monitor_div").append(new_div);
+            selection.selectmenu("refresh", true);
+
+            $("#removePlot").removeClass("ui-disabled");
+        };
+        var destroyGraph = function() {
+            var scp = $("#selectCurrentPlot");
+            var selected = scp.find(":selected"); 
+            var sIndex = scp[0].selectedIndex;
+
+            // remove the div
+            $("#div_" + selected.val()).remove();
+
+            // Now update the select menu
+            selected.remove();
+            if (sIndex != 0) sIndex--;
+            scp[0].selectedIndex = sIndex;
+            scp.selectmenu("refresh", true);
+
+            if (scp.find("option").length == 0) {
+              // disable button if nothing is there
+              $("#removePlot").addClass("ui-disabled");
+            }
+
+            //var obj = new nedm.MonitoringGraph(new_div, "", 0); 
+        };
+
+        $("#makeNewPlot").on("click", makeNewGraph );
+        $("#removePlot").on("click", destroyGraph );
 // start listening for events
 			
 	    </script>
