@@ -26,19 +26,19 @@ exports.slow_control_time = {
            var then = new Date(Date.parse(doc.timestamp));
            for (var key in doc.value) {
                emit([key,
-                     then.getFullYear(), then.getMonth(), 
-                     then.getDay(), then.getHours(), 
-                     then.getMinutes(), then.getSeconds()], doc.value[key]);
+                     then.getUTCFullYear(), then.getUTCMonth(), 
+                     then.getUTCDate(), then.getUTCHours(), 
+                     then.getUTCMinutes(), then.getUTCSeconds()], doc.value[key]);
            }
   },
   reduce : function(keys, values, rereduce) {
            if (!rereduce) {
                var length = values.length;
-               return [sum(values) / length, length];
+               return [sum(values.map(parseFloat)) / length, length];
            } else {
                var length = sum(values.map(function(v){return v[1]}));
                var avg = sum(values.map(function(v){
-                          return v[0] * (v[1] / length) }));
+                          return parseFloat(v[0]) * (v[1] / length) }));
                return [avg, length];
            }
   }
