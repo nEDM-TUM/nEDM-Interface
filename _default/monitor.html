@@ -43,10 +43,6 @@
             <div id="monitor_div">
             
             </div>
-            <form>
-     			<label for="size">Number of displayed values</label>
-	    		<input type="range" id="size" data-highlight="true" min="0" max="100" value="10"/>
-            </form>
         </div> <!-- content-primary -->
         <div class="content-secondary">
             <div data-role="collapsible-set" class="listofdbs" data-inset="false"> 
@@ -59,19 +55,27 @@
             var new_name = Math.random().toString(36).substr(2,9);
             var new_div = $("<div></div>");
             new_div.attr("id", "div_" + new_name);
-            //var obj = new nedm.MonitoringGraph(new_div, "", 0); 
 
             var selection = $("#selectCurrentPlot");
             var anum = selection.find("option").length;
             new_div.append("<p>Window " + anum + "</p>");
-            new_div.trigger("create");
+            var plot_div = $("<div></div>");
+            new_div.append(plot_div);
+            new_div.append('<form><label for="size_' + new_name + '">Number of displayed values</label>' +
+	    		           '<input type="range" id="size_' + new_name + 
+                           '" data-highlight="true" min="0" max="100" value="10"/></form>');
+
 
             selection.append('<option value='+new_name+'>Window ' + anum +'</option>');
             selection[0].selectedIndex = anum;
             $("#monitor_div").append(new_div);
+            new_div.trigger("create");
             selection.selectmenu("refresh", true);
 
             $("#removePlot").removeClass("ui-disabled");
+
+            var obj = new nedm.MonitoringGraph(plot_div[0], "", 0); 
+            new_div.data(obj);
         };
         var destroyGraph = function() {
             var scp = $("#selectCurrentPlot");
