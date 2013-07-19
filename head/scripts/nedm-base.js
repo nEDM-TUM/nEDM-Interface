@@ -370,8 +370,7 @@ nedm.buildDBList = function(ev, id) {
 }
 
 nedm.dateFromKey = function(arr) {
-  var obj =  new Date(Date.UTC(arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]));
-  return obj;
+  return new Date(Date.UTC.apply(this, arr));
 }
 
 nedm.MonitoringGraph = function (adiv, data_name, asize) {
@@ -381,13 +380,15 @@ nedm.MonitoringGraph = function (adiv, data_name, asize) {
           {
             drawPoints: true,
               showRoller: false,
-              labels: ['Time', 'Value'],
-            xAxisLabelWidth: 60
+              labels: ['Time'].concat(data_name),
+              connectSeparatedPoints: true,
+              xAxisLabelWidth: 60
           });
 
     this.name = data_name;
  
     this.changeSize(asize);
+    this.uuid = Math.random().toString(36).substr(2,9);
 };
 
 nedm.MonitoringGraph.prototype.prependData = function(r) {
@@ -397,11 +398,21 @@ nedm.MonitoringGraph.prototype.prependData = function(r) {
 };
 
 nedm.MonitoringGraph.prototype.update = function() {
-     this.graph.updateOptions( { 'file': this.data } );
+     this.graph.updateOptions( { 'file': this.data, 'labels' : ['Time'].concat(this.name) } );
 }
 
 nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
-    return [ nedm.dateFromKey(obj.key), obj.value[0] ]; 
+    var outp = [ nedm.dateFromKey(obj.key) ];
+    var seen = false;
+    var data_name = this.name;
+    for (var i=0;i<data_name.length;i++) {
+        if (data_name[i] in obj.value) {
+            outp.push(obj.value[data_name[i]][0]);
+            seen = true;
+        } else outp.push(null);
+    }
+    if (!seen) return null;
+    return outp; 
 }
 
 nedm.MonitoringGraph.prototype.appendData = function(r) {
@@ -413,6 +424,12 @@ nedm.MonitoringGraph.prototype.appendData = function(r) {
      return append;
 };
 
+nedm.MonitoringGraph.prototype.addDataName = function(aname, withsize) {
+    if (this.name.indexOf(aname) != -1 ) return;
+    this.name.push(aname);
+    this.data.length = 0;
+    this.changeSize(withsize);
+}
 
 nedm.MonitoringGraph.prototype.changeSize = function (size) {
 
@@ -423,20 +440,23 @@ nedm.MonitoringGraph.prototype.changeSize = function (size) {
     }
     if (data.length < size) {
         // first determine what the earliest date is
-        var last_key = [this.name, 9999];
+        var last_key = [9999];
         if (data.length > 0) {
             var then = data[0][0];
-            last_key = [this.name, 
+            last_key = [
                      then.getUTCFullYear(), then.getUTCMonth(), 
                      then.getUTCDate(), then.getUTCHours(), 
                      then.getUTCMinutes(), then.getUTCSeconds()-1];
         }
-        db.current().getView("nedm_default", "slow_control_time", 
-                { opts : { group : true, descending: true, limit : size-data.length, reduce : true,
-                  startkey : last_key, endkey : [this.name, 0]} },
+        db.current().getView("nedm_default", "slow_control_time_label", 
+                { opts : { group_level : 9, descending: true, limit : size-data.length, reduce : true,
+                  startkey : last_key, endkey : [0]} },
                 function(obj) { return function(e, o) { 
                     if (e != null) return;
-                    var all_data = o.rows.map(obj.dataFromKeyVal);
+                    var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
+                        if (o != null) return true;
+                        return false; 
+                    });
                     obj.prependData(all_data); 
                     obj.update(); 
                 } 
@@ -445,35 +465,55 @@ nedm.MonitoringGraph.prototype.changeSize = function (size) {
 
 };
 
+nedm.MonitoringGraph.prototype.getMostRecentValues = function() {
+
+}
+
 nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
-     //if (data.length == 0 || obj.rows[1].value.timestamp!=data[-1][0]) {
      if (err != null) return;
-     if (obj.rows.length != 1) return;
-     var o = obj.rows[0].value;
-     var app = this.appendData([[new Date(Date.parse(o.timestamp)), o.value ]]);
+     var app = 0;
+     for (var i=0;i<obj.rows.length;i++ ) {
+         var ind = this.name.indexOf(obj.rows[i].key) + 1;
+         if (ind == 0) continue;
+         var o = obj.rows[i].value;
+         var d = new Date(Date.parse(o.timestamp));
+         var j=this.data.length-1;
+         while( this.data[j][0] > d && j >= 0) j--; 
+
+         // Ignore off screen
+         if (j < 0) continue;
+         // j is now the event, or before
+         if (this.data[j][0].getTime() == d.getTime()) this.data[j][ind] = parseFloat(o.value);
+         else {
+            // Insert it
+            this.data.splice(j+1, 0, [d].concat( Array.apply(null,new Array(this.name.length))
+                                                    .map(function() { return null; })
+                                              ));
+            this.data[j+1][ind] = parseFloat(o.value);
+            app++;
+         }
+     }
      this.data.splice(0, app);
      this.update();
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
     db.current().getView('nedm_default', 'latest_value', 
-      { opts : {group : true}, keys : {keys : [this.name]} }, 
+      { opts : {group : true}, keys : {keys : this.name} }, 
       function(o) { return function(err, objs) {  
-           if (err != null) return;
-           if (objs.rows.length != 1) return; 
            o.processChange(err,objs); 
         } }(this));
 };
 
 nedm.MonitoringGraph.prototype.beginListening = function () {
   this.endListening(); 
-  db.current().listen_to_changes_feed(this.name, 
+  db.current().listen_to_changes_feed(this.uuid, 
           function(o) { return function(err, obj) { o.syncFunction(err,obj); } } (this), 
           {since : 'now'});
 };
 
 nedm.MonitoringGraph.prototype.endListening = function () {
-  db.current().cancel_changes_feed(this.name);
+  db.current().cancel_changes_feed(this.uuid);
 };
 
 
