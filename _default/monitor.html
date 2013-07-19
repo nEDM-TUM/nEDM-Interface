@@ -36,10 +36,16 @@
             <h1 >Monitor</h1>
             <div data-role="controlgroup" data-type="horizontal">
                 <a href="#" data-role="button" data-inline="true" id="makeNewPlot">Insert New Graph</a>
-                <select name="selectCurrentPlot" id="selectCurrentPlot">
+                <select name="selectCurrentPlot" id="selectCurrentPlot" class = "ui-disabled">
                 </select>
                 <a href="#" data-role="button" data-inline="true" id="removePlot" class="ui-disabled">Remove Selected</a>
             </div>
+            <div data-role="controlgroup" data-type="horizontal">
+                <a href="#" data-role="button" data-inline="true" id="addSlowControl" class = "ui-disabled">Add to selected graph</a>
+                <select name="selectSlowControl" id="selectSlowControl" class = "ui-disabled">
+                </select>
+            </div>
+
             <div id="monitor_div">
             
             </div>
@@ -54,6 +60,7 @@
         var makeNewGraph = function() {
             var new_name = Math.random().toString(36).substr(2,9);
             var new_div = $("<div></div>");
+            new_div.addClass("monitor_class");
             new_div.attr("id", "div_" + new_name);
 
             var selection = $("#selectCurrentPlot");
@@ -66,16 +73,22 @@
                            '" data-highlight="true" min="0" max="100" value="10"/></form>');
 
 
-            selection.append('<option value='+new_name+'>Window ' + anum +'</option>');
+            selection.append('<option value="'+new_name+'">Window ' + anum +'</option>');
             selection[0].selectedIndex = anum;
             $("#monitor_div").append(new_div);
             new_div.trigger("create");
-            selection.selectmenu("refresh", true);
 
             $("#removePlot").removeClass("ui-disabled");
+            selection.removeClass("ui-disabled");
+            if ($("#selectSlowControl").find("option").length != 0) {
+                $("#addSlowControl").removeClass("ui-disabled");
+            }
+            selection.selectmenu("refresh", true);
 
-            var obj = new nedm.MonitoringGraph(plot_div[0], "", 0); 
+
+            var obj = new nedm.MonitoringGraph(plot_div[0], [], 0); 
             new_div.data(obj);
+            obj.beginListening();
         };
         var destroyGraph = function() {
             var scp = $("#selectCurrentPlot");
@@ -89,19 +102,58 @@
             selected.remove();
             if (sIndex != 0) sIndex--;
             scp[0].selectedIndex = sIndex;
-            scp.selectmenu("refresh", true);
+
 
             if (scp.find("option").length == 0) {
               // disable button if nothing is there
               $("#removePlot").addClass("ui-disabled");
+              $("#selectSlowControl").addClass("ui-disabled");
+              $("#addSlowControl").addClass("ui-disabled");
+
             }
+            scp.selectmenu("refresh", true);
 
             //var obj = new nedm.MonitoringGraph(new_div, "", 0); 
         };
 
-        $("#makeNewPlot").on("click", makeNewGraph );
-        $("#removePlot").on("click", destroyGraph );
-// start listening for events
+        var getAvailableItems = function () {
+            db.current().getView('nedm_default', 'latest_value', 
+                { opts : {group : true, reduce : true} }, function (e, o) {
+                        if (e != null ) return;
+                        var add_html = '';
+                        for (var i=0;i<o.rows.length;i++) {
+                            var aname = o.rows[i].key;
+                            add_html += '<option value="'+aname+'">' + aname + '</option>';
+                        }
+                        var ssc = $("#selectSlowControl");
+                        ssc.append(add_html);
+                        if (ssc.find("option").length != 0) {
+                            ssc.removeClass("ui-disabled");
+                            if ($("#selectCurrentPlot").find("option").length != 0) {
+                                $("#addSlowControl").removeClass("ui-disabled");
+                            }
+                        }
+                        ssc.selectmenu("refresh", true);
+                    }); 
+
+        };
+
+        var exitCleanup = function () {
+            $(".monitor_class").data().endListening(); 
+        }
+
+        var addSelectedPlotToWindow = function() {
+            var scp = $("#selectCurrentPlot");
+            var selected = scp.find(":selected"); 
+            var obj = $("#div_" + selected.val()).data();
+            obj.addDataName($("#selectSlowControl").find(":selected").val(), $("#size_" + selected.val()).val());
+        };
+
+        $("#makeNewPlot").off("click").on("click", makeNewGraph );
+        $("#removePlot").off("click").on("click", destroyGraph );
+        $("#addSlowControl").off("click").on("click", addSelectedPlotToWindow );
+        $("#db_monitor").off("pagebeforeshow").on("pagebeforeshow", getAvailableItems);
+        $("#db_monitor").off("pagehide").on("pagehide", exitCleanup);
 			
 	    </script>
     </div>
