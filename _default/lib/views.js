@@ -45,6 +45,53 @@ exports.slow_control_time = {
  
 }
 
+exports.slow_control_time_label = {
+  map: function(doc) {
+           if (!doc.type || doc.type != "data") return;
+           var then = new Date(Date.parse(doc.timestamp));
+           for (var key in doc.value) {
+               var obj = {};
+               obj[key] = doc.value[key];
+               emit([
+                     then.getUTCFullYear(), then.getUTCMonth(), 
+                     then.getUTCDate(), then.getUTCHours(), 
+                     then.getUTCMinutes(), then.getUTCSeconds()], obj);
+           }
+  },
+  reduce : function(keys, values, rereduce) {
+           if (!rereduce) {
+               var length = values.length;
+               var outp = {};
+               for (var i=0;i<length;i++) {
+                   var o = values[i];
+                   for (var k in o) {
+                       if (!(k in outp)) outp[k]= [];
+                       outp[k].push(parseFloat(o[k]));
+                   }
+               }
+               for (var o in outp) {
+                   outp[o] = [sum(outp[o])/outp[o].length, outp[o].length];
+               }
+               return outp; 
+           } else {
+               var length = values.length; 
+               var outp = {};
+               for (var i=0;i<length;i++) {
+                   var o = values[i];
+                   for (var k in o) {
+                       if (!(k in outp)) outp[k]= [0, 0];
+                       var l = outp[k][1] + o[k][1];
+                       outp[k][0] = (outp[k][0]*outp[k][1] + o[k][0]*o[k][1])/l;
+                       outp[k][1] = l
+                   }
+               }
+               return outp; 
+           }
+  }
+ 
+}
+
+
 exports.latest_value = {
   map: function(doc) {
            if (!doc.type || doc.type != "data") return;
