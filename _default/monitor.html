@@ -68,7 +68,7 @@
             new_div.append("<p>Window " + anum + "</p>");
             var plot_div = $("<div></div>");
             new_div.append(plot_div);
-            new_div.append('<form><label for="size_' + new_name + '">Number of displayed values</label>' +
+            new_div.append('<form><label for="size_' + new_name + '">Number of displayed minutes</label>' +
 	    		           '<input type="range" id="size_' + new_name + 
                            '" data-highlight="true" min="0" max="100" value="10"/></form>');
 
@@ -86,10 +86,15 @@
             selection.selectmenu("refresh", true);
 
 
-            var obj = new nedm.MonitoringGraph(plot_div[0], [], 0); 
+            var obj = new nedm.MonitoringGraph(plot_div[0], [], $("#size_" + new_name).val()*60); 
             new_div.data(obj);
             obj.beginListening();
+            $("#size_" + new_name).on( "slidestop", function(o) { return function(eve) {
+                    $.mobile.loading( "show" );
+                    o.changeBeginningTime(this.value*60, function() { $.mobile.loading( "hide" ); });
+                    }}(obj));
         };
+
         var destroyGraph = function() {
             var scp = $("#selectCurrentPlot");
             var selected = scp.find(":selected"); 
@@ -112,8 +117,6 @@
 
             }
             scp.selectmenu("refresh", true);
-
-            //var obj = new nedm.MonitoringGraph(new_div, "", 0); 
         };
 
         var getAvailableItems = function () {
@@ -146,7 +149,9 @@
             var scp = $("#selectCurrentPlot");
             var selected = scp.find(":selected"); 
             var obj = $("#div_" + selected.val()).data();
-            obj.addDataName($("#selectSlowControl").find(":selected").val(), $("#size_" + selected.val()).val());
+            $.mobile.loading( "show" );
+            obj.addDataName($("#selectSlowControl").find(":selected").val(), 
+                    $("#size_" + selected.val()).val()*60, function() { $.mobile.loading( "hide" ); });
         };
 
         $("#makeNewPlot").off("click").on("click", makeNewGraph );

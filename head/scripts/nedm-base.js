@@ -373,7 +373,7 @@ nedm.dateFromKey = function(arr) {
   return new Date(Date.UTC.apply(this, arr));
 }
 
-nedm.MonitoringGraph = function (adiv, data_name, asize) {
+nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs) {
 
     this.data = [];
     this.graph = new dygraphs.Dygraph(adiv, this.data,
@@ -387,7 +387,7 @@ nedm.MonitoringGraph = function (adiv, data_name, asize) {
 
     this.name = data_name;
  
-    this.changeSize(asize);
+    this.changeBeginningTime(since_time_in_secs);
     this.uuid = Math.random().toString(36).substr(2,9);
 };
 
@@ -424,21 +424,27 @@ nedm.MonitoringGraph.prototype.appendData = function(r) {
      return append;
 };
 
-nedm.MonitoringGraph.prototype.addDataName = function(aname, withsize) {
+nedm.MonitoringGraph.prototype.addDataName = function(aname, since_time_in_secs, callback) {
     if (this.name.indexOf(aname) != -1 ) return;
     this.name.push(aname);
     this.data.length = 0;
-    this.changeSize(withsize);
+    this.changeBeginningTime(since_time_in_secs, callback);
 }
 
-nedm.MonitoringGraph.prototype.changeSize = function (size) {
-
+nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
     var data = this.data;
-    if (data.length > size) {
-        data.splice(0, data.length-size);
-        this.update();
-    }
-    if (data.length < size) {
+    if (data.length == 0) return 0;
+    var j = 0;
+    while (j < data.length && data[j][0].getTime() < adate.getTime()) j++; 
+    return data.splice(0, j);
+}
+
+nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_secs, callback) {
+
+    this.time_prev = since_time_in_secs; 
+    var time_before_now = new Date((new Date).getTime() - since_time_in_secs*1000);
+    var data = this.data;
+    if (this.removeBeforeDate(time_before_now) == 0) {
         // first determine what the earliest date is
         var last_key = [9999];
         if (data.length > 0) {
@@ -448,10 +454,15 @@ nedm.MonitoringGraph.prototype.changeSize = function (size) {
                      then.getUTCDate(), then.getUTCHours(), 
                      then.getUTCMinutes(), then.getUTCSeconds()-1];
         }
+        first_key = [ 
+                     time_before_now.getUTCFullYear(), time_before_now.getUTCMonth(), 
+                     time_before_now.getUTCDate(), time_before_now.getUTCHours(), 
+                     time_before_now.getUTCMinutes(), time_before_now.getUTCSeconds()];
+
         db.current().getView("nedm_default", "slow_control_time_label", 
-                { opts : { group_level : 9, descending: true, limit : size-data.length, reduce : true,
-                  startkey : last_key, endkey : [0]} },
-                function(obj) { return function(e, o) { 
+                { opts : { group_level : 9, descending: true, reduce : true,
+                  startkey : last_key, endkey : first_key} },
+                function(obj, cbck) { return function(e, o) { 
                     if (e != null) return;
                     var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
                         if (o != null) return true;
@@ -459,8 +470,12 @@ nedm.MonitoringGraph.prototype.changeSize = function (size) {
                     });
                     obj.prependData(all_data); 
                     obj.update(); 
+                    if (cbck) cbck();
                 } 
-                } (this));
+                } (this, callback));
+    } else {
+        this.update();
+        if (callback) callback();
     }
 
 };
@@ -478,14 +493,12 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
          var o = obj.rows[i].value;
          var d = new Date(Date.parse(o.timestamp));
          var j=this.data.length-1;
-         while( this.data[j][0] > d && j >= 0) j--; 
+         while( j >= 0 && this.data[j][0] > d) j--; 
 
-         // Ignore off screen
-         if (j < 0) continue;
          // j is now the event, or before
-         if (this.data[j][0].getTime() == d.getTime()) this.data[j][ind] = parseFloat(o.value);
+         if (j>=0 && this.data[j][0].getTime() == d.getTime()) this.data[j][ind] = parseFloat(o.value);
          else {
-            // Insert it
+            // Insert it, this also handles the case when nothing is there
             this.data.splice(j+1, 0, [d].concat( Array.apply(null,new Array(this.name.length))
                                                     .map(function() { return null; })
                                               ));
@@ -493,7 +506,10 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
             app++;
          }
      }
-     this.data.splice(0, app);
+     if (this.data.length != 0) { 
+         var time_before_now = new Date(this.data[this.data.length-1][0].getTime() - this.time_prev*1000);
+         this.removeBeforeDate(time_before_now);
+     }
      this.update();
 };
 
