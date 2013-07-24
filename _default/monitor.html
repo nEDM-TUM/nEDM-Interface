@@ -89,6 +89,7 @@
             var obj = new nedm.MonitoringGraph(plot_div[0], [], $("#size_" + new_name).val()*60); 
             new_div.data(obj);
             obj.beginListening();
+            $("#db_monitor").on("pagebeforeshow", function(o) { return function() { o.beginListening(); } }(obj));
             $("#size_" + new_name).on( "slidestop", function(o) { return function(eve) {
                     $.mobile.loading( "show" );
                     o.changeBeginningTime(this.value*60, function() { $.mobile.loading( "hide" ); });
