@@ -119,3 +119,13 @@ exports.controls = {
     emit(doc._id, doc);
   }
 }
+
+exports.data_keys = {
+    map: function(doc) {
+        if (!doc.type || doc.type != "data") return;
+        for (var key in doc.value) {
+            emit(key, 1); 
+        }
+    },
+    reduce: "_sum" 
+}
