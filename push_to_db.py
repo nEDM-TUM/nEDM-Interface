@@ -219,6 +219,7 @@ def main(server = None):
         db_name = "nedm%2F" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
         update_security(server, db_name, db_path) 
+        upload_data(server, db_name, "_defaulterlang") 
         data_dir = os.path.join(db_path, "data")
         if os.path.isdir(data_dir): 
             upload_data(server, db_name, data_dir) 
