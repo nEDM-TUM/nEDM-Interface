@@ -1,0 +1,112 @@
+{
+  "_id" : "_design/erlang",
+  "language" : "erlang",
+
+  
+  "views" : {
+    "controls" : {
+       "map" : 
+         'fun({Doc}) ->                       
+              F = fun(B) -> proplists:get_value(B, Doc) end,   
+              case F(<<"type">>) of                            
+                 <<"control">> ->                              
+                   %% Grab the transactions from this document 
+                   Emit(F(<<"_id">>), {Doc});                  
+                  _ -> false                                   
+                  %% Not a device -- ignoring this document    
+              end                                              
+          end.', 
+    },
+    "slow_control_time" : {
+        "map" : 
+         'fun({Doc}) ->                       
+              F = fun(B) -> proplists:get_value(B, Doc) end,   
+               case F(<<"type">>) of                            
+                 <<"data">> ->                              
+                    TS = lists:flatten(io_lib:format("~s",[F(<<"timestamp">>)])),
+                    {{YY,MM,DD},{HH,JJ,SS}} = httpd_util:convert_request_date(TS),
+                    {VAL} = F(<<"value">>),
+                    lists:foreach(fun({K,V}) ->
+                       Emit([K, YY, MM-1,DD,HH,JJ,SS], V)
+                    end,
+                    VAL);
+                 _ -> false                                   
+                 %% Not a device -- ignoring this document    
+              end                                              
+          end.
+       ',
+      "reduce" : 
+      'fun(Keys, Values, Rereduce) -> 
+         List_to_number = fun(L) ->
+             try list_to_float(L)
+             catch
+             error:badarg ->
+                list_to_integer(L)
+             end
+          end,
+          
+          ParseFloat = fun(F) ->
+              try List_to_number(binary_to_list(F))
+              catch
+                error:badarg ->
+                  F
+              end
+          end,
+                
+
+         case Rereduce of 
+           false ->
+             L = length(Values),
+             [ lists:sum( 
+                  lists:map (fun (A) -> ParseFloat(A) end, Values) )/L, L ];
+           true ->
+             L = lists:sum(
+                   lists:map (fun (A) -> lists:nth(2,A) end, Values ) ),
+             
+             AVG = lists:sum( 
+                      lists:map (fun (A) -> 
+                        ParseFloat(lists:nth(1, A))*lists:nth(2,A) 
+                        end, 
+                      Values) 
+                   ) / L,
+             [ AVG, L ]
+           end
+         end.
+      '
+
+    },
+    "latest_value" : {
+        "map" : 
+         'fun({Doc}) ->                       
+              F = fun(B) -> proplists:get_value(B, Doc) end,   
+               case F(<<"type">>) of                            
+                 <<"data">> ->                              
+                    TS = F(<<"timestamp">>),
+                    {VAL} = F(<<"value">>),
+                    lists:foreach(fun({K,V}) ->
+                       Emit(K, {[{ <<"value">>, V}, {<<"timestamp">>, TS}]} )
+                    end,
+                    VAL);
+                 _ -> false                                   
+                 %% Not a device -- ignoring this document    
+              end                                              
+          end.
+       ',
+       "reduce" : 
+      'fun(Keys, Values, Rereduce) -> 
+         F = fun(B,C) -> proplists:get_value(B, C) end,   
+         FL = fun(D) -> lists:flatten(io_lib:format("~s",[D])) end,
+         V = lists:max(
+               lists:map(fun({A}) ->
+               TheVal = F(<<"value">>, A),
+               TheTS = httpd_util:convert_request_date( FL( F(<<"timestamp">>, A) ) ),
+               [TheTS, TheVal]
+             end,
+             Values)
+             ),
+        {[{ <<"value">>, lists:nth(2, V)}, {<<"timestamp">>, list_to_binary(httpd_util:rfc1123_date(lists:nth(1, V)))}]} 
+       end.
+      '
+    }
+  }
+}
