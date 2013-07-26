@@ -44,6 +44,14 @@ module.exports = function(newDoc, oldDoc, userCtx, secObj) {
     if (!newDoc[field]) throw {'required_field' : "'" + field + "' is required" };
   }
 
+  if (newDoc.timestamp) {
+    // ensure that we have an RFC 1132 compliant data string
+    var verifyDate = /\w{3},\s[0-9]{2}\s\w{3}\s[0-9]{4}\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s\w{3}/;
+    if (verifyDate.exec(newDoc.timestamp) == null) {
+        throw {'bad_date_format' : "Date must be in RFC-1123 format: DAY, DD-MON-YYYY hh:mm:ss GMT"};
+    }
+  }
+
   couchtypes.validate_doc_update(types, newDoc, oldDoc, userCtx);
 
 }
