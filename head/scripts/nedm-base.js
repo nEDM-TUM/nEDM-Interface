@@ -129,9 +129,13 @@ nedm.update_db_interface = function(db) {
         if (!options.keys) options.keys = {};
         if (!options.opts) options.opts = {};
         var viewname = this.encode(view);
+        var theType = "POST";
         try {
             var data = JSON.stringify(options.keys);
-            if (options.keys == {}) data = "";
+            if ($.isEmptyObject(options.keys)) {
+                data = "";
+                theType = "GET";
+            }
         }
         catch (e) {
             return callback(e);
@@ -141,7 +145,7 @@ nedm.update_db_interface = function(db) {
                 '/_design/' + this.encode(name) +
                 '/_view/' + viewname + nedm.build_url(options.opts),
             data: data,
-            type: "POST",
+            type: theType 
         };
         this.request(req, callback);
     };
