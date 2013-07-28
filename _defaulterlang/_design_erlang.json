@@ -17,6 +17,59 @@
               end                                              
           end.', 
     },
+    "slow_control_time_label" : {
+        "map" : 
+         'fun({Doc}) ->                       
+              F = fun(B) -> proplists:get_value(B, Doc) end,   
+               case F(<<"type">>) of                            
+                 <<"data">> ->                              
+                    TS = lists:flatten(io_lib:format("~s",[F(<<"timestamp">>)])),
+                    {{YY,MM,DD},{HH,JJ,SS}} = httpd_util:convert_request_date(TS),
+                    {VAL} = F(<<"value">>),
+                    lists:foreach(fun({K,V}) ->
+                       Emit([YY, MM-1,DD,HH,JJ,SS], {[{K, [V, 1]}]})
+                    end,
+                    VAL);
+                 _ -> false                                   
+                 %% Not a device -- ignoring this document    
+              end                                              
+          end.
+       ',
+      "reduce" : 
+      'fun(Keys, Values, Rereduce) -> 
+         List_to_number = fun(L) ->
+             try list_to_float(L)
+             catch
+             error:badarg ->
+                list_to_integer(L)
+             end
+          end,
+          
+          ParseFloat = fun(F) ->
+              try List_to_number(binary_to_list(F))
+              catch
+                error:badarg ->
+                  F
+              end
+          end,
+
+          ProcessList = fun(FlatList ) ->
+            T = lists:map( fun(K) ->
+                TempList = lists:map(fun([Val, Len]) -> [ParseFloat(Val)*Len, Len] end,
+                                     proplists:get_all_values(K, FlatList) ),
+                TLength = lists:sum( lists:map( fun([_,Le]) -> Le end, TempList ) ),
+                Total   = lists:sum( lists:map( fun([V,_]) -> V end, TempList ) ),
+                { K, [ Total/TLength, TLength ] }
+              end,
+            proplists:get_keys(FlatList) ),
+            {T}
+          end,
+
+          ProcessList(lists:flatten(lists:map(fun({B}) -> B end, Values)))
+        end.
+      '
+    },
+
     "slow_control_time" : {
         "map" : 
          'fun({Doc}) ->                       
