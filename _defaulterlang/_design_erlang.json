@@ -80,7 +80,7 @@
                     {{YY,MM,DD},{HH,JJ,SS}} = httpd_util:convert_request_date(TS),
                     {VAL} = F(<<"value">>),
                     lists:foreach(fun({K,V}) ->
-                       Emit([K, YY, MM-1,DD,HH,JJ,SS], V)
+                       Emit([K, YY, MM-1,DD,HH,JJ,SS], [V, 1])
                     end,
                     VAL);
                  _ -> false                                   
@@ -106,24 +106,10 @@
               end
           end,
                 
-
-         case Rereduce of 
-           false ->
-             L = length(Values),
-             [ lists:sum( 
-                  lists:map (fun (A) -> ParseFloat(A) end, Values) )/L, L ];
-           true ->
-             L = lists:sum(
-                   lists:map (fun (A) -> lists:nth(2,A) end, Values ) ),
-             
-             AVG = lists:sum( 
-                      lists:map (fun (A) -> 
-                        ParseFloat(lists:nth(1, A))*lists:nth(2,A) 
-                        end, 
-                      Values) 
-                   ) / L,
-             [ AVG, L ]
-           end
+          L = lists:sum(lists:map (fun ([_,A]) -> A end, Values ) ),
+          
+          AVG = lists:sum( lists:map (fun ([C, B]) -> ParseFloat(C)*B end, Values) ) / L,
+          [ AVG, L ]
          end.
       '
 
