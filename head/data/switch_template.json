@@ -37,7 +37,7 @@
   // We define a synchronization function which synchronizes the web-site with
   // the database
   var sync_func_{{switch_name}} = function() {
-    db.current().getView('nedm_default', 'latest_value', 
+    db.current().getView('erlang', 'latest_value', 
       { opts : {group : true}, keys : {keys : ['{{{switch_name}}}']} }, 
       function(err, objs) {  
          if (err != null) return;

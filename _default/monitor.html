@@ -122,7 +122,7 @@
 
         var getAvailableItems = function () {
             // We can have stale = update_after since the data types will not change all that often.
-            db.current().getView('nedm_default', 'latest_value', 
+            db.current().getView('erlang', 'latest_value', 
                 { opts : {group : true, reduce : true, stale : 'update_after'} }, function (e, o) {
                         if (e != null ) return;
                         var add_html = '';

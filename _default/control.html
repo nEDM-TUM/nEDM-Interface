@@ -45,7 +45,7 @@
         var controlMade = false;
         function loadControls() {
             var mydb = db.current();
-            mydb.getView("nedm_default", "controls", function(err, objs) { 
+            mydb.getView("erlang", "controls", { opts : {stale : 'update_after'} }, function(err, objs) { 
                 if (controlMade) $("#controlDiv").empty();
                 if (err != null) return;
                 for(var i=0;i<objs.rows.length;i++) {
