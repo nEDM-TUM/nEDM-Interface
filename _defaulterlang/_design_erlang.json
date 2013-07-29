@@ -135,15 +135,18 @@
       'fun(Keys, Values, Rereduce) -> 
          F = fun(B,C) -> proplists:get_value(B, C) end,   
          FL = fun(D) -> lists:flatten(io_lib:format("~s",[D])) end,
-         V = lists:max(
+         [_,Val, TS] = lists:max(
                lists:map(fun({A}) ->
-               TheVal = F(<<"value">>, A),
-               TheTS = httpd_util:convert_request_date( FL( F(<<"timestamp">>, A) ) ),
-               [TheTS, TheVal]
+                [ 
+                  httpd_util:convert_request_date( FL( F(<<"timestamp">>, A) ) ),
+                  F(<<"value">>, A),
+                  F(<<"timestamp">>, A)
+                ]
              end,
              Values)
              ),
-        {[{ <<"value">>, lists:nth(2, V)}, {<<"timestamp">>, list_to_binary(httpd_util:rfc1123_date(lists:nth(1, V)))}]} 
+        
+        {[{ <<"value">>, Val}, {<<"timestamp">>, TS}]} 
        end.
       '
     }
