@@ -7,13 +7,8 @@
 // , "log"   : true
 // }
 
-exports.commands = function(doc,req) {
-  if (doc.type && doc.type == 'command') return true;
-  return false;
-}
-
-exports.data = function(doc,req) {
-  if (doc.type && doc.type == 'data') return true;
+exports.doc_type = function(doc,req) {
+  if (doc.type && doc.type == req.query.type) return true;
   return false;
 }
 
