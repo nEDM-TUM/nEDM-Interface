@@ -463,7 +463,7 @@ nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_sec
                      time_before_now.getUTCDate(), time_before_now.getUTCHours(), 
                      time_before_now.getUTCMinutes(), time_before_now.getUTCSeconds()];
 
-        db.current().getView("nedm_default", "slow_control_time_label", 
+        db.current().getView("erlang", "slow_control_time_label", 
                 { opts : { group_level : 9, descending: true, reduce : true,
                   startkey : last_key, endkey : first_key} },
                 function(obj, cbck) { return function(e, o) { 
@@ -518,7 +518,7 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
-    db.current().getView('nedm_default', 'latest_value', 
+    db.current().getView('erlang', 'latest_value', 
       { opts : {group : true}, keys : {keys : this.name} }, 
       function(o) { return function(err, objs) {  
            o.processChange(err,objs); 
