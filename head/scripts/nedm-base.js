@@ -529,7 +529,7 @@ nedm.MonitoringGraph.prototype.beginListening = function () {
   this.endListening(); 
   db.current().listen_to_changes_feed(this.uuid, 
           function(o) { return function(err, obj) { o.syncFunction(err,obj); } } (this), 
-          {since : 'now'});
+          {since : 'now', filter : 'nedm_default/doc_type', type : "data"});
 };
 
 nedm.MonitoringGraph.prototype.endListening = function () {
