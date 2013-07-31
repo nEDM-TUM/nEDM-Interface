@@ -472,6 +472,14 @@ nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_sec
                         if (o != null) return true;
                         return false; 
                     });
+                    
+                    if (all_data.length == 0) return;
+                    if (obj.data.length > 0) {
+                        var d = obj.data[0][0];
+                        var j=0;
+                        while( j < all_data.length && all_data[j][0] >= d) j++; 
+                        all_data.splice(0, j); 
+                    }
                     obj.prependData(all_data); 
                     obj.update(); 
                     if (cbck) cbck();
