@@ -301,6 +301,7 @@ nedm.get_database_info = function( callback ) {
         $.each(data, function(key, val) {
             if (patt.exec(val) != null) {
                 var db_name = val.substring(5);
+                if ( db_name.localeCompare("head") == 0 ) return; 
                 db_infos.push(getDBInfo(db_name));
             }       
         });
