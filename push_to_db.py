@@ -1,37 +1,35 @@
 import sys
 import getpass
 import subprocess
-import tempfile
 import os
 import glob
-import httplib
-import base64
-
 try:
     import pexpect
-except ImportError:
-    print """
-'pexpect' is required.  Try installing using, e.g.:
-
-[sudo] easy_install pexpect
-"""
-    sys.exit(1)
-
-try:
     import json
-except ImportError:
-    print """
-'json' is required.  Try installing using, e.g.:
+    import yaml
+    import cloudant
+except ImportError, e:
+    msg = e.message
+    msg += """
 
-[sudo] easy_install json
+Above referenced module is required.  Try installing using, e.g.:
+
+[sudo] easy_install [module_name]
 """
-    sys.exit(1)
-import yaml
+    e.args = (msg,)
+    raise 
+
+class KansoException(Exception):
+    pass
 
 
 _have_tried = False
 _username = None 
 _password = None 
+
+_acct = None
+
+_pending_requests = []
 
 def set_username_pw(un, pw):
     global _username, _password
@@ -43,6 +41,18 @@ def populate_username_pw():
     if _have_tried or _username is None: _username = getpass.getpass("Username: ")
     if _have_tried or _password is None: _password = getpass.getpass()
     return _username, _password
+
+def get_current_account(host=""):
+    global _acct
+    if _acct: return _acct
+    un, pw = populate_username_pw()
+    _acct = cloudant.Account(uri="http://%s" % host, async=True)
+    res = _acct.login(un, pw)
+    login = res.result()
+    if login.status_code != 200:
+        print "UN/Password incorrect"
+        _acct = None
+    return get_current_account(host)
 
 """
 execute_kanso calls the string and deals with any password/username entry.  It
@@ -74,7 +84,7 @@ def execute_kanso(kanso_str):
     if child.exitstatus != 0 or child.signalstatus is not None:
         print "Problem with: "
         print kanso_str 
-        sys.exit(1)
+        raise KansoException 
  
 
 """
@@ -82,12 +92,11 @@ Updates the security, this has to be done delicately.
 
 """
 def update_security(host, db_name, folder):
+    global _pending_requests
 
-
-    un, pw = populate_username_pw()
+    db = get_current_account(host)[db_name] 
 
     # We have to explicitly call the server, with un, and pw if it's not yet there... 
-    db_path = "http://%s:%s@%s/%s" % (un, pw, host, db_name)
 
     default_security_doc = json.load(open("_default/_security.json"))
 
@@ -105,14 +114,11 @@ def update_security(host, db_name, folder):
                 except KeyError:
                     pass
 
-    default_security_doc["_id"] = "_security"
-
-    o = tempfile.NamedTemporaryFile()
-    json.dump(default_security_doc, o)
-    o.flush()
-
-    execute_kanso("kanso upload " + o.name + " " + db_path) 
-
+    doc = db.document('_security')
+    resp = doc.put(params=default_security_doc)
+    _pending_requests.append(resp)
+    
+       
         
 """
 push to a particular database given a certain folder
@@ -131,65 +137,43 @@ upload data
 """
 def upload_data(host, db_name, folder):
 
+    global _pending_requests
     # push defaults
 
-    un, pw = populate_username_pw()
+    acct = get_current_account(host) 
 
     # We have to explicitly call the server, with un, and pw if it's not yet there... 
 
     # Unfortunately, due to a limitation in the kanso upload command, we need
     # to preprocess the files to remove new-lines
+    db = acct[db_name]
 
-    bulk_docs = {"docs" : []}
+    bulk_docs = [] 
     for af in glob.iglob(folder + "/*.json"):
         base_n = os.path.basename(af)
         with open(af) as f: 
             astr = '\n'.join([x for x in f.readlines() if x[0] != '#'])
 
-        bulk_docs["docs"].append(yaml.load(astr))
+        bulk_docs.append(yaml.load(astr))
 
     grab_bulk = { "keys" : [] }
-    for adoc in bulk_docs["docs"]:
+    for adoc in bulk_docs:
         if "_id" in adoc:
             grab_bulk["keys"].append(adoc["_id"]) 
 
     
     # We need to deal with possible conflicts
     # Here we grab the rev number from current documents
-    headers = {"Content-type" : "application/json", 
-       "Authorization" : "Basic %s" % (base64.encodestring('%s:%s' % (un, pw)).rstrip()) }
-    conn = httplib.HTTPConnection(host) 
-    conn.request("POST", "/" + db_name + "/_all_docs", json.dumps(grab_bulk), headers)
 
-    new_obj = json.loads(conn.getresponse().read())
-
-    uids = dict([(d["id"], d["value"]["rev"]) for d in new_obj["rows"] if "id" in d])
-    for adoc in bulk_docs["docs"]:
+    uids = dict([(d["id"], d["value"]["rev"]) for d in db.all_docs() if "id" in d])
+    for adoc in bulk_docs:
         if "_id" in adoc:
             if adoc["_id"] in uids: 
                 adoc["_rev"] = uids[adoc["_id"]]
 
     # Now push 
-    headers = {"Content-type" : "application/json", 
-       "Authorization" : "Basic %s" % (base64.encodestring('%s:%s' % (un, pw)).rstrip()) }
-    conn = httplib.HTTPConnection(host) 
-    conn.request("POST", "/" + db_name + "/_bulk_docs", json.dumps(bulk_docs), headers)
-
-    resp = conn.getresponse()
-    if resp.status/100 != 2: 
-        print resp.status, resp.reason
-        sys.exit(1)
-    resp_obj = json.loads(resp.read())
-    should_die = False
-    for d in resp_obj:
-        if "ok" not in d:
-            print "Problem in ", d 
-            should_die = True
-
-    if should_die: sys.exit(1)
-
-
-       
+    resp = db.bulk_docs(*bulk_docs)
+    _pending_requests.append(resp)
 
 """
 push to a given server, the databases will be automatically collected from the
@@ -218,6 +202,7 @@ def main(server = None):
         print "Pushing to: ", db_path
         db_name = "nedm%2F" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
+        print "    Update sec/data"
         update_security(server, db_name, db_path) 
         upload_data(server, db_name, "_defaulterlang") 
         data_dir = os.path.join(db_path, "data")
@@ -235,7 +220,13 @@ def main(server = None):
         if os.path.isdir(data_dir): 
             upload_data(server, db_name, data_dir) 
 
-
+    for rqst in _pending_requests:
+        response = rqst.result()
+        if type(response) == type([]):
+            for a in response: 
+                if "ok" not in a.json(): print "inlist", a.json()
+        else:
+            if "ok" not in response.json(): print "nolist", response.json()
 
 if __name__ == '__main__':
     serv = None
