@@ -19,8 +19,6 @@ exports.insert_with_timestamp = function(doc, req) {
         doc[k] = v;
     }
 
-    log(doc);
-
     var ts  = new Date().toUTCString();
     var user = req.userCtx.name;
     var message = 'insert with user (time): ' + user +
