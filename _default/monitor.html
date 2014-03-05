@@ -145,7 +145,7 @@
         };
 
         var exitCleanup = function () {
-            $(".monitor_class").data().endListening(); 
+            if($(".monitor_class").length) { $(".monitor_class").data().endListening(); } 
         }
 
         var addSelectedPlotToWindow = function() {
