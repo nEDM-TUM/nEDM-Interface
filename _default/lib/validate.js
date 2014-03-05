@@ -17,7 +17,7 @@ module.exports = function(newDoc, oldDoc, userCtx, secObj) {
   if(~ secObj.admins.names.indexOf(userCtx.name)) {
     IS_DB_WRITER = true;
   }
-  for(var i = 0; i < userCtx.roles; i++) {
+  for(var i = 0; i < userCtx.roles.length; i++) {
     if(~ secObj.admins.roles.indexOf(userCtx.roles[i])) {
       IS_DB_WRITER = true;
     }
@@ -36,7 +36,7 @@ module.exports = function(newDoc, oldDoc, userCtx, secObj) {
 
   //require_field('created_by');
 
-  if (newDoc.create_by != userCtx.name && !IS_SERVER_ADMIN) {
+  if (newDoc.created_by != userCtx.name && !IS_SERVER_ADMIN) {
     throw { 'user_wrong' : 'User may not save as another user' };
   }
   
