@@ -3,7 +3,7 @@
   "version": "0.0.1", 
   "description": "nEDM-Interface default",
   "load"    : "lib/app",
-  "attachments": ["monitor.html", "control.html", "history.html"],
+  "attachments": [],
   "modules" : ["lib"],
   "dependencies": {
     "modules" : null,
