@@ -2,7 +2,7 @@ var session = require("session");
 var db = require("db");
 var handlebars = require("handlebars");
 var dygraphs = require("dygraph-combined");
-require("jquery");
+var jq = require("jquery");
 
 var nedm = nedm || {};
 nedm.logged_in_as = null;
@@ -56,6 +56,20 @@ nedm.build_url = function(options) {
         else url += JSON.stringify(options[key]);
     }
     return encodeURI(url);
+}
+
+nedm.available_database = {};
+
+nedm.get_database = function(name) {
+    if (name == undefined) { 
+      name = jq.data( document.body, "current_db_name");
+    }
+    return nedm.available_database[name];
+}
+
+nedm.set_database = function(name) {
+    nedm.available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
+    jq.data( document.body, "current_db_name", name);
 }
 
 nedm.open_changes_feeds = { taglist: {}, urllist: {}};
@@ -379,8 +393,9 @@ nedm.dateFromKey = function(arr) {
   return new Date(Date.UTC.apply(this, arr));
 }
 
-nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs) {
+nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
 
+    this.db = adb;
     this.data = [];
     this.graph = new dygraphs.Dygraph(adiv, this.data,
           {
@@ -465,7 +480,7 @@ nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_sec
                      time_before_now.getUTCDate(), time_before_now.getUTCHours(), 
                      time_before_now.getUTCMinutes(), time_before_now.getUTCSeconds()];
 
-        db.current().getView("erlang", "slow_control_time_label", 
+        this.db.getView("erlang", "slow_control_time_label", 
                 { opts : { group_level : 9, descending: true, reduce : true,
                   startkey : last_key, endkey : first_key} },
                 function(obj, cbck) { return function(e, o) { 
@@ -528,7 +543,7 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
-    db.current().getView('erlang', 'latest_value', 
+    this.db.getView('erlang', 'latest_value', 
       { opts : {group : true}, keys : {keys : this.name} }, 
       function(o) { return function(err, objs) {  
            o.processChange(err,objs); 
@@ -537,13 +552,13 @@ nedm.MonitoringGraph.prototype.syncFunction = function () {
 
 nedm.MonitoringGraph.prototype.beginListening = function () {
   this.endListening(); 
-  db.current().listen_to_changes_feed(this.uuid, 
+  this.db.listen_to_changes_feed(this.uuid, 
           function(o) { return function(err, obj) { o.syncFunction(err,obj); } } (this), 
           {since : 'now', filter : 'nedm_default/doc_type', type : "data"});
 };
 
 nedm.MonitoringGraph.prototype.endListening = function () {
-  db.current().cancel_changes_feed(this.uuid);
+  this.db.cancel_changes_feed(this.uuid);
 };
 
 
