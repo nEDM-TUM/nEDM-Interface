@@ -75,7 +75,7 @@ There are several templates that one can derive from by using
 ```
 doc = {
    ...
-  "template" : "/nedm%2Fhead/switch_template",
+  "template" : "/nedm_head/switch_template",
   ...
 }
 ```

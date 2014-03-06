@@ -212,7 +212,7 @@ def main(server = None):
     # Handle head specially
     for db_path in ["head"]:
         print "Pushing to: ", db_path
-        db_name = "nedm%2F" + os.path.basename(db_path)
+        db_name = "nedm_" + os.path.basename(db_path)
         push_database(server, db_name, db_path)
         server_path = "http://" + server + "/" + db_name
         execute_kanso("kanso push " + db_path  + " " + server_path)

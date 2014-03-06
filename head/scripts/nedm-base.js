@@ -223,7 +223,7 @@ nedm.update_buttons = function() {
 
 nedm.update_header = function(event, ui) {
 
-  $("#" + event.target.id + " .headerChild").load("/nedm%2Fhead/_design/nedm_head/header.html", function() {
+  $("#" + event.target.id + " .headerChild").load("/nedm_head/_design/nedm_head/header.html", function() {
       $(this).find("[data-role=header]").trigger("create").toolbar();
       var hn = $(this).find('#nedm_header_name');
       var callback = function(dbs) {
@@ -285,7 +285,7 @@ nedm.get_database_info = function( callback ) {
            var callback = function (data, msg) {
                return [db_name, data, msg]; 
            };
-           var json_subm = $.getJSON("/" + esc_name + "/subsystem_information"); 
+           var json_subm = $.getJSON("/nedm_head/_design/nedm_head/_rewrite/_couchdb/" + esc_name + "/subsystem_information"); 
            json_subm.done( function(data) {
                dfd.resolve( callback(data, "found") );
            });
@@ -295,7 +295,7 @@ nedm.get_database_info = function( callback ) {
            return dfd.promise();
     };
 
-    $.getJSON('/_all_dbs', function(data) {
+    $.getJSON('/nedm_head/_design/nedm_head/_rewrite/_couchdb/_all_dbs', function(data) {
         var patt = /^nedm\//;
         var db_infos = [];
         $.each(data, function(key, val) {
@@ -320,7 +320,7 @@ nedm.get_database_info = function( callback ) {
 }
 
 nedm.show_error_window = function(error, msg) {
-    var page = "/nedm%2Fhead/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
+    var page = "/nedm_head/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
 
     // First check to see if we are in the middle of a chain of authorization
     // errors
@@ -353,8 +353,9 @@ nedm.buildDBList = function(ev, id) {
            html    += '<ul data-role="listview" data-inset="false">';
            if ("pages" in dbs[key]) {
                for(var pg in dbs[key]["pages"]) {
-                   html += nedm.compile('<li><a href="/{{esc_name}}/_design/nedm_default/{{pgsrc}}">{{pgname}}</a></li>')(
-                     {esc_name : esc_name, pgsrc : dbs[key]["pages"][pg], pgname : pg});
+                   var pg_name = /(.*)\.[^.]+$/.exec(dbs[key]["pages"][pg])[1];
+                   html += nedm.compile('<li><a href="/nedm_head/_design/nedm_head/_rewrite/page/{{pgsrc}}/{{esc_name}}">{{pgname}}</a></li>')(
+                     {esc_name : esc_name, pgsrc : pg_name, pgname : pg});
                }
            }
            html    += '</ul></div>';
