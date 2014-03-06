@@ -1,0 +1,41 @@
+{
+  "_id" : "history",
+  "type" : "control_template",
+  "load_page" : "
+        $('#db_history').on('pagebeforeshow', function() { nedm.set_database('{{{db_name}}}'); }); 
+  ",
+  "body" : "
+    <!--<div id='standardHeader'>
+        <div data-role='header' data-position='fixed' data-theme='b'>
+            <h1>nEDM Interface</h1>
+            <a href='#login' data-rel='dialog' class='ui-btn-right'>Login</a>
+        </div>
+    </div> -->
+
+
+<!-- Start of splash page: #one -->
+
+<div data-role='page' id='db_history'>
+    <div class='headerChild'> 
+    </div>
+
+    <!--<div class='headerKid'>
+    </div>
+    <script>$('headerKid').load('./index.html #standardHeader');</script> -->
+    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
+        <div class='content-primary'>
+            <h1 >History</h1>
+        </div>
+
+        <div class='content-secondary'>
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
+            </div>
+        </div> <!-- content-secondary -->
+        <script>
+          {{{script}}}
+          {{{load_page}}}
+        </script>
+    </div>
+</div>
+"
+}

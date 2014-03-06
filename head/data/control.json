@@ -1,0 +1,100 @@
+{
+  "_id"  : "control",
+  "type" : "control_template",
+  'load_page' : "
+        $('#db_control').on('pagebeforeshow', function() { nedm.set_database('{{{db_name}}}'); }); 
+        $('#db_control').on('pagebeforeshow', loadControls); 
+  ",
+  'script' : "
+        var controlMade = false;
+        function loadControls() {
+            nedm.get_database().getView('erlang', 'controls', { opts : {stale : 'update_after'} }, function(err, objs) { 
+                if (controlMade) $('#controlDiv').empty();
+                if (err != null) return;
+                for(var i=0;i<objs.rows.length;i++) {
+                    var arr = objs.rows[i].value;
+                    var key = objs.rows[i].key;
+                    var template_func = function(obj) {
+                        var template = \"<div label='div_{{_id}}'><h3>{{title}}<\\/h3>{{{html}}}\";
+                        template += \"<a href='#help{{_id}}' data-rel='popup'  data-role='button' class='ui-icon-alt' \";
+                        template += \"data-inline='true' data-transition='pop' data-icon='info' data-theme='e' data-iconpos='notext'>Help<\\/a>\";
+                        template += \"<div data-role='popup' id='help{{_id}}'><p>{{{description}}}<\\/p><\\/div><script>{{{script}}}\"
+                        if ('pageevents' in obj) {
+                            var pe = obj['pageevents'];
+                            for (var ev in pe) {
+                                template += nedm.compile(\"$('#db_control').on('{{ev}}', {{{func}}});\")({ ev : ev, func : pe[ev]});
+                            }
+                        }
+                        template += '<\\/script><\\/div>';
+                        template = nedm.compile(template)(obj);
+                        $('#controlDiv').append(template);
+                        $('#controlDiv').trigger('create');
+                        controlMade = true;
+                        //$(nedm.compile('#div_{{_id}}')(obj)).trigger('create');
+                    }
+
+                    if (arr.template != undefined) {
+                        var temp_func = function (x) { return function(obj) {
+                            // We have a correct template
+                            var arr = x;
+                            for (var k in obj) {
+                                if (typeof obj[k] == 'object') {
+                                    for (var j in obj[k]) {
+                                        obj[k][j] = nedm.compile(obj[k][j])(arr); 
+                                    }
+                                } else {
+                                    obj[k] = nedm.compile(obj[k])(arr); 
+                                }
+                            }
+                            obj._id = arr._id;
+                            template_func(obj);
+                        }; }(objs.rows[i].value);
+                        $.getJSON(arr.template, temp_func); 
+                    } else {
+                      template_func(arr); 
+                    }
+                }
+            });
+        }
+
+  ",
+  'body' : "
+
+    <!--<div id='standardHeader'>
+        <div data-role='header' data-position='fixed' data-theme='b'>
+            <h1>nEDM Interface</h1>
+            <a href='#login' data-rel='dialog' class='ui-btn-right'>Login</a>
+        </div>
+    </div> -->
+
+
+<!-- Start of splash page: #one -->
+
+<div data-role='page' id='db_control'>
+    <div class='headerChild'> 
+    </div>
+
+    <!--<div class='headerKid'>
+    </div>
+    <script>$('headerKid').load('./index.html #standardHeader');</script> -->
+    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
+        <div class='content-primary'>
+            <h1 >Control</h1>
+            <div id='controlDiv'>
+            </div>
+        </div>
+        <div class='content-secondary'>
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
+            </div>
+        </div> <!-- content-secondary -->
+    </div>
+    <script>
+      {{{script}}}
+      {{{load_page}}}
+    </script>
+
+</div>
+
+
+"
+}

@@ -1,0 +1,173 @@
+# Monitor template 
+#
+#
+
+{
+  "_id"  : "monitor",
+  "type" : "control_template",
+  "header" : "
+<style> type='text/css'>
+    #monitor_div {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 40px;
+    bottom: 100px;
+    }
+    </style>
+",
+  "load_page" : "
+        var load_function = function() {
+           nedm.set_database('{{{db_name}}}');
+           getAvailableItems();
+        };
+        $('#db_monitor').off('pagebeforeshow').on('pagebeforeshow', load_function);
+        $('#db_monitor').off('pagehide').on('pagehide', exitCleanup);
+  ",
+  "script" : "
+        var makeNewGraph = function() {
+            var new_name = Math.random().toString(36).substr(2,9);
+            var new_div = $('<div></div>');
+            new_div.addClass('monitor_class');
+            new_div.attr('id', 'div_' + new_name);
+
+            var selection = $('#selectCurrentPlot');
+            var anum = selection.find('option').length;
+            new_div.append('<p>Window ' + anum + '</p>');
+            var plot_div = $('<div></div>');
+            new_div.append(plot_div);
+            new_div.append(\"<form><label for='size_'\" + new_name + \"'>Number of displayed minutes</label>\" +
+	    		           \"<input type='range' id='size_\" + new_name + 
+                           \"' min='0' max='100' value='10'/></form>\");
+
+
+            selection.append(\"<option value='\"+new_name+\"'>Window \" + anum +'</option>');
+            selection[0].selectedIndex = anum;
+            $('#monitor_div').append(new_div);
+            new_div.trigger('create');
+
+            $('#removePlot').removeClass('ui-disabled');
+            selection.removeClass('ui-disabled');
+            $('#selectSlowControl').removeClass('ui-disabled');
+            if ($('#selectSlowControl').find('option').length != 0) {
+                $('#addSlowControl').removeClass('ui-disabled');
+            }
+            selection.selectmenu('refresh', true);
+
+
+            var obj = new nedm.MonitoringGraph(plot_div[0], [], $('#size_' + new_name).val()*60, nedm.get_database()); 
+            new_div.data(obj);
+            obj.beginListening();
+            $('#db_monitor').on('pagebeforeshow', function(o) { return function() { o.beginListening(); } }(obj));
+            $('#size_' + new_name).on( 'slidestop', function(o) { return function(eve) {
+                    $.mobile.loading( 'show' );
+                    o.changeBeginningTime(this.value*60, function() { $.mobile.loading( 'hide' ); });
+                    }}(obj));
+        };
+
+        var destroyGraph = function() {
+            var scp = $('#selectCurrentPlot');
+            var selected = scp.find(':selected'); 
+            var sIndex = scp[0].selectedIndex;
+
+            // remove the div
+            $('#div_' + selected.val()).remove();
+
+            // Now update the select menu
+            selected.remove();
+            if (sIndex != 0) sIndex--;
+            scp[0].selectedIndex = sIndex;
+
+
+            if (scp.find('option').length == 0) {
+              // disable button if nothing is there
+              $('#removePlot').addClass('ui-disabled');
+              $('#selectSlowControl').addClass('ui-disabled');
+              $('#addSlowControl').addClass('ui-disabled');
+
+            }
+            scp.selectmenu('refresh', true);
+        };
+
+        var getAvailableItems = function () {
+            // We can have stale = update_after since the data types will not change all that often.
+            nedm.get_database().getView('erlang', 'latest_value', 
+                { opts : {group : true, reduce : true, stale : 'update_after'} }, function (e, o) {
+                        if (e != null ) return;
+                        var add_html = '';
+                        for (var i=0;i<o.rows.length;i++) {
+                            var aname = o.rows[i].key;
+                            add_html += \"<option value='\"+aname+\"'>\" + aname + '</option>';
+                        }
+                        var ssc = $('#selectSlowControl');
+                        ssc.append(add_html);
+                        if (ssc.find('option').length != 0) {
+                            ssc.removeClass('ui-disabled');
+                            if ($('#selectCurrentPlot').find('option').length != 0) {
+                                $('#addSlowControl').removeClass('ui-disabled');
+                            }
+                        }
+                        ssc.selectmenu('refresh', true);
+                    }); 
+
+        };
+
+        var exitCleanup = function () {
+            if($('.monitor_class').length) { $('.monitor_class').data().endListening(); } 
+        }
+
+        var addSelectedPlotToWindow = function() {
+            var scp = $('#selectCurrentPlot');
+            var selected = scp.find(':selected'); 
+            var obj = $('#div_' + selected.val()).data();
+            $.mobile.loading( 'show' );
+            obj.addDataName($('#selectSlowControl').find(':selected').val(), 
+                    $('#size_' + selected.val()).val()*60, function() { $.mobile.loading( 'hide' ); });
+        };
+
+        $('#makeNewPlot').off('click').on('click', makeNewGraph );
+        $('#removePlot').off('click').on('click', destroyGraph );
+        $('#addSlowControl').off('click').on('click', addSelectedPlotToWindow );
+  ",
+  "body" : "   
+
+<!-- Start of splash page: #one -->
+
+<div data-role='page' id='db_monitor'>
+    <div class='headerChild'> 
+    </div>
+
+    <!--<div class='headerKid'>
+    </div>
+    <script>$('headerKid').load('./index.html #standardHeader');</script> -->
+    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
+        <div class='content-primary'>
+            <h1 >Monitor</h1>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <a href='#' data-role='button' data-inline='true' id='makeNewPlot'>Insert New Graph</a>
+                <select name='selectCurrentPlot' id='selectCurrentPlot' class = 'ui-disabled'>
+                </select>
+                <a href='#' data-role='button' data-inline='true' id='removePlot' class='ui-disabled'>Remove Selected</a>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <a href='#' data-role='button' data-inline='true' id='addSlowControl' class = 'ui-disabled'>Add to selected graph</a>
+                <select name='selectSlowControl' id='selectSlowControl' class = 'ui-disabled'>
+                </select>
+            </div>
+
+            <div id='monitor_div'>
+            
+            </div>
+        </div> <!-- content-primary -->
+        <div class='content-secondary'>
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
+            </div>
+        </div> <!-- content-secondary -->
+        <script type='text/javascript'>
+           {{{script}}}
+           {{{load_page}}}
+	    </script>
+    </div>
+</div>
+"
+}
