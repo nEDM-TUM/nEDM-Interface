@@ -213,7 +213,7 @@ def main(server = None):
     for db_path in ["head"]:
         print "Pushing to: ", db_path
         db_name = "nedm_" + os.path.basename(db_path)
-        push_database(server, db_name, db_path)
+        #push_database(server, db_name, db_path)
         server_path = "http://" + server + "/" + db_name
         execute_kanso("kanso push " + db_path  + " " + server_path)
         data_dir = os.path.join(db_path, "data")
@@ -221,12 +221,11 @@ def main(server = None):
             upload_data(server, db_name, data_dir) 
 
     for rqst in _pending_requests:
-        response = rqst.result()
-        if type(response) == type([]):
-            for a in response: 
-                if "ok" not in a.json(): print "inlist", a.json()
-        else:
-            if "ok" not in response.json(): print "nolist", response.json()
+        response = rqst.result().json()
+        if type(response) != type([]):
+            response = [response]
+        for a in response: 
+            if "ok" not in a or not a["ok"]: print "Not ok", a 
 
 if __name__ == '__main__':
     serv = None
