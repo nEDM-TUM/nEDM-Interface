@@ -500,7 +500,10 @@ nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_sec
                         return false; 
                     });
                     
-                    if (all_data.length == 0) return;
+                    if (all_data.length == 0) {
+                        if (cbck) cbck();
+                        return;
+                    }
                     if (obj.data.length > 0) {
                         var d = obj.data[0][0];
                         var j=0;
