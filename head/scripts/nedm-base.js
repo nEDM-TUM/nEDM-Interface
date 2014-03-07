@@ -37,7 +37,7 @@ require("db").guessCurrent = function (loc) {
         return {
             db: match[1],
             design_doc: match[2],
-            root: '/'
+            root: '/nedm_head/_design/nedm_head/_rewrite/_couchdb/'
         }
     }
     return null;
@@ -60,16 +60,25 @@ nedm.build_url = function(options) {
 
 nedm.available_database = {};
 
+nedm.get_current_db_name = function() {
+    var temp = document.location.pathname.split("/");
+	// Following gets rid of nedm%2F for those browsers that don't
+	// automatically convert to /
+	temp = temp[temp.length-1].split("%2F");
+    return "nedm%2F" + temp[temp.length-1]; 
+}
+
 nedm.get_database = function(name) {
     if (name == undefined) { 
-      name = jq.data( document.body, "current_db_name");
+      name = nedm.get_current_db_name(); 
     }
+    if (!(name in nedm.available_database)) {
+        nedm.available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
+    } 
     return nedm.available_database[name];
 }
 
 nedm.set_database = function(name) {
-    nedm.available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
-    jq.data( document.body, "current_db_name", name);
 }
 
 nedm.open_changes_feeds = { taglist: {}, urllist: {}};
@@ -232,7 +241,7 @@ nedm.update_buttons = function() {
         logoutbtn.show();
         loginbtn.hide();
     }
-
+    $("a[id*=homebtn]").attr("href", nedm.using_prefix);
 }
 
 nedm.update_header = function(event, ui) {
@@ -241,7 +250,8 @@ nedm.update_header = function(event, ui) {
       $(this).find("[data-role=header]").trigger("create").toolbar();
       var hn = $(this).find('#nedm_header_name');
       var callback = function(dbs) {
-        var db = /nedm%2F(.*?)\//g.exec(document.URL)[1];
+        if (nedm.get_current_db_name() == undefined) return;
+        var db = /nedm%2F(.*)/.exec(nedm.get_current_db_name())[1];
         if (db in dbs) {
           hn.text("nEDM Interface: " + dbs[db].prettyname);
         } 
@@ -368,7 +378,7 @@ nedm.buildDBList = function(ev, id) {
            if ("pages" in dbs[key]) {
                for(var pg in dbs[key]["pages"]) {
                    var pg_name = /(.*)\.[^.]+$/.exec(dbs[key]["pages"][pg])[1];
-                   html += nedm.compile('<li><a href="/nedm_head/_design/nedm_head/_rewrite/page/{{pgsrc}}/{{esc_name}}">{{pgname}}</a></li>')(
+                   html += nedm.compile('<li><a href="' + nedm.using_prefix + 'page/{{pgsrc}}/{{esc_name}}">{{pgname}}</a></li>')(
                      {esc_name : esc_name, pgsrc : pg_name, pgname : pg});
                }
            }
@@ -565,6 +575,10 @@ nedm.MonitoringGraph.prototype.endListening = function () {
 
 $(document).on('mobileinit', function() {
 
+  nedm.using_prefix = "/";
+  if (document.location.pathname != '/') {
+      nedm.using_prefix = "/nedm_head/_design/nedm_head/_rewrite/";
+  }
   $(document).on('pageinit', function(x, y) {
       nedm.update_header(x, y);
       nedm.buildDBList(x, y);
