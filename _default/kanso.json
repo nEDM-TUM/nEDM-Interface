@@ -1,13 +1,11 @@
 { 
   "name": "nedm_default", 
-  "version": "0.0.1", 
+  "version": "0.0.2", 
   "description": "nEDM-Interface default",
   "load"    : "lib/app",
-  "attachments": [],
   "modules" : ["lib"],
   "dependencies": {
     "modules" : null,
-    "attachments" : null,
     "properties" : null,
     "couchtypes" : null
   } 
