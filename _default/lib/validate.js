@@ -54,4 +54,17 @@ module.exports = function(newDoc, oldDoc, userCtx, secObj) {
 
   couchtypes.validate_doc_update(types, newDoc, oldDoc, userCtx);
 
+  // Extra check for data  
+  // Ensure that we can actually parse the data.
+  if (newDoc.type == "data") {
+      var vals = newDoc.value;
+      for (var k in vals) {
+          if ((typeof vals[k] == "object") || 
+              (typeof vals[k] == "string" 
+                && isNaN(parseFloat(vals[k])))) {
+            throw { 'cannot_parse' : 'Cannot parse data values to numbers for key (' + k + ')' };
+          }
+      }
+  }
+
 }
