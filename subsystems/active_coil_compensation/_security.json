@@ -1,10 +1,10 @@
 {
   "admins" : {
     "names" : [],
-    "roles" : []
+    "roles" : ["active_compensation_coil_writer"]
   },
   "members" : {
     "names" : [],
-    "roles" : ["active_compensation_coil_writer"]
+    "roles" : ["active_compensation_coil_reader"]
   }
 }
