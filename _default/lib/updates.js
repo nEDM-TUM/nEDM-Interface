@@ -27,5 +27,5 @@ exports.insert_with_timestamp = function(doc, req) {
     // Always update the created_by and timestamp
     doc.created_by = user;
     doc.timestamp  = ts;
-    return [doc, JSON.stringify({msg : message})]; 
+    return [doc, JSON.stringify({msg : message, ok : true})]; 
 };
