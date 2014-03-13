@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["temperature_env_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["temperature_env_reader"]
+  }
+}
