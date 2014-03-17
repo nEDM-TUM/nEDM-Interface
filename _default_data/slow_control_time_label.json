@@ -1,0 +1,18 @@
+{
+  "_id" : "_design/slow_control_time_label",
+  "language" : "javascript",
+  "views" : {
+    "slow_control_time_label" : {
+      "map" : "function(doc) {
+           if (!doc.type || doc.type != 'data') return;
+           var then = new Date(Date.parse(doc.timestamp));
+           for (var key in doc.value) {
+               emit([
+                     then.getUTCFullYear(), then.getUTCMonth(), 
+                     then.getUTCDate(), then.getUTCHours(), 
+                     then.getUTCMinutes(), then.getUTCSeconds(), key], doc.value[key]);
+           }
+      }"
+    }
+  } 
+}

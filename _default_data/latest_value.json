@@ -1,0 +1,25 @@
+{
+  "_id" : "_design/latest_value",
+  "language" : "javascript",
+  "views" : {
+    "latest_value" : {
+       "map" : "function(doc) {
+           if (!doc.type || doc.type != 'data') return;
+           for (var key in doc.value) {
+               emit(key, [doc.value[key], Date.parse(doc.timestamp)]); 
+           }
+        }",
+       "reduce" : "function(keys, values, rereduce) {
+            var latest_time = values[0][1];
+            var val = values[0][0];
+            for (var i=0;i<values.length;i++) {
+                if (values[i][1] > latest_time) {
+                    val = values[i][0];
+                    latest_time = values[i][1];
+                }
+            }
+            return [val, latest_time];
+        }"
+    }
+  } 
+}
