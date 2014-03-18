@@ -37,15 +37,18 @@
   // We define a synchronization function which synchronizes the web-site with
   // the database
   var sync_func_{{switch_name}} = function() {
-    nedm.get_database().getView('erlang', 'latest_value', 
-      { opts : {group : true}, keys : {keys : ['{{{switch_name}}}']} }, 
+    nedm.get_database().getView('slow_control_time', 'slow_control_time', 
+      { opts : {group : true, endkey : ['{{{switch_name}}}'], 
+        startkey : ['{{{switch_name}}}', {}], descending : true, limit : 1}}, 
       function(err, objs) {  
          if (err != null) return;
          if (objs.rows.length != 1) return; 
          var arr = objs.rows[0];
-         $('#{{{switch_name}}}-a').val(arr.value.value);
+         var a = arr.key;
+         var t = new Date(Date.UTC.apply(this, a.splice(1))); 
+         $('#{{{switch_name}}}-a').val(arr.value[0]);
          $('#{{{switch_name}}}-a').slider('refresh');
-         $('#{{{switch_name}}}_text').text('Last updated: ' + arr.value.timestamp);
+         $('#{{{switch_name}}}_text').text('Last updated: ' + t.toUTCString());
     })
   };
 
