@@ -137,12 +137,12 @@ def update_security(host, db_name, folder):
 push to a particular database given a certain folder
 
 """
-def push_database(host, db_name, folder):
+def push_database(host, db_name, folder="_default"):
 
     # push defaults
 
     db_path = "http://" + host + "/" + db_name
-    execute_kanso("kanso push _default " +  db_path) 
+    execute_kanso("kanso push %s %s " % (folder, db_path)) 
 
 """
 upload data 
@@ -231,9 +231,9 @@ def main(server = None):
     for db_path in ["head"]:
         print "Pushing to: ", db_path
         db_name = "nedm_" + os.path.basename(db_path)
-        #push_database(server, db_name, db_path)
+        push_database(server, db_name)
+        push_database(server, db_name, db_path)
         server_path = "http://" + server + "/" + db_name
-        execute_kanso("kanso push " + db_path  + " " + server_path)
         data_dir = os.path.join(db_path, "data")
         if os.path.isdir(data_dir): 
             upload_data(server, db_name, data_dir) 
