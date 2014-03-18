@@ -54,6 +54,19 @@ def get_current_account(host=""):
         _acct = None
     return get_current_account(host)
 
+def compare_documents(ondb, topush):
+    ok_differences = set(["timestamp", "created_by", "_rev"])
+    ondb_s = set(ondb.keys())
+    topush_s = set(topush.keys())
+    diffs = ondb_s.symmetric_difference(topush_s)
+    if len(diffs.symmetric_difference(ok_differences)) > 0: return False
+     
+    for k in topush:
+        if ondb[k] != topush[k]: 
+            print k
+            return False
+    return True
+
 """
 execute_kanso calls the string and deals with any password/username entry.  It
 will save the username and password for further calls to this function. 
@@ -156,24 +169,28 @@ def upload_data(host, db_name, folder):
 
         bulk_docs.append(yaml.load(astr))
 
-    grab_bulk = { "keys" : [] }
-    for adoc in bulk_docs:
-        if "_id" in adoc:
-            grab_bulk["keys"].append(adoc["_id"]) 
-
-    
     # We need to deal with possible conflicts
     # Here we grab the rev number from current documents
 
-    uids = dict([(d["id"], d["value"]["rev"]) for d in db.all_docs() if "id" in d])
-    for adoc in bulk_docs:
-        if "_id" in adoc:
-            if adoc["_id"] in uids: 
-                adoc["_rev"] = uids[adoc["_id"]]
+    des = db.design("nedm_default")
 
-    # Now push 
-    resp = db.bulk_docs(*bulk_docs)
-    _pending_requests.append(resp)
+    ids = [d["id"] for d in db.all_docs() if "id" in d]
+    all_docs = db.all_docs(params=
+      dict(include_docs=True,keys=[adoc["_id"] for adoc in bulk_docs if "_id" in adoc]))
+    all_docs = dict([(d["key"], d["doc"]) for d in all_docs if "doc" in d])
+    for adoc in bulk_docs:
+        func_name = "_update/insert_with_timestamp"
+        func = des.post
+        if "_id" in adoc and adoc["_id"] in ids:
+            # We need to use the update handler with name 
+            theid = adoc["_id"]
+            func_name += "/%s" % theid 
+            func = des.put
+            if theid in all_docs and compare_documents(all_docs[theid], adoc):
+                 continue 
+
+        resp = func(func_name, params=adoc)
+        _pending_requests.append(resp)
 
 """
 push to a given server, the databases will be automatically collected from the
