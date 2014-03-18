@@ -400,7 +400,7 @@ nedm.buildDBList = function(ev, id) {
 }
 
 nedm.dateFromKey = function(arr) {
-  return new Date(Date.UTC.apply(this, arr));
+  return new Date(Date.UTC.apply(this, arr.slice(0, arr.length-1)));
 }
 
 nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
@@ -437,8 +437,8 @@ nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
     var seen = false;
     var data_name = this.name;
     for (var i=0;i<data_name.length;i++) {
-        if (data_name[i] in obj.value) {
-            outp.push(obj.value[data_name[i]][0]);
+        if (data_name[i] == obj.key[obj.key.length-1]) {
+            outp.push(obj.value);
             seen = true;
         } else outp.push(null);
     }
@@ -483,15 +483,15 @@ nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_sec
             last_key = [
                      then.getUTCFullYear(), then.getUTCMonth(), 
                      then.getUTCDate(), then.getUTCHours(), 
-                     then.getUTCMinutes(), then.getUTCSeconds()-1];
+                     then.getUTCMinutes(), then.getUTCSeconds()-1, {}];
         }
         first_key = [ 
                      time_before_now.getUTCFullYear(), time_before_now.getUTCMonth(), 
                      time_before_now.getUTCDate(), time_before_now.getUTCHours(), 
                      time_before_now.getUTCMinutes(), time_before_now.getUTCSeconds()];
 
-        this.db.getView("erlang", "slow_control_time_label", 
-                { opts : { group_level : 9, descending: true, reduce : true,
+        this.db.getView("slow_control_time_label", "slow_control_time_label", 
+                { opts : { descending: true, 
                   startkey : last_key, endkey : first_key} },
                 function(obj, cbck) { return function(e, o) { 
                     if (e != null) return;
@@ -533,18 +533,18 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
          var ind = this.name.indexOf(obj.rows[i].key) + 1;
          if (ind == 0) continue;
          var o = obj.rows[i].value;
-         var d = new Date(Date.parse(o.timestamp));
+         var d = new Date(o[1]);
          var j=this.data.length-1;
          while( j >= 0 && this.data[j][0] > d) j--; 
 
          // j is now the event, or before
-         if (j>=0 && this.data[j][0].getTime() == d.getTime()) this.data[j][ind] = parseFloat(o.value);
+         if (j>=0 && this.data[j][0].getTime() == d.getTime()) this.data[j][ind] = parseFloat(o[0]);
          else {
             // Insert it, this also handles the case when nothing is there
             this.data.splice(j+1, 0, [d].concat( Array.apply(null,new Array(this.name.length))
                                                     .map(function() { return null; })
                                               ));
-            this.data[j+1][ind] = parseFloat(o.value);
+            this.data[j+1][ind] = parseFloat(o[0]);
             app++;
          }
      }
@@ -556,7 +556,7 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
-    this.db.getView('erlang', 'latest_value', 
+    this.db.getView('latest_value', 'latest_value', 
       { opts : {group : true}, keys : {keys : this.name} }, 
       function(o) { return function(err, objs) {  
            o.processChange(err,objs); 

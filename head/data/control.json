@@ -30,7 +30,7 @@
     </div>
     <script>
         function loadControls() {
-            nedm.get_database().getView('erlang', 'controls', { opts : {stale : 'update_after'} }, function(err, objs) { 
+            nedm.get_database().getView('nedm_default', 'controls', { opts : {stale : 'update_after'} }, function(err, objs) { 
                 if ($('#controlDiv_{{db_name}}').children('div').size() != 0) $('#controlDiv_{{db_name}}').empty();
                 if (err != null) return;
                 for(var i=0;i<objs.rows.length;i++) {

@@ -115,12 +115,12 @@
 
         var getAvailableItems = function () {
             // We can have stale = update_after since the data types will not change all that often.
-            nedm.get_database().getView('erlang', 'latest_value', 
-                { opts : {group : true, reduce : true, stale : 'update_after'} }, function (e, o) {
+            nedm.get_database().getView('slow_control_time', 'slow_control_time', 
+                { opts : {group : true, reduce : true, stale : 'update_after', group_level : 1} }, function (e, o) {
                         if (e != null ) return;
                         var add_html = '';
                         for (var i=0;i<o.rows.length;i++) {
-                            var aname = o.rows[i].key;
+                            var aname = o.rows[i].key[0];
                             add_html += \"<option value='\"+aname+\"'>\" + aname + '</option>';
                         }
                         var ssc = $('#selectSlowControl_{{db_name}}');
