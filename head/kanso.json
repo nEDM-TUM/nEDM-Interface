@@ -15,7 +15,7 @@
     "db" : null,
     "couchtypes" : null,
     "jquery" : "1.9.1-kanso.2", 
-    "jquery-mobile" : "1.4.0pre",
+    "jquery-mobile" : "1.4.2-kanso.1",
     "dygraph-combined" : null 
   } 
 }

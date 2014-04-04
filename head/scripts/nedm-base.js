@@ -348,8 +348,8 @@ nedm.show_error_window = function(error, msg) {
 
     // First check to see if we are in the middle of a chain of authorization
     // errors
-    var cIndex = $.mobile.urlHistory.activeIndex;
-    var stck = $.mobile.urlHistory.stack;
+    var cIndex = $.mobile.navigate.history.activeIndex;
+    var stck = $.mobile.navigate.history.stack;
     if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) != null) {
         // Ok, we've seen an error.
         // Pop this page out
@@ -608,8 +608,8 @@ $(document).on('mobileinit', function() {
   }); 
 
   $(document).on('pageload', function( event, data) {
-    var cIndex = $.mobile.urlHistory.activeIndex;
-    var stck = $.mobile.urlHistory.stack;
+    var cIndex = $.mobile.navigate.history.activeIndex;
+    var stck = $.mobile.navigate.history.stack;
     if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) != null) {
         // Ok, we moved back successfully after an error, Pop this page out
         stck.splice(cIndex+1, 1);
