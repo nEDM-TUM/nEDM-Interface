@@ -52,7 +52,7 @@ module.exports = function(newDoc, oldDoc, userCtx, secObj) {
     }
   }
 
-  couchtypes.validate_doc_update(types, newDoc, oldDoc, userCtx);
+  //couchtypes.validate_doc_update(types, newDoc, oldDoc, userCtx);
 
   // Extra check for data  
   // Ensure that we can actually parse the data.
