@@ -2,7 +2,41 @@ var session = require("session");
 var db = require("db");
 var handlebars = require("handlebars");
 var dygraphs = require("dygraph-combined");
-var jq = require("jquery");
+$ = require("jquery");
+bs = function(haystack, needle, comparator, alow, ahigh) {
+  if(!Array.isArray(haystack))
+    throw new TypeError("first argument to binary search is not an array");
+
+  if(typeof comparator !== "function")
+    throw new TypeError("third argument to binary search is not a function");
+
+  var low  = alow 
+      mid  = 0,
+      high = ahigh,
+      cmp  = 0;
+
+  while(low <= high) {
+    /* Note that "(low + high) >>> 1" may overflow, and results in a typecast
+     * to double (which gives the wrong results). */
+    mid = low + (high - low >> 1);
+    cmp = comparator(haystack[mid], needle);
+
+    /* Too low. */
+    if(cmp < 0) 
+      low  = mid + 1;
+
+    /* Too high. */
+    else if(cmp > 0)
+      high = mid - 1;
+    
+    /* Key found. */
+    else
+      return mid;
+  }
+
+  /* Key not found. */
+  return ~low;
+}
 
 var nedm = nedm || {};
 nedm.logged_in_as = null;
@@ -400,7 +434,13 @@ nedm.buildDBList = function(ev, id) {
 }
 
 nedm.dateFromKey = function(arr) {
-  return new Date(Date.UTC.apply(this, arr.slice(0, arr.length-1)));
+  var start = 0;
+  var end = 1;
+  if (typeof arr[0] === "string") {
+    start = 1;
+    end = 0;
+  }
+  return new Date(Date.UTC.apply(this, arr.slice(start, arr.length-end)));
 }
 
 nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
@@ -437,7 +477,7 @@ nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
     var seen = false;
     var data_name = this.name;
     for (var i=0;i<data_name.length;i++) {
-        if (data_name[i] == obj.key[obj.key.length-1]) {
+        if (data_name[i] == obj.key[0]) {
             outp.push(obj.value);
             seen = true;
         } else outp.push(null);
@@ -470,10 +510,16 @@ nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
     return data.splice(0, j);
 }
 
+
 nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_secs, callback) {
 
-    this.time_prev = since_time_in_secs; 
-    var time_before_now = new Date((new Date).getTime() - since_time_in_secs*1000);
+    var time_before_now = since_time_in_secs;
+    if (typeof time_before_now == 'number' ) {
+        this.time_prev = since_time_in_secs; 
+        time_before_now = new Date((new Date).getTime() - since_time_in_secs*1000);
+    }  else {
+        this.time_prev = ((new Date).getTime() - time_before_now.getTime())/1000; 
+    }
     var data = this.data;
     if (this.removeBeforeDate(time_before_now) == 0) {
         // first determine what the earliest date is
@@ -490,37 +536,74 @@ nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_sec
                      time_before_now.getUTCDate(), time_before_now.getUTCHours(), 
                      time_before_now.getUTCMinutes(), time_before_now.getUTCSeconds()];
 
-        this.db.getView("slow_control_time_label", "slow_control_time_label", 
-                { opts : { descending: true, 
-                  startkey : last_key, endkey : first_key} },
-                function(obj, cbck) { return function(e, o) { 
-                    if (e != null) return;
-                    var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
-                        if (o != null) return true;
-                        return false; 
-                    });
-                    
-                    if (all_data.length == 0) {
+        for (var i=0;i<this.name.length;i++) {
+            var new_first_key = first_key.slice();
+            var new_last_key = last_key.slice();
+            new_first_key.unshift(this.name[i]);
+            new_last_key.unshift(this.name[i]);
+            this.db.getView("slow_control_time", "slow_control_time", 
+                    { opts : { descending: true, 
+                      startkey : new_last_key, 
+                      endkey : new_first_key, 
+                      reduce : false} },
+                    function(obj, cbck) { return function(e, o) { 
+                        if (e != null) return;
+                        var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
+                            if (o != null) return true;
+                            return false; 
+                        });
+                        
+                        if (all_data.length == 0) {
+                            if (cbck) cbck();
+                            return;
+                        }
+                        //if (obj.data.length > 0) {
+                        //    var d = obj.data[0][0];
+                        //    var j=0;
+                        //    while( j < all_data.length && all_data[j][0] >= d) j++; 
+                        //    all_data.splice(0, j); 
+                        //}
+                        obj.mergeData(all_data); 
+                        obj.update(); 
                         if (cbck) cbck();
-                        return;
-                    }
-                    if (obj.data.length > 0) {
-                        var d = obj.data[0][0];
-                        var j=0;
-                        while( j < all_data.length && all_data[j][0] >= d) j++; 
-                        all_data.splice(0, j); 
-                    }
-                    obj.prependData(all_data); 
-                    obj.update(); 
-                    if (cbck) cbck();
-                } 
-                } (this, callback));
+                    } 
+                    } (this, callback));
+         }
     } else {
         this.update();
         if (callback) callback();
     }
 
 };
+
+nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
+   if (new_data.length == 0) return;
+   var dt = this.data;
+   if (dt.length == 0 || new_data[0][0] < dt[0][0]) {
+     return this.prependData(new_data);
+   }
+   // otherwise we need to merge
+   var curIndex = dt.length-1;
+   var dIndex = 0;
+   while (dIndex < new_data.length && new_data[dIndex][0] >= dt[0][0]) {
+       // find where we need to insert 
+       var cI = bs(dt, new_data[dIndex], function(a,b) { return a[0] - b[0]; }, 0, curIndex);
+       if (cI >= 0) {
+           // means the value is already at an index 
+           curIndex = cI;
+           for (var j=1;j<new_data[dIndex].length;j++) {
+              if (new_data[dIndex][j] !== null) dt[curIndex][j] = new_data[dIndex][j];
+           }
+       } else {
+           curIndex = ~cI;
+           dt.splice(curIndex, 0, new_data[dIndex]);
+       }
+       dIndex += 1;
+   }
+   // Take care of the rest.
+   new_data.splice(0, dIndex);
+   this.prependData(new_data);
+}
 
 nedm.MonitoringGraph.prototype.getMostRecentValues = function() {
 
@@ -620,3 +703,4 @@ $(document).on('mobileinit', function() {
 
 // Load jquery-mobile at the very end
 require("jquery-mobile");
+require("jquery-mobile-datebox");

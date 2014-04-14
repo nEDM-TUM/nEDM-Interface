@@ -60,15 +60,26 @@
             new_div.append('<p>Window ' + anum + '</p>');
             var plot_div = $('<div></div>');
             new_div.append(plot_div);
-            new_div.append(\"<form><label for='size_'\" + new_name + \"'>Number of displayed minutes</label>\" +
-	    		           \"<input type='range' id='size_\" + new_name + 
-                           \"' min='0' max='100' value='10'/></form>\");
+            var now = new Date(Date.now() - 600000);
+            var date_div = $('<div/>').attr('data-role', 'collapsible')
+                   .append('<h4>Date Range</h4>')
+                   .append(\"<input type='text' data-role='datebox' id='date_\" + new_name + 
+                           \"' data-options='{\\\"mode\\\" : \\\"datebox\\\", \" +
+                           \" \\\"lockInput\\\" : false, \\\"showInitialValue\\\" : true, \\\"useNewStyle\\\" : true }'>\")
+                   .append(\"<input type='text' data-role='datebox' id='time_\" + new_name + 
+                           \"' data-options='{\\\"mode\\\" : \\\"timeflipbox\\\", \" +
+                           \" \\\"lockInput\\\" : false, \\\"showInitialValue\\\" : true, \\\"useNewStyle\\\" : true }'>\")
+                   .append(\"<button class='ui-btn ui-corner-all' id='datebutton_\" + new_name + \"'>Reset</button>\");
 
+            new_div.append(date_div);
 
             selection.append(\"<option value='\"+new_name+\"'>Window \" + anum +'</option>');
             selection[0].selectedIndex = anum;
             $('#monitor_div_{{db_name}}').append(new_div);
             new_div.trigger('create');
+
+            $('#date_' + new_name).datebox('setTheDate',now)
+            $('#time_' + new_name).datebox('setTheDate',now)
 
             $('#removePlot_{{db_name}}').removeClass('ui-disabled');
             selection.removeClass('ui-disabled');
@@ -79,14 +90,19 @@
             selection.selectmenu('refresh', true);
 
 
-            var obj = new nedm.MonitoringGraph(plot_div[0], [], $('#size_' + new_name).val()*60, nedm.get_database()); 
-            new_div.data(obj);
+            var obj = new nedm.MonitoringGraph(plot_div[0], [], now, nedm.get_database()); 
+            new_div.data('graph', obj);
             obj.beginListening();
             $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); } }(obj));
-            $('#size_' + new_name).on( 'slidestop', function(o) { return function(eve) {
-                    $.mobile.loading( 'show' );
-                    o.changeBeginningTime(this.value*60, function() { $.mobile.loading( 'hide' ); });
-                    }}(obj));
+            $('#datebutton_' + new_name).on('click', function(o) { return function(eve) {
+                var the_date = $('#date_' + new_name).datebox('getTheDate');
+                var the_time = $('#time_' + new_name).datebox('getTheDate');
+                the_date.setUTCHours( the_time.getUTCHours() );
+                the_date.setUTCMinutes( the_time.getUTCMinutes() );
+                the_date.setUTCSeconds( the_time.getUTCSeconds() );
+                $.mobile.loading( 'show' );
+                o.changeBeginningTime(the_date, function() { $.mobile.loading( 'hide' ); });
+            }}(obj));
         };
 
         var destroyGraph = function() {
@@ -116,7 +132,7 @@
         var getAvailableItems = function () {
             // We can have stale = update_after since the data types will not change all that often.
             nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-                { opts : {group : true, reduce : true, stale : 'update_after', group_level : 1} }, function (e, o) {
+                { opts : {stale : 'update_after', group_level : 1} }, function (e, o) {
                         if (e != null ) return;
                         var add_html = '';
                         for (var i=0;i<o.rows.length;i++) {
@@ -137,16 +153,16 @@
         };
 
         var exitCleanup = function () {
-            if($('.monitor_class').length) { $('.monitor_class').data().endListening(); } 
+            if($('.monitor_class').length) { $('.monitor_class').data('graph').endListening(); } 
         }
 
         var addSelectedPlotToWindow = function() {
             var scp = $('#selectCurrentPlot_{{db_name}}');
             var selected = scp.find(':selected'); 
-            var obj = $('#div_' + selected.val()).data();
+            var obj = $('#div_' + selected.val()).data('graph');
             $.mobile.loading( 'show' );
             obj.addDataName($('#selectSlowControl_{{db_name}}').find(':selected').val(), 
-                    $('#size_' + selected.val()).val()*60, function() { $.mobile.loading( 'hide' ); });
+                    obj.time_prev, function() { $.mobile.loading( 'hide' ); });
         };
 
         $('#makeNewPlot_{{db_name}}').off('click').on('click', makeNewGraph );
