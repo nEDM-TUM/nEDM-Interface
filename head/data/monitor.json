@@ -61,6 +61,13 @@
             var plot_div = $('<div></div>');
             new_div.append(plot_div);
             var now = new Date(Date.now() - 600000);
+            var legend_div = $('<div/>')
+                   .attr('data-role', 'controlgroup')
+                   .attr('data-type', 'horizontal')
+                   .append(\"<a href='#' data-role='button' data-inline='true' id='remove_plotted_\" + new_name + 
+                           \"' class = 'ui-disabled'>Remove</a>\")
+                   .append(\"<select name='plotted_\" + new_name + \"' id='plotted_\" + new_name + \"'></select>\");
+
             var date_div = $('<div/>').attr('data-role', 'collapsible')
                    .append('<h4>Date Range</h4>')
                    .append(\"<input type='text' data-role='datebox' id='date_\" + new_name + 
@@ -71,6 +78,7 @@
                            \" \\\"lockInput\\\" : false, \\\"showInitialValue\\\" : true, \\\"useNewStyle\\\" : true }'>\")
                    .append(\"<button class='ui-btn ui-corner-all' id='datebutton_\" + new_name + \"'>Reset</button>\");
 
+            new_div.append(legend_div);
             new_div.append(date_div);
 
             selection.append(\"<option value='\"+new_name+\"'>Window \" + anum +'</option>');
@@ -161,8 +169,16 @@
             var selected = scp.find(':selected'); 
             var obj = $('#div_' + selected.val()).data('graph');
             $.mobile.loading( 'show' );
-            obj.addDataName($('#selectSlowControl_{{db_name}}').find(':selected').val(), 
-                    obj.time_prev, function() { $.mobile.loading( 'hide' ); });
+            var ssc = $('#selectSlowControl_{{db_name}}').find(':selected');
+            obj.addDataName(ssc.val(), 
+                    obj.time_prev, function() { 
+                    $.mobile.loading( 'hide' ); 
+                    if ( $('#plotted_' + selected.val() + ' option[value=' + ssc.val() + ']').length >= 1 ) return;
+                    var plotted_vars = $('#plotted_' + selected.val());
+                    plotted_vars.append(\"<option value='\"+ssc.val()+\"'>\" + ssc.val() +\"</option>\");
+                    plotted_vars.selectmenu('refresh', true);
+                    $('#remove_plotted_' + selected.val()).removeClass('ui-disabled');
+                    });
         };
 
         $('#makeNewPlot_{{db_name}}').off('click').on('click', makeNewGraph );
