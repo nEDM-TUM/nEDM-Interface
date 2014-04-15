@@ -111,6 +111,17 @@
                 $.mobile.loading( 'show' );
                 o.changeBeginningTime(the_date, function() { $.mobile.loading( 'hide' ); });
             }}(obj));
+            $('#remove_plotted_' + new_name).on('click', function() {
+              var ssc = $('#plotted_' + new_name).find(':selected');
+              obj.removeDataName(ssc.val(), function() {
+                ssc.remove(); 
+                var plt = $('#plotted_' + new_name);
+                if (plt.find('option').length == 0) {  
+                  $('#remove_plotted_' + new_name).addClass('ui-disabled');
+                }
+                plt.selectmenu('refresh', true);
+              });
+            });
         };
 
         var destroyGraph = function() {

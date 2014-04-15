@@ -502,6 +502,15 @@ nedm.MonitoringGraph.prototype.addDataName = function(aname, since_time_in_secs,
     this.changeBeginningTime(since_time_in_secs, callback);
 }
 
+nedm.MonitoringGraph.prototype.removeDataName = function(aname, callback) {
+    var anIndex = this.name.indexOf(aname);
+    if (anIndex == -1 ) return;
+    this.name.splice(anIndex, 1);
+    this.data.every( function(o) { o.splice(anIndex+1, 1); return true; } );
+    this.update();
+    if (callback) callback();
+}
+
 nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
     var data = this.data;
     if (data.length == 0) return 0;
