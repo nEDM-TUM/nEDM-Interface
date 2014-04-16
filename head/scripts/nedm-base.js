@@ -457,9 +457,9 @@ nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
           });
 
     this.name = data_name;
- 
-    this.changeBeginningTime(since_time_in_secs);
     this.uuid = Math.random().toString(36).substr(2,9);
+ 
+    this.changeTimeRange(since_time_in_secs, 0);
 };
 
 nedm.MonitoringGraph.prototype.prependData = function(r) {
@@ -495,11 +495,10 @@ nedm.MonitoringGraph.prototype.appendData = function(r) {
      return append;
 };
 
-nedm.MonitoringGraph.prototype.addDataName = function(aname, since_time_in_secs, callback) {
+nedm.MonitoringGraph.prototype.addDataName = function(aname, callback) {
     if (this.name.indexOf(aname) != -1 ) return;
     this.name.push(aname);
-    this.data.length = 0;
-    this.changeBeginningTime(since_time_in_secs, callback);
+    this.changeTimeRange(this.time_prev, this.until_time, callback);
 }
 
 nedm.MonitoringGraph.prototype.removeDataName = function(aname, callback) {
@@ -520,68 +519,59 @@ nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
 }
 
 
-nedm.MonitoringGraph.prototype.changeBeginningTime = function (since_time_in_secs, callback) {
+nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time, callback) {
 
-    var time_before_now = since_time_in_secs;
-    if (typeof time_before_now == 'number' ) {
-        this.time_prev = since_time_in_secs; 
-        time_before_now = new Date((new Date).getTime() - since_time_in_secs*1000);
-    }  else {
-        this.time_prev = ((new Date).getTime() - time_before_now.getTime())/1000; 
+    this.time_prev = prev_time;
+    if (typeof until_time === 'object' ) { 
+      this.until_time = until_time;
+      this.time_range = 0;
+      this.endListening();
+    } else {
+      this.until_time = 0;
+      this.time_range = ((new Date).getTime() - this.time_prev)/1000;
+      this.beginListening();
     }
     var data = this.data;
-    if (this.removeBeforeDate(time_before_now) == 0) {
-        // first determine what the earliest date is
-        var last_key = [9999];
-        if (data.length > 0) {
-            var then = data[0][0];
-            last_key = [
-                     then.getUTCFullYear(), then.getUTCMonth(), 
-                     then.getUTCDate(), then.getUTCHours(), 
-                     then.getUTCMinutes(), then.getUTCSeconds()-1, {}];
-        }
-        first_key = [ 
-                     time_before_now.getUTCFullYear(), time_before_now.getUTCMonth(), 
-                     time_before_now.getUTCDate(), time_before_now.getUTCHours(), 
-                     time_before_now.getUTCMinutes(), time_before_now.getUTCSeconds()];
+    data.length = 0;
+    // first determine what the earliest date is
+    var last_key = [9999];
+    if (this.until_time != 0) {
+        last_key = [
+                 this.until_time.getUTCFullYear(), this.until_time.getUTCMonth(), 
+                 this.until_time.getUTCDate(), this.until_time.getUTCHours(), 
+                 this.until_time.getUTCMinutes(), this.until_time.getUTCSeconds()-1, {}];
+    }
+    first_key = [ 
+                 this.time_prev.getUTCFullYear(), this.time_prev.getUTCMonth(), 
+                 this.time_prev.getUTCDate(), this.time_prev.getUTCHours(), 
+                 this.time_prev.getUTCMinutes(), this.time_prev.getUTCSeconds()];
 
-        for (var i=0;i<this.name.length;i++) {
-            var new_first_key = first_key.slice();
-            var new_last_key = last_key.slice();
-            new_first_key.unshift(this.name[i]);
-            new_last_key.unshift(this.name[i]);
-            this.db.getView("slow_control_time", "slow_control_time", 
-                    { opts : { descending: true, 
-                      startkey : new_last_key, 
-                      endkey : new_first_key, 
-                      reduce : false} },
-                    function(obj, cbck) { return function(e, o) { 
-                        if (e != null) return;
+    for (var i=0;i<this.name.length;i++) {
+        var new_first_key = first_key.slice();
+        var new_last_key = last_key.slice();
+        new_first_key.unshift(this.name[i]);
+        new_last_key.unshift(this.name[i]);
+        this.db.getView("slow_control_time", "slow_control_time", 
+                { opts : { descending: true, 
+                            startkey : new_last_key, 
+                              endkey : new_first_key, 
+                              reduce : false} },
+                function(obj, cbck) { return function(e, o) { 
+                    if (e == null) { 
                         var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
                             if (o != null) return true;
                             return false; 
                         });
-                        
-                        if (all_data.length == 0) {
-                            if (cbck) cbck();
-                            return;
+                        if (all_data.length != 0) {
+                            obj.mergeData(all_data); 
+                            obj.update(); 
                         }
-                        //if (obj.data.length > 0) {
-                        //    var d = obj.data[0][0];
-                        //    var j=0;
-                        //    while( j < all_data.length && all_data[j][0] >= d) j++; 
-                        //    all_data.splice(0, j); 
-                        //}
-                        obj.mergeData(all_data); 
-                        obj.update(); 
-                        if (cbck) cbck();
-                    } 
-                    } (this, callback));
-         }
-    } else {
-        this.update();
-        if (callback) callback();
+                    }
+                    if (cbck) cbck();
+                } 
+                } (this, callback));
     }
+    if (callback) callback();
 
 };
 
@@ -640,8 +630,8 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
             app++;
          }
      }
-     if (this.data.length != 0) { 
-         var time_before_now = new Date(this.data[this.data.length-1][0].getTime() - this.time_prev*1000);
+     if (this.data.length != 0 && this.time_range != 0) { 
+         var time_before_now = new Date(this.data[this.data.length-1][0].getTime() - this.time_range*1000);
          this.removeBeforeDate(time_before_now);
      }
      this.update();
@@ -665,8 +655,6 @@ nedm.MonitoringGraph.prototype.beginListening = function () {
 nedm.MonitoringGraph.prototype.endListening = function () {
   this.db.cancel_changes_feed(this.uuid);
 };
-
-
 
 $(document).on('mobileinit', function() {
 

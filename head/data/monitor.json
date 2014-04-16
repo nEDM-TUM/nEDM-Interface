@@ -162,14 +162,18 @@
                 var start_date = get_new_date(''); 
                 var end_date = get_new_date('end'); 
                 var until_now = ensure_until_now_state();
+                if (until_now) end_date = 0;
                 $.mobile.loading( 'show' );
-                obj.changeBeginningTime(start_date, function() { $.mobile.loading( 'hide' ); });
+                obj.changeTimeRange(start_date, end_date, function() { $.mobile.loading( 'hide' ); });
             };
 
             $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); } }(obj));
             $('#datebutton_' + new_name).on('click', change_dates);
             $('#checkboxuntilnow_' + new_name).checkboxradio('refresh');
-            $('#checkboxuntilnow_' + new_name).on('change', ensure_until_now_state);
+            $('#checkboxuntilnow_' + new_name).on('change', function() { 
+                ensure_until_now_state(); 
+                $('#datebutton_' + new_name).trigger('click'); 
+            });
             $('#remove_plotted_' + new_name).on('click', function() {
               var ssc = $('#plotted_' + new_name).find(':selected');
               obj.removeDataName(ssc.val(), function() {
@@ -181,6 +185,7 @@
                 plt.selectmenu('refresh', true);
               });
             });
+            $('#checkboxuntilnow_' + new_name).trigger('click'); 
         };
 
         var destroyGraph = function() {
