@@ -62,26 +62,64 @@
             new_div.append(plot_div);
             var now = new Date(Date.now() - 600000);
             var legend_div = $('<div/>')
-                   .attr('data-role', 'controlgroup')
-                   .attr('data-type', 'horizontal')
-                   .append(\"<a href='#' data-role='button' data-inline='true' id='remove_plotted_\" + new_name + 
-                           \"' class = 'ui-disabled'>Remove</a>\")
-                   .append(\"<select name='plotted_\" + new_name + \"' id='plotted_\" + new_name + \"'></select>\");
-
+                   .attr('data-role', 'fieldcontain')
+                   .append($('<fieldset/>').attr({'data-role' : 'controlgroup', 'data-type' : 'horizontal'})
+                           .append('<legend>Plotted variables:</legend>')
+                           .append($('<a/>').attr({href : '#', 
+                                                   'data-role' : 'button', 
+                                                   'data-inline' : 'true', 
+                                                   id : 'remove_plotted_' + new_name, 
+                                                   class : 'ui-disabled'}).append('Remove'))
+                           .append($('<select/>').attr({ name : 'plotted_' + new_name, 
+                                                           id : 'plotted_' + new_name}))
+                          );
+            var gimme_datebox = function(atype, anid) {
+                 var opts = { mode : atype,
+                              lockInput : false,
+                              showInitialValue : true,
+                              useNewStyle : true }; 
+                 return $('<input>').attr({ type : 'text',
+                                            'data-role' : 'datebox',
+                                            id : anid,
+                                            'data-options' : JSON.stringify(opts)});
+            };
             var date_div = $('<div/>').attr('data-role', 'collapsible')
-                   .append('<h4>Date Range</h4>')
-                   .append(\"<input type='text' data-role='datebox' id='date_\" + new_name + 
-                           \"' data-options='{\\\"mode\\\" : \\\"datebox\\\", \" +
-                           \" \\\"lockInput\\\" : false, \\\"showInitialValue\\\" : true, \\\"useNewStyle\\\" : true }'>\")
-                   .append(\"<input type='text' data-role='datebox' id='time_\" + new_name + 
-                           \"' data-options='{\\\"mode\\\" : \\\"timeflipbox\\\", \" +
-                           \" \\\"lockInput\\\" : false, \\\"showInitialValue\\\" : true, \\\"useNewStyle\\\" : true }'>\")
-                   .append(\"<button class='ui-btn ui-corner-all' id='datebutton_\" + new_name + \"'>Reset</button>\");
+                   .append('<h4>Advanced Options</h4>')
+                   .append($('<div/>').attr({ class : 'ui-grid-b'})
+                                      .append($('<div/>').attr( { class : 'ui-block-a' })
+                                                         .append('<h5>Start:</h5>')
+                                                         .append('<h5>End:</h5>')
+                                             )
+                                      .append($('<div/>').attr( { class : 'ui-block-b' })
+                                                         .append(gimme_datebox('datebox', 'date_' + new_name))
+                                                         .append(gimme_datebox('datebox', 'dateend_' + new_name))
+                                             )
+                                      .append($('<div/>').attr( { class : 'ui-block-c' })
+                                                         .append(gimme_datebox('timeflipbox', 'time_' + new_name))
+                                                         .append(gimme_datebox('timeflipbox', 'timeend_' + new_name))
+                                               )
+                          )
+                   .append($('<div/>')
+                           .attr('data-role', 'fieldcontain')
+                           .append($('<fieldset/>')
+                                   .attr({'data-role' : 'controlgroup', 'data-type' : 'horizontal'})
+                                   .append($('<label/>').append($('<input>').attr(
+                                                                                  { type : 'checkbox',
+                                                                                      id : 'checkboxuntilnow_' + new_name,
+                                                                                   class : 'custom'})
+                                                                )
+                                                        .append('Live')
+                                          )
+                                   .append($('<button/>').attr({ class : 'ui-btn ui-corner-all', id : 'datebutton_' + new_name})
+                                                         .append('Set times')
+                                           )
+                                  )
+                          );
 
             new_div.append(legend_div);
             new_div.append(date_div);
 
-            selection.append(\"<option value='\"+new_name+\"'>Window \" + anum +'</option>');
+            selection.append($('<option/>').attr( { value : new_name } ).append('Window ' + anum));
             selection[0].selectedIndex = anum;
             $('#monitor_div_{{db_name}}').append(new_div);
             new_div.trigger('create');
@@ -101,16 +139,37 @@
             var obj = new nedm.MonitoringGraph(plot_div[0], [], now, nedm.get_database()); 
             new_div.data('graph', obj);
             obj.beginListening();
-            $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); } }(obj));
-            $('#datebutton_' + new_name).on('click', function(o) { return function(eve) {
-                var the_date = $('#date_' + new_name).datebox('getTheDate');
-                var the_time = $('#time_' + new_name).datebox('getTheDate');
-                the_date.setUTCHours( the_time.getUTCHours() );
-                the_date.setUTCMinutes( the_time.getUTCMinutes() );
-                the_date.setUTCSeconds( the_time.getUTCSeconds() );
+            var ensure_until_now_state = function() {
+                var until_now = $('#checkboxuntilnow_' + new_name).is(':checked');
+                if ( until_now ) {
+                  $('#dateend_' + new_name).addClass('ui-disabled');
+                  $('#timeend_' + new_name).addClass('ui-disabled');
+                } else {
+                  $('#dateend_' + new_name).removeClass('ui-disabled');
+                  $('#timeend_' + new_name).removeClass('ui-disabled');
+                }
+                return until_now;
+            };
+            var change_dates = function(eve) {
+                var get_new_date = function(prefix) {
+                    var the_date = $('#date' + prefix + '_' + new_name).datebox('getTheDate');
+                    var the_time = $('#time' + prefix + '_' + new_name).datebox('getTheDate');
+                    the_date.setUTCHours( the_time.getUTCHours() );
+                    the_date.setUTCMinutes( the_time.getUTCMinutes() );
+                    the_date.setUTCSeconds( the_time.getUTCSeconds() );
+                    return the_date;
+                };
+                var start_date = get_new_date(''); 
+                var end_date = get_new_date('end'); 
+                var until_now = ensure_until_now_state();
                 $.mobile.loading( 'show' );
-                o.changeBeginningTime(the_date, function() { $.mobile.loading( 'hide' ); });
-            }}(obj));
+                obj.changeBeginningTime(start_date, function() { $.mobile.loading( 'hide' ); });
+            };
+
+            $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); } }(obj));
+            $('#datebutton_' + new_name).on('click', change_dates);
+            $('#checkboxuntilnow_' + new_name).checkboxradio('refresh');
+            $('#checkboxuntilnow_' + new_name).on('change', ensure_until_now_state);
             $('#remove_plotted_' + new_name).on('click', function() {
               var ssc = $('#plotted_' + new_name).find(':selected');
               obj.removeDataName(ssc.val(), function() {
