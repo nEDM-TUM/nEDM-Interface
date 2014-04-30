@@ -1,0 +1,34 @@
+{
+ "_id" : "coil_on_off",
+ "type" : "control",
+ "title" : "Active field cage process",
+  "description" : "Start/stop the field cage process",
+  "html" : "
+  <div data-role='fieldcontain' id='coil_on_off_div'>
+    <fieldset data-role='controlgroup' data-type='horizontal'>
+        <legend>Active Coil Algorithm</legend>
+        <a href='#' id='coil_on_off_button' data-role='button' data-icon='nedm-stopped' data-iconpos='right'>Start</a>
+    </fieldset>
+  </div>
+  ",
+  "pageevents" : {
+      "pagehide" :  "function() {
+        //nedm.get_database().cancel_changes_feed('coil_on_off');
+      }",
+      "pageshow" :  "function() {
+        //nedm.get_database().listen_to_changes_feed('coil_on_off', sync_coil_on_off, {since : 'now'});
+      }"
+  },
+  "script" : "
+    $('#coil_on_off_button').on('click', function () {
+      var but = $('#coil_on_off_button');
+      if (!but.hasClass('ui-icon-nedm-loading')) {
+          but.addClass('ui-icon-nedm-loading').removeClass('ui-icon-nedm-stopped');
+          but.text('Stop');
+      } else {
+          but.addClass('ui-icon-nedm-stopped').removeClass('ui-icon-nedm-loading');
+          but.text('Start');
+      }
+    });  
+  "
+}
