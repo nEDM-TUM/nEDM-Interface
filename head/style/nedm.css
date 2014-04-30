@@ -1,0 +1,16 @@
+.ui-icon-nedm-loading:after {
+        background: url(images/light-loader.gif) no-repeat rgba(0, 0, 0, 0.0);
+        background-position: 0 50%;
+}
+.ui-icon-nedm-stopped:after {
+	background: rgba(0, 0, 0, 0.0);
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 2) {
+    .ui-icon-nedm-loading:after {   
+	    background: url(images/light-loader-highres.gif) no-repeat rgba(0, 0, 0, 0.0);
+		background-size: 18px 18px;
+        background-position: 0 50%;
+	}
+}
+
