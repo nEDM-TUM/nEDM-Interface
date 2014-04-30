@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["fluxgate_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["fluxgate_reader"]
+  }
+}
