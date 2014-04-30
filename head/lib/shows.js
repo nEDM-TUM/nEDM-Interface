@@ -29,7 +29,7 @@ exports.define_control = function(doc, req) {
       return handlebars.compile(template)(obj);
    };
 
-   var obj = JSON.parse(req.query.doc);
+   var obj = JSON.parse(req.body);
    if (doc != null) {
      // We have a template sent in
      var arr = obj;

@@ -41,8 +41,8 @@
                         addr += '/' + arr.template;
                     }
                     arr.db_control = 'db_control_{{db_name}}';
-                    addr += '?doc=' + JSON.stringify(arr);
-                    $.get(addr, function(e) {
+                    $.post(addr, JSON.stringify(arr), 
+                      function(e) {
                         $('#controlDiv_{{db_name}}').append(e);
                         $('#controlDiv_{{db_name}}').trigger('create');
                         controlMade = true;
