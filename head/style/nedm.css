@@ -5,6 +5,10 @@
 .ui-icon-nedm-stopped:after {
 	background: rgba(0, 0, 0, 0.0);
 }
+.controlgroup-textinput{
+    padding-top:.22em;
+    padding-bottom:.22em;
+}
 
 @media only screen and (-webkit-min-device-pixel-ratio: 2) {
     .ui-icon-nedm-loading:after {   
