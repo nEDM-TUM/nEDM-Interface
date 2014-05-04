@@ -51,13 +51,7 @@
       if (!but.data('isRunning')) {
           cmd = 'start_coil';
       } 
-      nedm.get_database().updateDoc({ type : 'command', execute : cmd },  
-          'nedm_default', 'insert_with_timestamp', function(err, obj) { 
-             if (err != null) {
-                 nedm.show_error_window(err.error, err.reason);
-                 sync_coil_on_off();
-             }   
-      });  
+      nedm.send_command( { cmd_name : cmd } );
     });
     sync_coil_on_off();
     nedm.get_database().listen_to_changes_feed('coil_on_off', sync_coil_on_off, 
