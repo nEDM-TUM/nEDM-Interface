@@ -12,7 +12,7 @@
       "map" : "function(doc) {
           if (!doc.type || doc.type != 'command') return;
           if (doc.response) return;
-          emit(doc.execute, 1); 
+          emit([doc.execute, doc._id], 1); 
       }",
       "reduce" : "_sum"
     },
@@ -20,7 +20,7 @@
       "map" : "function(doc) {
           if (!doc.type || doc.type != 'command') return;
           if (!doc.response) return;
-          emit(doc.execute, 1); 
+          emit([doc.execute, doc._id], 1); 
       }",
       "reduce" : "_sum"
     }
