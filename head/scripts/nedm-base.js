@@ -546,6 +546,7 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
                  this.time_prev.getUTCDate(), this.time_prev.getUTCHours(), 
                  this.time_prev.getUTCMinutes(), this.time_prev.getUTCSeconds()];
 
+    if (this.name.length === 0 && callback) callback();
     for (var i=0;i<this.name.length;i++) {
         var new_first_key = first_key.slice();
         var new_last_key = last_key.slice();
@@ -571,7 +572,6 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
                 } 
                 } (this, callback));
     }
-    if (callback) callback();
 
 };
 

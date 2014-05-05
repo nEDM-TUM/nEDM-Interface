@@ -91,8 +91,8 @@
                                                          .append('<h5>End:</h5>')
                                              )
                                       .append($('<div/>').attr( { class : 'ui-block-b' })
-                                                         .append(gimme_datebox('datebox', 'date_' + new_name))
-                                                         .append(gimme_datebox('datebox', 'dateend_' + new_name))
+                                                         .append(gimme_datebox('calbox', 'date_' + new_name))
+                                                         .append(gimme_datebox('calbox', 'dateend_' + new_name))
                                              )
                                       .append($('<div/>').attr( { class : 'ui-block-c' })
                                                          .append(gimme_datebox('timeflipbox', 'time_' + new_name))
@@ -246,13 +246,13 @@
             $.mobile.loading( 'show' );
             var ssc = $('#selectSlowControl_{{db_name}}').find(':selected');
             obj.addDataName(ssc.val(), 
-                    obj.time_prev, function() { 
-                    $.mobile.loading( 'hide' ); 
-                    if ( $('#plotted_' + selected.val() + ' option[value=' + ssc.val() + ']').length >= 1 ) return;
-                    var plotted_vars = $('#plotted_' + selected.val());
-                    plotted_vars.append(\"<option value='\"+ssc.val()+\"'>\" + ssc.val() +\"</option>\");
-                    plotted_vars.selectmenu('refresh', true);
-                    $('#remove_plotted_' + selected.val()).removeClass('ui-disabled');
+                    function() { 
+                       $.mobile.loading( 'hide' ); 
+                       if ( $('#plotted_' + selected.val() + ' option[value=' + ssc.val() + ']').length >= 1 ) return;
+                       var plotted_vars = $('#plotted_' + selected.val());
+                       plotted_vars.append($('<option/>').attr({value : ssc.val()}).append(ssc.val()));
+                       plotted_vars.selectmenu('refresh', true);
+                       $('#remove_plotted_' + selected.val()).removeClass('ui-disabled');
                     });
         };
 
