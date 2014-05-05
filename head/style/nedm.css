@@ -1,3 +1,7 @@
+@import url("jqm-docs.css");
+@import url("toastr.css");
+@import url("jquery-mobile.css");
+
 .ui-icon-nedm-loading:after {
         background: url(images/light-loader.gif) no-repeat rgba(0, 0, 0, 0.0);
         background-position: 0 50%;
@@ -5,7 +9,7 @@
 .ui-icon-nedm-stopped:after {
 	background: rgba(0, 0, 0, 0.0);
 }
-.controlgroup-textinput{
+.controlgroup-textinput {
     padding-top:.22em;
     padding-bottom:.22em;
 }
