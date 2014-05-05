@@ -2,7 +2,7 @@
   "name": "nedm_head", 
   "version": "0.0.1", 
   "description": "nEDM-Interface default",
-  "attachments": ["index.html", "error.html", "header.html", "login.html", "scripts", "style"],
+  "attachments": ["index.html", "error.html", "header.html", "login.html", "scripts", "css"],
   "load"    : "lib/app",
   "modules" : ["lib"],
   "dependencies": {
