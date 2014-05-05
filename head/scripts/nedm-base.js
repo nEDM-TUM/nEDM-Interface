@@ -638,9 +638,9 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
 };
 
 nedm.send_command = function(o) {
-      adoc = { type : 'command', execute : o.cmd_name };
+      var adoc = { type : 'command', execute : o.cmd_name };
       if ('arguments' in o) { adoc['arguments'] = o['arguments']; }
-      callback = undefined;
+      var callback = undefined;
       if ('callback' in o) callback = o.callback;
       nedm.get_database().updateDoc(adoc,  
           'nedm_default', 'insert_with_timestamp', function(err, obj) { 
@@ -648,18 +648,37 @@ nedm.send_command = function(o) {
                  nedm.show_error_window(err.error, err.reason);
                  return;
              } 
-             if (callback === undefined) return;
+             var cmd_str = "Command submitted: " + o.cmd_name; 
+             if ('arguments' in adoc) {
+                 cmd_str += ", with args: " + JSON.stringify(adoc['arguments']);
+             }
+             toastr.info(cmd_str, "", 
+               { positionClass: "toast-bottom-full-width",
+                 closeButton: true});
              // Check for the return of the function...
              var check_cmd_return = function() {
                  nedm.get_database().getView("execute_commands", "complete_commands",
                    { opts: { reduce : false, key : [o.cmd_name, obj.id], include_docs : true } },
                    function(err, objs) {
                        if (err != null) return;
-                       if (objs.rows.length != 1) {
+                       if (objs.rows.length != 1 || objs.rows[0].doc.response === undefined) {
                            // call again
                            setTimeout(check_cmd_return, 1000);
                        } else { 
-                           callback(objs.rows[0].doc.response); 
+                           var resp = objs.rows[0].doc.response;
+                           var func = toastr.success;
+                           var title = "Success";
+                           if (!("ok" in resp)) { 
+                               func = toastr.error; 
+                               title = "Error";
+                           }
+                           func("Response for (" + o.cmd_name + "): " + resp.content + "\n" +
+                                "    return value: " + JSON.stringify(resp['return']),  
+                             title,
+                             { positionClass: "toast-bottom-full-width",
+                               closeButton: true});
+                           if (callback === undefined) return;
+                           callback(resp); 
                        }
                    });
              };
@@ -731,3 +750,4 @@ $(document).on('mobileinit', function() {
 // Load jquery-mobile at the very end
 require("jquery-mobile");
 require("jquery-mobile-datebox");
+var toastr = require("toastr");
