@@ -74,7 +74,7 @@ will save the username and password for further calls to this function.
 def execute_kanso(kanso_str):
     global _have_tried
 
-    child = pexpect.spawn(kanso_str)
+    child = pexpect.spawn(kanso_str,timeout=60)
 
     try:
         while 1:
