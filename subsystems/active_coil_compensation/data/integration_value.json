@@ -1,0 +1,8 @@
+{
+ "_id" : "set_integration_value",
+ "type" : "control",
+ "title" : "Integration value",
+  "description" : "Change the integration value",
+  "template" : "set_value_template",
+  "cmd_name" : "set_int_value"
+}

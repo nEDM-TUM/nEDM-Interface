@@ -2,59 +2,10 @@
  "_id" : "coil_on_off",
  "type" : "control",
  "title" : "Active field cage process",
-  "description" : "Start/stop the field cage process",
-  "html" : "
-  <div data-role='fieldcontain' id='coil_on_off_div'>
-    <fieldset data-role='controlgroup' data-type='horizontal'>
-        <legend>Active Coil Algorithm</legend>
-        <a href='#' id='coil_on_off_button' data-role='button' data-icon='nedm-stopped' data-iconpos='right' class='ui-disabled'>Start</a>
-    </fieldset>
-  </div>
-  ",
-  "pageevents" : {
-      "pagehide" :  "function() {
-        //nedm.get_database().cancel_changes_feed('coil_on_off');
-      }",
-      "pageshow" :  "function() {
-        //nedm.get_database().listen_to_changes_feed('coil_on_off', sync_coil_on_off, {since : 'now'});
-      }"
-  },
-  "script" : "
-    var sync_coil_on_off = function() {
-      var but = $('#coil_on_off_button');
-      nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-        { opts : {group : true, endkey : ['run_status'], 
-          startkey : ['run_status', {}], descending : true, limit : 1}}, 
-        function(err, objs) {   
-           if (err != null) return;
-           if (objs.rows.length != 1) return; 
-           var arr = objs.rows[0];
-           var a = arr.key;
-           if (but.data('isRunning') && (arr.value[0] == but.data('isRunning'))) return;
-           if (arr.value[0]) {
-             but.data('isRunning', true);
-             but.addClass('ui-icon-nedm-loading').removeClass('ui-icon-nedm-stopped');
-             but.text('Stop');
-           } else {
-             but.data('isRunning', false);
-             but.addClass('ui-icon-nedm-stopped').removeClass('ui-icon-nedm-loading');
-             but.text('Start');
-           }
-           but.removeClass('ui-disabled');
-      })  
-    };  
-
-    $('#coil_on_off_button').on('click', function () {
-      var but = $('#coil_on_off_button');
-      but.addClass('ui-disabled');
-      var cmd = 'stop_coil';
-      if (!but.data('isRunning')) {
-          cmd = 'start_coil';
-      } 
-      nedm.send_command( { cmd_name : cmd } );
-    });
-    sync_coil_on_off();
-    nedm.get_database().listen_to_changes_feed('coil_on_off', sync_coil_on_off, 
-      {since : 'now', filter :'nedm_default/doc_type', type : 'data'});
-  "
+ "description" : "Start/stop the field cage process",
+ "template" : "start_stop_process_template",
+ "process_name" : "start_stop_coil",
+ "start_process_cmd" : "start_coil",
+ "stop_process_cmd" : "stop_coil",
+ "process_bool_variable" : "run_status"
 }

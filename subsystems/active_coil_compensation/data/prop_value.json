@@ -3,43 +3,6 @@
  "type" : "control",
  "title" : "Proportional value",
   "description" : "Change the proportional value",
-  "html" : "
-<div data-role='fieldcontain'>
-    <legend>PI value</legend>
-    <div data-role='controlgroup' data-type='horizontal'>
-        <input type='text' id='set_prop_value_text' data-wrapper-class='controlgroup-textinput ui-btn'>
-        <button id='submit_set_prop_value'>Submit</button>
-    </div>
-</div>
-  ",
-  "script" : "
-    var sync_prop_value = function() {
-      nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-        { opts : {group : true, endkey : ['prop_value'], 
-          startkey : ['prop_value', {}], descending : true, limit : 1}}, 
-        function(err, objs) {   
-           if (err != null) return;
-           if (objs.rows.length != 1) return; 
-           var arr = objs.rows[0];
-           var a = arr.key;
-           $('#set_prop_value_text').text(arr.value[0]);
-      })  
-    };  
-
-    $('#submit_set_prop_value').on('click', function () {
-      var but = $('#submit_set_prop_value');
-      but.addClass('ui-disabled');
-      var cmd = 'set_prop_value';
-      nedm.send_command( { cmd_name : cmd, 
-                           arguments : [ parseFloat($('#set_prop_value_text').val()) ],
-                           callback: function(o) { 
-                              console.log(o); 
-                              but.removeClass('ui-disabled');
-                           } 
-                         });
-    });
-    sync_prop_value();
-    nedm.get_database().listen_to_changes_feed('prop_value', sync_prop_value, 
-      {since : 'now', filter :'nedm_default/doc_type', type : 'data'});
-  "
+  "template" : "set_value_template",
+  "cmd_name" : "set_prop_value"
 }
