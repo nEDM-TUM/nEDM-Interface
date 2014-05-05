@@ -1,0 +1,34 @@
+{
+ "_id" : "set_value_template",
+ "type" : "control_template",
+ "title" : "{{title}}",
+ "description" : "{{description}}",
+ "pageevents" : {
+      "pagehide" :  "function() {
+      }",
+      "pageshow" :  "function() {
+      }"
+ },
+
+ "html" : "
+<div data-role='fieldcontain'>
+    <div data-role='controlgroup' data-type='horizontal'>
+        <input type='text' id='set_{{{cmd_name}}}_text' data-wrapper-class='controlgroup-textinput ui-btn'>
+        <button id='submit_set_{{{cmd_name}}}'>Submit</button>
+    </div>
+</div>
+ ",
+ "script" : "
+    $('#submit_set_{{{cmd_name}}}').on('click', function () {
+      var but = $('#submit_set_{{{cmd_name}}}');
+      but.addClass('ui-disabled');
+      var cmd = '{{{cmd_name}}}';
+      nedm.send_command( { cmd_name : cmd, 
+                           arguments : [ parseFloat($('#set_{{{cmd_name}}}_text').val()) ],
+                           callback: function(o) { 
+                              but.removeClass('ui-disabled');
+                           } 
+                         });
+    });
+ "
+}
