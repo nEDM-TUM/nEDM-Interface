@@ -378,26 +378,7 @@ nedm.get_database_info = function( callback ) {
 }
 
 nedm.show_error_window = function(error, msg) {
-    var page = "/nedm_head/_design/nedm_head/error.html?error=" + error + "&message=" + msg;
-
-    // First check to see if we are in the middle of a chain of authorization
-    // errors
-    var cIndex = $.mobile.navigate.history.activeIndex;
-    var stck = $.mobile.navigate.history.stack;
-    if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) != null) {
-        // Ok, we've seen an error.
-        // Pop this page out
-        stck.splice(cIndex, 1);
-        setTimeout(function() {
-          $.mobile.back();
-        }, 100);
-
-    } else {
-        // Call the change in a moment.
-        setTimeout(function() {
-          $.mobile.changePage(page, {transition: 'pop', role: 'dialog'});
-        }, 100);
-    }
+    toastr.error(msg, error);
 }
 
 // We build the list of DBs to point to.  This is simply subsystems
@@ -716,7 +697,7 @@ $(document).on('mobileinit', function() {
       nedm.buildDBList(x, y);
   }); 
 
-  // Handle page load fails from couchDB, forward to error.html
+  // Handle page load fails from couchDB, forward to error handling.
   $(document).on('pageloadfailed', function( event, data) {
 
     // Let the framework know we're going to handle things.
