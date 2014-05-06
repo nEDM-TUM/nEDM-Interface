@@ -633,9 +633,7 @@ nedm.send_command = function(o) {
              if ('arguments' in adoc) {
                  cmd_str += ", with args: " + JSON.stringify(adoc['arguments']);
              }
-             toastr.info(cmd_str, "", 
-               { positionClass: "toast-bottom-full-width",
-                 closeButton: true});
+             toastr.info(cmd_str, "");
              // Check for the return of the function...
              var check_cmd_return = function() {
                  nedm.get_database().getView("execute_commands", "complete_commands",
@@ -655,9 +653,7 @@ nedm.send_command = function(o) {
                            }
                            func("Response for (" + o.cmd_name + "): " + resp.content + "\n" +
                                 "    return value: " + JSON.stringify(resp['return']),  
-                             title,
-                             { positionClass: "toast-bottom-full-width",
-                               closeButton: true});
+                             title);
                            if (callback === undefined) return;
                            callback(resp); 
                        }
@@ -732,3 +728,7 @@ $(document).on('mobileinit', function() {
 require("jquery-mobile");
 require("jquery-mobile-datebox");
 var toastr = require("toastr");
+toastr.options = {
+  positionClass: "toast-bottom-full-width",
+    closeButton: true
+};
