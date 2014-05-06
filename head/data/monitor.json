@@ -61,6 +61,7 @@
             var plot_div = $('<div></div>');
             new_div.append(plot_div);
             var now = new Date(Date.now() - 600000);
+            var now2 = new Date(now);
             var legend_div = $('<div/>')
                    .attr('data-role', 'fieldcontain')
                    .append($('<fieldset/>').attr({'data-role' : 'controlgroup', 'data-type' : 'horizontal'})
@@ -124,8 +125,13 @@
             $('#monitor_div_{{db_name}}').append(new_div);
             new_div.trigger('create');
 
-            $('#date_' + new_name).datebox('setTheDate',now)
-            $('#time_' + new_name).datebox('setTheDate',now)
+            $('#time_' + new_name).datebox('setTheDate',now);
+            $('#time_' + new_name).trigger('datebox', 
+              { method: 'set',
+                value:  $('#time_' + new_name).datebox('callFormat', '%H:%M', now)});
+            now2.setHours(0);
+            now2.setMinutes(0);
+            $('#date_' + new_name).datebox('setTheDate',now2);
 
             $('#removePlot_{{db_name}}').removeClass('ui-disabled');
             selection.removeClass('ui-disabled');
@@ -154,9 +160,9 @@
                 var get_new_date = function(prefix) {
                     var the_date = $('#date' + prefix + '_' + new_name).datebox('getTheDate');
                     var the_time = $('#time' + prefix + '_' + new_name).datebox('getTheDate');
-                    the_date.setUTCHours( the_time.getUTCHours() );
-                    the_date.setUTCMinutes( the_time.getUTCMinutes() );
-                    the_date.setUTCSeconds( the_time.getUTCSeconds() );
+                    the_date.setHours( the_time.getHours() );
+                    the_date.setMinutes( the_time.getMinutes() );
+                    the_date.setSeconds( the_time.getSeconds() );
                     return the_date;
                 };
                 var start_date = get_new_date(''); 
