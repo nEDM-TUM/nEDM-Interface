@@ -504,7 +504,13 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
 
     this.time_prev = prev_time;
     if (typeof until_time === 'object' ) { 
-      this.until_time = until_time;
+	  // this means we go until a particular time
+      if (prev_time > until_time) {
+          toastr.error("Time incorrect: " + prev_time.toString() + " > " + until_time.toString(), "Time"); 
+          if (callback) callback();
+          return;
+      }
+	  this.until_time = until_time;
       this.time_range = 0;
       this.endListening();
     } else {
