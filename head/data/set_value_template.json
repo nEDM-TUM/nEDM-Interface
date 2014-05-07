@@ -25,6 +25,7 @@
       var cmd = '{{{cmd_name}}}';
       nedm.send_command( { cmd_name : cmd, 
                            arguments : [ parseFloat($('#set_{{{cmd_name}}}_text').val()) ],
+                           timeout : 10000,
                            callback: function(o) { 
                               but.removeClass('ui-disabled');
                            } 
