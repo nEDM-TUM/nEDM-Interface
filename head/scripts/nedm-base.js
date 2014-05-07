@@ -202,7 +202,8 @@ nedm.update_db_interface = function(db) {
                 '/_design/' + this.encode(name) +
                 '/_view/' + viewname + nedm.build_url(options.opts),
             data: data,
-            type: theType 
+            type: theType, 
+            expect_json: true
         };
         this.request(req, callback);
     };
