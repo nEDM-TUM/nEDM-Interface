@@ -50,7 +50,7 @@
       if (!but.data('isRunning')) {
           cmd = '{{{start_process_cmd}}}';
       } 
-      nedm.send_command( { cmd_name : cmd } );
+      nedm.send_command( { cmd_name : cmd, timeout: 10000 } );
     });
     sync_{{{process_name}}}();
     nedm.get_database().listen_to_changes_feed('{{{process_name}}}', sync_{{{process_name}}}, 

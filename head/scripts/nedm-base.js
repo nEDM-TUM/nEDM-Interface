@@ -629,6 +629,9 @@ nedm.send_command = function(o) {
       var adoc = { type : 'command', execute : o.cmd_name };
       if ('arguments' in o) { adoc['arguments'] = o['arguments']; }
       var callback = undefined;
+      var timeout = 0;
+      if ('timeout' in o) timeout = o.timeout;
+      if (timeout < 0) timeout = 0;
       if ('callback' in o) callback = o.callback;
       nedm.get_database().updateDoc(adoc,  
           'nedm_default', 'insert_with_timestamp', function(err, obj) { 
@@ -642,6 +645,7 @@ nedm.send_command = function(o) {
              }
              toastr.info(cmd_str, "");
              // Check for the return of the function...
+             var total_timeout = timeout;
              var check_cmd_return = function() {
                  nedm.get_database().getView("execute_commands", "complete_commands",
                    { opts: { reduce : false, key : [o.cmd_name, obj.id], include_docs : true } },
@@ -649,6 +653,14 @@ nedm.send_command = function(o) {
                        if (err != null) return;
                        if (objs.rows.length != 1 || objs.rows[0].doc.response === undefined) {
                            // call again
+                           if (timeout > 0) {
+                               total_timeout -= 1000;
+                               if (total_timeout <= 0) {
+                                   toastr.error("Timeout on reaction for command: " + o.cmd_name, "Timeout");
+                                   if (callback) callback();
+                                   return;
+                               } 
+                           }
                            setTimeout(check_cmd_return, 1000);
                        } else { 
                            var resp = objs.rows[0].doc.response;
