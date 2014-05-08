@@ -460,7 +460,7 @@ nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
     var data_name = this.name;
     for (var i=0;i<data_name.length;i++) {
         if (data_name[i] == obj.key[0]) {
-            outp.push(obj.value);
+            outp.push(obj.value.sum/obj.value.count);
             seen = true;
         } else outp.push(null);
     }
@@ -477,11 +477,11 @@ nedm.MonitoringGraph.prototype.appendData = function(r) {
      return append;
 };
 
-nedm.MonitoringGraph.prototype.addDataName = function(aname, callback) {
-    if (this.name.indexOf(aname) != -1 ) return;
+nedm.MonitoringGraph.prototype.addDataName = function(aname) {
+    if (this.name.indexOf(aname) != -1 ) return false;
     this.name.push(aname);
-    this.changeTimeRange(this.time_prev, this.until_time, callback);
-}
+    return true;
+};
 
 nedm.MonitoringGraph.prototype.removeDataName = function(aname, callback) {
     var anIndex = this.name.indexOf(aname);
@@ -527,7 +527,7 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
         last_key = [
                  this.until_time.getUTCFullYear(), this.until_time.getUTCMonth(), 
                  this.until_time.getUTCDate(), this.until_time.getUTCHours(), 
-                 this.until_time.getUTCMinutes(), this.until_time.getUTCSeconds()-1, {}];
+                 this.until_time.getUTCMinutes(), this.until_time.getUTCSeconds()-1];
     }
     first_key = [ 
                  this.time_prev.getUTCFullYear(), this.time_prev.getUTCMonth(), 
@@ -535,30 +535,68 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
                  this.time_prev.getUTCMinutes(), this.time_prev.getUTCSeconds()];
 
     if (this.name.length === 0 && callback) callback();
+    var warning_shown = false;
+    var limit = 3000;
+    var names_to_check = this.name.length; 
+    var view_clbck = function(obj, tl_entries, cr_name, local_opts) { 
+        return function(e, o) { 
+                  if (e !== null) return; 
+                  var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
+                      if (o !== null) return true;
+                      return false; 
+                  });
+                  if (!warning_shown && tl_entries > 50000) {
+                      toastr.warning("Data length is > 50000 entries, suggest setting averaging or selecting a smaller visualization range", "");
+                      warning_shown = true;
+                  }
+                  var recv_length = all_data.length;
+                  if (recv_length !== 0) {
+                      obj.mergeData(all_data); 
+                      tl_entries += recv_length;
+                      if (recv_length < limit) {
+                          if (callback) {
+                              // The callback can request that we stop loading
+                              callback({ loaded : tl_entries, 
+                                       variable : cr_name, 
+                                           done : true });
+                          }
+                          names_to_check -= 1;
+                          if (names_to_check <= 0) obj.update(); 
+                      } else {
+                          local_opts.startkey = o.rows[o.rows.length-1].key; 
+                          local_opts.skip = 1;
+                          if (callback) {
+                              // The callback can request that we stop loading
+                              if (!callback({ loaded : tl_entries, 
+                                            variable : cr_name, 
+                                                done : false })) {
+                                  names_to_check -= 1;
+                                  if (names_to_check <= 0) obj.update(); 
+                                  return;
+                              }
+                          }
+                          obj.db.getView("slow_control_time", "slow_control_time", 
+                              { opts: local_opts }, view_clbck(obj, tl_entries, cr_name, local_opts));
+                      }
+                  } else if (callback) callback();
+              }; 
+    };
+
+
     for (var i=0;i<this.name.length;i++) {
         var new_first_key = first_key.slice();
         var new_last_key = last_key.slice();
-        new_first_key.unshift(this.name[i]);
-        new_last_key.unshift(this.name[i]);
+        var curr_name = this.name[i];
+        new_first_key.unshift(curr_name);
+        new_last_key.unshift(curr_name);
+        var opts = { descending: true, 
+                      startkey : new_last_key, 
+                        endkey : new_first_key, 
+                        reduce : true,
+                        group_level : 9,
+                        limit  : limit}; 
         this.db.getView("slow_control_time", "slow_control_time", 
-                { opts : { descending: true, 
-                            startkey : new_last_key, 
-                              endkey : new_first_key, 
-                              reduce : false} },
-                function(obj, cbck) { return function(e, o) { 
-                    if (e == null) { 
-                        var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
-                            if (o != null) return true;
-                            return false; 
-                        });
-                        if (all_data.length != 0) {
-                            obj.mergeData(all_data); 
-                            obj.update(); 
-                        }
-                    }
-                    if (cbck) cbck();
-                } 
-                } (this, callback));
+              { opts : opts }, view_clbck(this, 0, curr_name, opts));
     }
 
 };

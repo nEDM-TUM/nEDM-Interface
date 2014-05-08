@@ -111,11 +111,11 @@
                                                                 )
                                                         .append('Live')
                                           )
-                                   .append($('<button/>').attr({ class : 'ui-btn ui-corner-all', id : 'datebutton_' + new_name})
+                                   .append($('<button/>').attr({ class : 'ui-btn ui-corner-all date_button_execute', id : 'datebutton_' + new_name})
                                                          .append('Set times')
                                            )
                                   )
-                          );
+                          ).append($('<div/>').attr({'class' : 'variable_progress'}));
 
             new_div.append(legend_div);
             new_div.append(date_div);
@@ -156,6 +156,45 @@
                 }
                 return until_now;
             };
+            var get_new_progress = function (aname) {
+                var retDiv = $('<div/>')
+                    .attr('data-role', 'fieldcontain')
+                    .append(
+                $('<fieldset/>')
+                    .attr({
+                    'data-role': 'controlgroup',
+                        'data-type': 'horizontal'
+                })
+                    .append($('<a/>')
+                    .attr({
+                    'data-role': 'button',
+                        'data-icon': 'nedm-loading',
+                        'data-iconpos': 'right',
+                        'class': 'cancel_button'
+                })
+                    .append('Cancel '))
+                    .append($('<a/>').attr({
+                    'data-role': 'button',
+                        'class': 'ui-disabled loading_view'
+                })
+                    .append(aname + ' loading: '))
+                    .data({
+                    varname: aname
+                }));
+                retDiv.data({
+                    varname: aname,
+                    should_cancel: false
+                });
+                retDiv.find('.cancel_button').on('click',
+            
+                function () {
+                    $(this).addClass('ui-disabled');
+                    retDiv.data({
+                        should_cancel: true
+                    });
+                });
+                return retDiv;
+            };
             var change_dates = function(eve) {
                 var get_new_date = function(prefix) {
                     var the_date = $('#date' + prefix + '_' + new_name).datebox('getTheDate');
@@ -169,8 +208,31 @@
                 var end_date = get_new_date('end'); 
                 var until_now = ensure_until_now_state();
                 if (until_now) end_date = 0;
-                $.mobile.loading( 'show' );
-                obj.changeTimeRange(start_date, end_date, function() { $.mobile.loading( 'hide' ); });
+                var current_progress = date_div.find('.variable_progress');
+                for (var j=0;j<obj.name.length;j++) {
+                    current_progress.append(get_new_progress(obj.name[j]));
+                }
+                current_progress.trigger('create');
+                var update_function = function (objs) {
+                    var retVal = true;
+                    current_progress.find('[data-role=fieldcontain]').each(function () {
+                        var o = $(this).data();
+                        var isDone = (!objs || objs.done);
+                        if (isDone || o.should_cancel) {
+                            retVal = false;
+                            $(this).remove();
+                            return true;
+                        }
+                        if (o.varname != objs.variable) return;
+                        $(this).find('.loading_view')
+                        .text(o.varname + ' loaded: ' + 
+                              objs.loaded.toString());
+                        return false;
+                    });
+                    return retVal;
+                };
+
+                obj.changeTimeRange(start_date, end_date, update_function);
             };
 
             $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); }; }(obj));
@@ -247,17 +309,15 @@
             var scp = $('#selectCurrentPlot_{{db_name}}');
             var selected = scp.find(':selected'); 
             var obj = $('#div_' + selected.val()).data('graph');
-            $.mobile.loading( 'show' );
             var ssc = $('#selectSlowControl_{{db_name}}').find(':selected');
-            obj.addDataName(ssc.val(), 
-                    function() { 
-                       $.mobile.loading( 'hide' ); 
-                       if ( $('#plotted_' + selected.val() + ' option[value=' + ssc.val() + ']').length >= 1 ) return;
-                       var plotted_vars = $('#plotted_' + selected.val());
-                       plotted_vars.append($('<option/>').attr({value : ssc.val()}).append(ssc.val()));
-                       plotted_vars.selectmenu('refresh', true);
-                       $('#remove_plotted_' + selected.val()).removeClass('ui-disabled');
-                    });
+            if (!obj.addDataName(ssc.val())) return; 
+            $('#div_' + selected.val()).find('.date_button_execute').trigger('click');
+
+            if ( $('#plotted_' + selected.val() + ' option[value=' + ssc.val() + ']').length >= 1 ) return;
+            var plotted_vars = $('#plotted_' + selected.val());
+            plotted_vars.append($('<option/>').attr({value : ssc.val()}).append(ssc.val()));
+            plotted_vars.selectmenu('refresh', true);
+            $('#remove_plotted_' + selected.val()).removeClass('ui-disabled');
         };
 
         $('#makeNewPlot_{{db_name}}').off('click').on('click', makeNewGraph );
