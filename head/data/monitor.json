@@ -111,11 +111,25 @@
                                                                 )
                                                         .append('Live')
                                           )
+                                   .append($('<select/>').attr({ class : 'averaging_select' }))
                                    .append($('<button/>').attr({ class : 'ui-btn ui-corner-all date_button_execute', id : 'datebutton_' + new_name})
                                                          .append('Set times')
                                            )
                                   )
                           ).append($('<div/>').attr({'class' : 'variable_progress'}));
+
+            var avg_select = date_div.find('.averaging_select');
+            $.each({
+              'Avg: None'  : 10,
+                  'Minutes': 6,
+                  'Hours'  : 5,
+                  'Days'   : 4,
+                  'Months' : 3,
+                  'Years'  : 2,
+                  'All'    : 1,
+            }, function(t, v) {
+                avg_select.append($('<option/>').val(v).html(t));
+            });
 
             new_div.append(legend_div);
             new_div.append(date_div);
@@ -144,6 +158,7 @@
 
             var obj = new nedm.MonitoringGraph(plot_div[0], [], now, nedm.get_database()); 
             new_div.data('graph', obj);
+
             obj.beginListening();
             var ensure_until_now_state = function() {
                 var until_now = $('#checkboxuntilnow_' + new_name).is(':checked');
@@ -235,6 +250,9 @@
                 obj.changeTimeRange(start_date, end_date, update_function);
             };
 
+            avg_select.on('change', function() {
+              obj.setGroupLevel($(this).val());
+            });
             $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); }; }(obj));
             $('#datebutton_' + new_name).on('click', change_dates);
             $('#checkboxuntilnow_' + new_name).checkboxradio('refresh');
