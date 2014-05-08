@@ -36,7 +36,7 @@ bs = function(haystack, needle, comparator, alow, ahigh) {
 
   /* Key not found. */
   return ~low;
-}
+};
 
 var nedm = nedm || {};
 nedm.logged_in_as = null;
@@ -53,8 +53,8 @@ session.on('change', function(userCtx) {
 
 
 // Fix db guessCurrent
-require("db").guessCurrent = function (loc) {
-    var loc = loc || window.location;
+require("db").guessCurrent = function (loc1) {
+    var loc = loc1 || window.location;
 
     /**
      * A database must be named with all lowercase letters (a-z), digits (0-9),
@@ -72,7 +72,7 @@ require("db").guessCurrent = function (loc) {
             db: match[1],
             design_doc: match[2],
             root: '/nedm_head/_design/nedm_head/_rewrite/_couchdb/'
-        }
+        };
     }
     return null;
 };
@@ -90,7 +90,7 @@ nedm.build_url = function(options) {
         else url += JSON.stringify(options[key]);
     }
     return encodeURI(url);
-}
+};
 
 nedm.available_database = {};
 
@@ -100,20 +100,20 @@ nedm.get_current_db_name = function() {
 	// automatically convert to /
 	temp = temp[temp.length-1].split("%2F");
     return "nedm%2F" + temp[temp.length-1]; 
-}
+};
 
 nedm.get_database = function(name) {
-    if (name == undefined) { 
+    if (name === undefined) { 
       name = nedm.get_current_db_name(); 
     }
     if (!(name in nedm.available_database)) {
         nedm.available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
     } 
     return nedm.available_database[name];
-}
+};
 
 nedm.set_database = function(name) {
-}
+};
 
 nedm.open_changes_feeds = { taglist: {}, urllist: {}};
 
@@ -129,12 +129,12 @@ nedm.listen_to_changes_feed = function(db, tag, callback, options) {
     }
     if (tag in nedm.open_changes_feeds.taglist) {
         console.log("Warning: removing tag '" + tag +"'");
-        nedm.cancel_changes_feed(db, tag)
+        nedm.cancel_changes_feed(db, tag);
     }
     nedm.open_changes_feeds.taglist[tag] = {callb: callback, url: url}; 
     nedm.open_changes_feeds.urllist[url].src.addEventListener("message", callback, false); 
     nedm.open_changes_feeds.urllist[url].taglist[tag] = {};
-}
+};
 
 nedm.cancel_changes_feed = function(db, tag) {
 
@@ -147,7 +147,7 @@ nedm.cancel_changes_feed = function(db, tag) {
 
     delete nedm.open_changes_feeds.urllist[obj.url].taglist[tag];
     delete nedm.open_changes_feeds.taglist[tag];
-}
+};
 
 
 nedm.update_db_interface = function(db) {
@@ -162,8 +162,9 @@ nedm.update_db_interface = function(db) {
             method = "PUT";
             url += '/' + doc._id;
         }
+        var data;
         try {
-            var data = JSON.stringify(doc);
+            data = JSON.stringify(doc);
         }
         catch (e) {
             return callback(e);
@@ -187,8 +188,9 @@ nedm.update_db_interface = function(db) {
         if (!options.opts) options.opts = {};
         var viewname = this.encode(view);
         var theType = "POST";
+        var data;
         try {
-            var data = JSON.stringify(options.keys);
+            data = JSON.stringify(options.keys);
             if ($.isEmptyObject(options.keys)) {
                 data = "";
                 theType = "GET";
@@ -211,14 +213,14 @@ nedm.update_db_interface = function(db) {
 
     db.listen_to_changes_feed = function(tag, callback, options) {
         return nedm.listen_to_changes_feed(this, tag, callback, options);
-    }
+    };
 
     db.cancel_changes_feed = function(tag) {
         return nedm.cancel_changes_feed(this, tag);
-    }
+    };
 
 
-}
+};
 
 
 // Fix db function use 
@@ -249,7 +251,7 @@ require("db").use = function (url) {
     nedm.update_db_interface(db);
 
     return db;
-}
+};
 
 nedm.namespace = function(namespaceString) {
     var parts = namespaceString.split('.'),
@@ -261,14 +263,14 @@ nedm.namespace = function(namespaceString) {
         parent = parent[currentPart];
     }
     return parent;
-}
+};
 
 
 nedm.update_buttons = function() {
     var user_status = nedm.check_user_status();
     var loginbtn = $("a[id*=loginbtn]"); 
     var logoutbtn = $("a[id*=logoutbtn]"); 
-    if (user_status == null) {
+    if (user_status === null) {
         loginbtn.show();
         logoutbtn.hide();
     } else {
@@ -277,7 +279,7 @@ nedm.update_buttons = function() {
         loginbtn.hide();
     }
     $("a[id*=homebtn]").attr("href", nedm.using_prefix);
-}
+};
 
 nedm.update_header = function(event, ui) {
 
@@ -285,7 +287,7 @@ nedm.update_header = function(event, ui) {
       $(this).find("[data-role=header]").trigger("create").toolbar();
       var hn = $(this).find('#nedm_header_name');
       var callback = function(dbs) {
-        if (nedm.get_current_db_name() == undefined) return;
+        if (nedm.get_current_db_name() === undefined) return;
         var db = /nedm%2F(.*)/.exec(nedm.get_current_db_name())[1];
         if (db in dbs) {
           hn.text("nEDM Interface: " + dbs[db].prettyname);
@@ -302,37 +304,35 @@ nedm.update_header = function(event, ui) {
   //  nedm.update_buttons();
   //}
   
-}
+};
 
 nedm.set_user_name = function(userCtx) {
        nedm.logged_in_as = userCtx.name; 
-} 
+};
 
 nedm.check_user_status = function() {
     session.info(function(err, info) {
        if (info) nedm.set_user_name(info.userCtx); 
     });
     return nedm.logged_in_as;
-}
+};
 
-nedm.logout = function()
-{
+nedm.logout = function() {
     session.logout();
-}
+};
 
-nedm.validate = function(un, pw, callback)
-{
+nedm.validate = function(un, pw, callback) {
     session.login(un, pw, 
             function(err, response) {
                 var success = true;
                 if(err) success = false;
                 if (callback) callback(success); 
             });
-}
+};
 
 nedm.compile = function(astr) {
     return handlebars.compile(astr);
-}
+};
 
 // Returns all the most recent database info
 nedm.get_database_info = function( callback ) {
@@ -352,15 +352,15 @@ nedm.get_database_info = function( callback ) {
                dfd.resolve( callback(data), "notfound" );
            });
            return dfd.promise();
-    };
+    }
 
     $.getJSON('/nedm_head/_design/nedm_head/_rewrite/_couchdb/_all_dbs', function(data) {
         var patt = /^nedm\//;
         var db_infos = [];
         $.each(data, function(key, val) {
-            if (patt.exec(val) != null) {
+            if (patt.exec(val) !== null) {
                 var db_name = val.substring(5);
-                if ( db_name.localeCompare("head") == 0 ) return; 
+                if ( db_name.localeCompare("head") === 0 ) return; 
                 db_infos.push(getDBInfo(db_name));
             }       
         });
@@ -376,11 +376,11 @@ nedm.get_database_info = function( callback ) {
     });
         
 
-}
+};
 
 nedm.show_error_window = function(error, msg) {
     toastr.error(msg, error);
-}
+};
 
 // We build the list of DBs to point to.  This is simply subsystems
 var listview_made = false;
@@ -392,8 +392,8 @@ nedm.buildDBList = function(ev, id) {
            var html = '<div data-role="collapsible"><h3>{{prettyname}}</h3>';
            html    += '<ul data-role="listview" data-inset="false">';
            if ("pages" in dbs[key]) {
-               for(var pg in dbs[key]["pages"]) {
-                   var pg_name = /(.*)\.[^.]+$/.exec(dbs[key]["pages"][pg])[1];
+               for(var pg in dbs[key].pages) {
+                   var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
                    html += nedm.compile('<li><a href="' + nedm.using_prefix + 'page/{{pgsrc}}/{{esc_name}}">{{pgname}}</a></li>')(
                      {esc_name : esc_name, pgsrc : pg_name, pgname : pg});
                }
@@ -402,7 +402,7 @@ nedm.buildDBList = function(ev, id) {
            totalhtml += nedm.compile(html)(dbs[key]);     
        }
   
-       if (x == null) {
+       if (x === undefined) {
            // Means we have no specific event, change them all
            $(".listofdbs").empty();
            $(".listofdbs").append(totalhtml);
@@ -412,8 +412,8 @@ nedm.buildDBList = function(ev, id) {
            $("#" + x.target.id + " .listofdbs").append(totalhtml);
            $("#" + x.target.id + " .listofdbs").trigger("create");
        }
-   }}(ev,id)); 
-}
+   };}(ev,id)); 
+};
 
 nedm.dateFromKey = function(arr) {
   var start = 0;
@@ -423,7 +423,7 @@ nedm.dateFromKey = function(arr) {
     end = 0;
   }
   return new Date(Date.UTC.apply(this, arr.slice(start, arr.length-end)));
-}
+};
 
 nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
 
@@ -452,7 +452,7 @@ nedm.MonitoringGraph.prototype.prependData = function(r) {
 
 nedm.MonitoringGraph.prototype.update = function() {
      this.graph.updateOptions( { 'file': this.data, 'labels' : ['Time'].concat(this.name) } );
-}
+};
 
 nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
     var outp = [ nedm.dateFromKey(obj.key) ];
@@ -466,7 +466,7 @@ nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
     }
     if (!seen) return null;
     return outp; 
-}
+};
 
 nedm.MonitoringGraph.prototype.appendData = function(r) {
      var append = 0;
@@ -490,15 +490,15 @@ nedm.MonitoringGraph.prototype.removeDataName = function(aname, callback) {
     this.data.every( function(o) { o.splice(anIndex+1, 1); return true; } );
     this.update();
     if (callback) callback();
-}
+};
 
 nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
     var data = this.data;
-    if (data.length == 0) return 0;
+    if (data.length === 0) return 0;
     var j = 0;
     while (j < data.length && data[j][0].getTime() < adate.getTime()) j++; 
     return data.splice(0, j);
-}
+};
 
 
 nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time, callback) {
@@ -516,14 +516,14 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
       this.endListening();
     } else {
       this.until_time = 0;
-      this.time_range = ((new Date).getTime() - this.time_prev)/1000;
+      this.time_range = ((new Date()).getTime() - this.time_prev)/1000;
       this.beginListening();
     }
     var data = this.data;
     data.length = 0;
     // first determine what the earliest date is
     var last_key = [9999];
-    if (this.until_time != 0) {
+    if (this.until_time !== 0) {
         last_key = [
                  this.until_time.getUTCFullYear(), this.until_time.getUTCMonth(), 
                  this.until_time.getUTCDate(), this.until_time.getUTCHours(), 
@@ -564,17 +564,18 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
 };
 
 nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
-   if (new_data.length == 0) return;
+   if (new_data.length === 0) return;
    var dt = this.data;
-   if (dt.length == 0 || new_data[0][0] < dt[0][0]) {
+   if (dt.length === 0 || new_data[0][0] < dt[0][0]) {
      return this.prependData(new_data);
    }
    // otherwise we need to merge
    var curIndex = dt.length-1;
    var dIndex = 0;
+   var comp_func = function(a,b) { return a[0] - b[0]; };
    while (dIndex < new_data.length && new_data[dIndex][0] >= dt[0][0]) {
        // find where we need to insert 
-       var cI = bs(dt, new_data[dIndex], function(a,b) { return a[0] - b[0]; }, 0, curIndex);
+       var cI = bs(dt, new_data[dIndex], comp_func, 0, curIndex);
        if (cI >= 0) {
            // means the value is already at an index 
            curIndex = cI;
@@ -590,18 +591,19 @@ nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
    // Take care of the rest.
    new_data.splice(0, dIndex);
    this.prependData(new_data);
-}
+};
 
 nedm.MonitoringGraph.prototype.getMostRecentValues = function() {
 
-}
+};
 
 nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
-     if (err != null) return;
+     if (err !== null) return;
      var app = 0;
+     var null_func = function() { return null; };
      for (var i=0;i<obj.rows.length;i++ ) {
          var ind = this.name.indexOf(obj.rows[i].key) + 1;
-         if (ind == 0) continue;
+         if (ind === 0) continue;
          var o = obj.rows[i].value;
          var d = new Date(o[1]);
          var j=this.data.length-1;
@@ -612,13 +614,13 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
          else {
             // Insert it, this also handles the case when nothing is there
             this.data.splice(j+1, 0, [d].concat( Array.apply(null,new Array(this.name.length))
-                                                    .map(function() { return null; })
+                                                    .map(null_func)
                                               ));
             this.data[j+1][ind] = parseFloat(o[0]);
             app++;
          }
      }
-     if (this.data.length != 0 && this.time_range != 0) { 
+     if (this.data.length !== 0 && this.time_range !== 0) { 
          var time_before_now = new Date(this.data[this.data.length-1][0].getTime() - this.time_range*1000);
          this.removeBeforeDate(time_before_now);
      }
@@ -628,14 +630,14 @@ nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
 nedm.send_command = function(o) {
       var adoc = { type : 'command', execute : o.cmd_name };
       if ('arguments' in o) { adoc['arguments'] = o['arguments']; }
-      var callback = undefined;
+      var callback;
       var timeout = 0;
       if ('timeout' in o) timeout = o.timeout;
       if (timeout < 0) timeout = 0;
       if ('callback' in o) callback = o.callback;
       nedm.get_database().updateDoc(adoc,  
           'nedm_default', 'insert_with_timestamp', function(err, obj) { 
-             if (err != null) {
+             if (err !== null) {
                  nedm.show_error_window(err.error, err.reason);
                  return;
              } 
@@ -650,7 +652,7 @@ nedm.send_command = function(o) {
                  nedm.get_database().getView("execute_commands", "complete_commands",
                    { opts: { reduce : false, key : [o.cmd_name, obj.id], include_docs : true } },
                    function(err, objs) {
-                       if (err != null) return;
+                       if (err !== null) return;
                        if (objs.rows.length != 1 || objs.rows[0].doc.response === undefined) {
                            // call again
                            if (timeout > 0) {
@@ -687,13 +689,13 @@ nedm.MonitoringGraph.prototype.syncFunction = function () {
       { opts : {group : true}, keys : {keys : this.name} }, 
       function(o) { return function(err, objs) {  
            o.processChange(err,objs); 
-        } }(this));
+        }; }(this));
 };
 
 nedm.MonitoringGraph.prototype.beginListening = function () {
   this.endListening(); 
   this.db.listen_to_changes_feed(this.uuid, 
-          function(o) { return function(err, obj) { o.syncFunction(err,obj); } } (this), 
+          function(o) { return function(err, obj) { o.syncFunction(err,obj); }; } (this), 
           {since : 'now', filter : 'nedm_default/doc_type', type : "data"});
 };
 
@@ -724,8 +726,8 @@ $(document).on('mobileinit', function() {
     }, $.mobile.loadPage.defaults.loadMsgDelay);
 
     // parse the error/reason 
-    var error = escape(JSON.parse(data.xhr.responseText)["error"]);
-    var msg = escape(JSON.parse(data.xhr.responseText)["reason"]);
+    var error = escape(JSON.parse(data.xhr.responseText).error);
+    var msg = escape(JSON.parse(data.xhr.responseText).reason);
     nedm.show_error_window(error, msg);
 
     // Resolve the deferred object.
@@ -735,7 +737,7 @@ $(document).on('mobileinit', function() {
   $(document).on('pageload', function( event, data) {
     var cIndex = $.mobile.navigate.history.activeIndex;
     var stck = $.mobile.navigate.history.stack;
-    if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) != null) {
+    if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) !== null) {
         // Ok, we moved back successfully after an error, Pop this page out
         stck.splice(cIndex+1, 1);
 

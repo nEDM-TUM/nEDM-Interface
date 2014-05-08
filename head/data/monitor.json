@@ -136,7 +136,7 @@
             $('#removePlot_{{db_name}}').removeClass('ui-disabled');
             selection.removeClass('ui-disabled');
             $('#selectSlowControl_{{db_name}}').removeClass('ui-disabled');
-            if ($('#selectSlowControl_{{db_name}}').find('option').length != 0) {
+            if ($('#selectSlowControl_{{db_name}}').find('option').length !== 0) {
                 $('#addSlowControl_{{db_name}}').removeClass('ui-disabled');
             }
             selection.selectmenu('refresh', true);
@@ -173,7 +173,7 @@
                 obj.changeTimeRange(start_date, end_date, function() { $.mobile.loading( 'hide' ); });
             };
 
-            $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); } }(obj));
+            $('#db_monitor_{{db_name}}').on('pagebeforeshow', function(o) { return function() { o.beginListening(); }; }(obj));
             $('#datebutton_' + new_name).on('click', change_dates);
             $('#checkboxuntilnow_' + new_name).checkboxradio('refresh');
             $('#checkboxuntilnow_' + new_name).on('change', function() { 
@@ -185,7 +185,7 @@
               obj.removeDataName(ssc.val(), function() {
                 ssc.remove(); 
                 var plt = $('#plotted_' + new_name);
-                if (plt.find('option').length == 0) {  
+                if (plt.find('option').length === 0) {  
                   $('#remove_plotted_' + new_name).addClass('ui-disabled');
                 }
                 plt.selectmenu('refresh', true);
@@ -208,7 +208,7 @@
             scp[0].selectedIndex = sIndex;
 
 
-            if (scp.find('option').length == 0) {
+            if (scp.find('option').length === 0) {
               // disable button if nothing is there
               $('#removePlot_{{db_name}}').addClass('ui-disabled');
               $('#selectSlowControl_{{db_name}}').addClass('ui-disabled');
@@ -222,17 +222,15 @@
             // We can have stale = update_after since the data types will not change all that often.
             nedm.get_database().getView('slow_control_time', 'slow_control_time', 
                 { opts : {stale : 'update_after', group_level : 1} }, function (e, o) {
-                        if (e != null ) return;
-                        var add_html = '';
-                        for (var i=0;i<o.rows.length;i++) {
-                            var aname = o.rows[i].key[0];
-                            add_html += \"<option value='\"+aname+\"'>\" + aname + '</option>';
-                        }
+                        if (e !== null ) return;
                         var ssc = $('#selectSlowControl_{{db_name}}');
-                        ssc.append(add_html);
-                        if (ssc.find('option').length != 0) {
+                        for (var i=0;i<o.rows.length;i++) {
+                            var aname = o.rows[i].key;
+                            ssc.append($('<option/>').attr({value : aname}).append(aname));
+                        }
+                        if (ssc.find('option').length !== 0) {
                             ssc.removeClass('ui-disabled');
-                            if ($('#selectCurrentPlot_{{db_name}}').find('option').length != 0) {
+                            if ($('#selectCurrentPlot_{{db_name}}').find('option').length !== 0) {
                                 $('#addSlowControl_{{db_name}}').removeClass('ui-disabled');
                             }
                         }
@@ -243,7 +241,7 @@
 
         var exitCleanup = function () {
             if($('.monitor_class').length) { $('.monitor_class').data('graph').endListening(); } 
-        }
+        };
 
         var addSelectedPlotToWindow = function() {
             var scp = $('#selectCurrentPlot_{{db_name}}');
