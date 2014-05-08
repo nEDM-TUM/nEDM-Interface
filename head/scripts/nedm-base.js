@@ -440,8 +440,13 @@ nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
 
     this.name = data_name;
     this.uuid = Math.random().toString(36).substr(2,9);
+    this.setGroupLevel(9);
  
     this.changeTimeRange(since_time_in_secs, 0);
+};
+
+nedm.MonitoringGraph.prototype.setGroupLevel = function(gl) {
+    this.group_level = gl;
 };
 
 nedm.MonitoringGraph.prototype.prependData = function(r) {
@@ -593,7 +598,7 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
                       startkey : new_last_key, 
                         endkey : new_first_key, 
                         reduce : true,
-                        group_level : 9,
+                        group_level : this.group_level,
                         limit  : limit}; 
         this.db.getView("slow_control_time", "slow_control_time", 
               { opts : opts }, view_clbck(this, 0, curr_name, opts));
