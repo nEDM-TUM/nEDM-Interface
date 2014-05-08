@@ -22,15 +22,18 @@
     var sync_{{{process_name}}} = function() {
       var but = $('#{{{process_name}}}_button');
       nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-        { opts : {group : true, endkey : ['{{{process_bool_variable}}}'], 
-          startkey : ['{{{process_bool_variable}}}', {}], descending : true, limit : 1}}, 
+        { opts : {
+            endkey : ['{{{process_bool_variable}}}'],
+          startkey : ['{{{process_bool_variable}}}', {}],
+        descending : true,
+            reduce : false,
+             limit : 1}},
         function(err, objs) {   
            if (err != null) return;
            if (objs.rows.length != 1) return; 
            var arr = objs.rows[0];
-           var a = arr.key;
-           if (but.data('isRunning') && (arr.value[0] == but.data('isRunning'))) return;
-           if (arr.value[0]) {
+           if (but.data('isRunning') && (arr.value == but.data('isRunning'))) return;
+           if (arr.value) {
              but.data('isRunning', true);
              but.addClass('ui-icon-nedm-loading').removeClass('ui-icon-nedm-stopped');
              but.text('Stop');
