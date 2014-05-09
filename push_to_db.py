@@ -63,7 +63,6 @@ def compare_documents(ondb, topush):
      
     for k in topush:
         if ondb[k] != topush[k]: 
-            print k
             return False
     return True
 
@@ -205,7 +204,7 @@ def upload_data(host, db_name, folder):
             func = des.put
             if theid in all_docs and compare_documents(all_docs[theid], adoc):
                  continue 
-
+            print "    Updating: ", adoc['_id'] 
         resp = func(func_name, params=adoc)
         _pending_requests.append(resp)
 
