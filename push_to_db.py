@@ -136,10 +136,29 @@ def update_security(host, db_name, folder):
 push to a particular database given a certain folder
 
 """
-def push_database(host, db_name, folder="_default"):
+def push_database(host, db_name, folder="_default", force=False):
 
     # push defaults
+    if not force:
+        try:
+            import dateutil.parser as dp
+            import tempfile
+            import subprocess
+            desig_doc = yaml.load(open(os.path.join(folder, "kanso.json")))['name']
+            db = get_current_account(host)[db_name]
+            doc = db.design(desig_doc)
+            push_time = dp.parse(doc.get().result().json()["kanso"]["push_time"])
+            with tempfile.NamedTemporaryFile() as o:
+                nt = int(push_time.strftime('%s'))
+                os.utime(o.name, (nt, nt))
+                astr = 'find %(folder)s -type f -not -path "%(folder)s/data/*" -newer %(n)s' % {"folder" : folder, "n" : o.name}
+                out = subprocess.check_output([astr], shell=True)
+                if len(out) == 0:
+                    print "    %s up to date" % desig_doc
+                    return
+        except: pass
 
+    execute_kanso("kanso install %s" % folder)
     db_path = "http://" + host + "/" + db_name
     execute_kanso("kanso push %s %s " % (folder, db_path)) 
 
