@@ -636,40 +636,6 @@ nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
    this.prependData(new_data);
 };
 
-nedm.MonitoringGraph.prototype.getMostRecentValues = function() {
-
-};
-
-nedm.MonitoringGraph.prototype.processChange = function(err, obj) {
-     if (err !== null) return;
-     var app = 0;
-     var null_func = function() { return null; };
-     for (var i=0;i<obj.rows.length;i++ ) {
-         var ind = this.name.indexOf(obj.rows[i].key) + 1;
-         if (ind === 0) continue;
-         var o = obj.rows[i].value;
-         var d = new Date(o[1]);
-         var j=this.data.length-1;
-         while( j >= 0 && this.data[j][0] > d) j--; 
-
-         // j is now the event, or before
-         if (j>=0 && this.data[j][0].getTime() == d.getTime()) this.data[j][ind] = parseFloat(o[0]);
-         else {
-            // Insert it, this also handles the case when nothing is there
-            this.data.splice(j+1, 0, [d].concat( Array.apply(null,new Array(this.name.length))
-                                                    .map(null_func)
-                                              ));
-            this.data[j+1][ind] = parseFloat(o[0]);
-            app++;
-         }
-     }
-     if (this.data.length !== 0 && this.time_range !== 0) { 
-         var time_before_now = new Date(this.data[this.data.length-1][0].getTime() - this.time_range*1000);
-         this.removeBeforeDate(time_before_now);
-     }
-     this.update();
-};
-
 nedm.send_command = function(o) {
       var adoc = { type : 'command', execute : o.cmd_name };
       if ('arguments' in o) { adoc['arguments'] = o['arguments']; }
@@ -728,11 +694,31 @@ nedm.send_command = function(o) {
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
-    this.db.getView('latest_value', 'latest_value', 
-      { opts : {group : true}, keys : {keys : this.name} }, 
-      function(o) { return function(err, objs) {  
-           o.processChange(err,objs); 
-        }; }(this));
+    var total_length = this.name.length;
+    var view_clbck = function(obj) { 
+        return function(e, o) { 
+                  if (e !== null) return; 
+                  var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
+                      if (o !== null) return true;
+                      return false; 
+                  });
+                  var recv_length = all_data.length;
+                  if (recv_length !== 0) {
+                      obj.mergeData(all_data); 
+                  } 
+                  total_length -= 1;
+                  if (total_length === 0) obj.update();
+              }; 
+    };
+    for (var i=0;i<this.name.length;i++) {
+        this.db.getView('slow_control_time', 'slow_control_time',
+          { opts : { descending : true, 
+                    group_level : this.group_level,
+                         reduce : true,
+                         limit  : 1,
+                       startkey : [ this.name[i], {} ] } },
+          view_clbck(this));
+    }
 };
 
 nedm.MonitoringGraph.prototype.beginListening = function () {
