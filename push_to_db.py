@@ -201,7 +201,7 @@ def upload_data(host, db_name, folder):
         if "_id" in adoc and adoc["_id"] in ids:
             # We need to use the update handler with name 
             theid = adoc["_id"]
-            func_name += "/%s" % theid 
+            func_name += "/%s?overwrite=true" % theid
             func = des.put
             if theid in all_docs and compare_documents(all_docs[theid], adoc):
                  continue 
