@@ -172,12 +172,29 @@ def upload_data(host, db_name, folder):
     # We need to deal with possible conflicts
     # Here we grab the rev number from current documents
 
-    des = db.design("nedm_default")
+    all_docs = db.all_docs(params=dict(include_docs=True,
+                                       keys=[adoc["_id"] for adoc in bulk_docs if "_id" in adoc]))
+    all_docs = dict([(d["key"], d["doc"]) for d in all_docs if "doc" in d and d["doc"] is not None])
+    ids = all_docs.keys()
 
-    ids = [d["id"] for d in db.all_docs() if "id" in d]
-    all_docs = db.all_docs(params=
-      dict(include_docs=True,keys=[adoc["_id"] for adoc in bulk_docs if "_id" in adoc]))
-    all_docs = dict([(d["key"], d["doc"]) for d in all_docs if "doc" in d])
+    def get_design(ades):
+        ds_name = "_design/" + ades
+        ad = [d for d in db.all_docs(params=dict(keys=[ds_name]))][0]
+        if "error" in ad or "deleted" in ad["value"]:
+            print "   Inserting: ", ds_name
+            bds = dict([(d["_id"], d) for d in bulk_docs if "_id" in d])
+            pd = bds[ds_name].copy()
+            try:
+                pd["_rev"] = ad['value']['rev']
+            except KeyError: pass
+            json = db.post(params=pd).result().json()
+            if "ok" not in json:
+                print json
+                raise KansoException
+            bulk_docs.remove(bds[ds_name])
+        return db.design(ades)
+
+    des = get_design("nedm_default")
     for adoc in bulk_docs:
         func_name = "_update/insert_with_timestamp"
         func = des.post
