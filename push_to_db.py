@@ -178,6 +178,8 @@ def upload_data(host, db_name, folder):
     # Unfortunately, due to a limitation in the kanso upload command, we need
     # to preprocess the files to remove new-lines
     db = acct[db_name]
+    if "error" in db.get().result().json():
+        db.put()
 
     bulk_docs = [] 
     for af in glob.iglob(folder + "/*.json"):
