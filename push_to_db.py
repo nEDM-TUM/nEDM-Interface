@@ -218,7 +218,6 @@ def main(server = None):
     for db_path in dbnames:
         print "Pushing to: ", db_path
         db_name = "nedm%2F" + os.path.basename(db_path)
-        push_database(server, db_name)
         print "    Update sec/data"
         update_security(server, db_name, db_path) 
         upload_data(server, db_name, "_default_data") 
@@ -231,7 +230,6 @@ def main(server = None):
     for db_path in ["head"]:
         print "Pushing to: ", db_path
         db_name = "nedm_" + os.path.basename(db_path)
-        push_database(server, db_name)
         push_database(server, db_name, db_path)
         server_path = "http://" + server + "/" + db_name
         data_dir = os.path.join(db_path, "data")
