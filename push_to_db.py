@@ -248,29 +248,22 @@ def main(server = None):
             print ".nedmrc found, but not formatted properly.  Ignoring..."
             pass
 
-    dbnames = [db for db in glob.glob("subsystems/*") if os.path.isdir(db)] 
+    dbnames = [(db, "nedm%2F" + os.path.basename(db)) for db
+                 in glob.glob("subsystems/*") if os.path.isdir(db)]
 
-    
-    for db_path in dbnames:
+    dbnames.append(("head", "nedm_head"))
+
+    for db_path, db_name in dbnames:
         print "Pushing to: ", db_path
-        db_name = "nedm%2F" + os.path.basename(db_path)
-        print "    Update sec/data"
-        update_security(server, db_name, db_path) 
-        upload_data(server, db_name, "_default_data") 
-
+        print "    Checking sec/data"
+        upload_data(server, db_name, "_default_data")
         data_dir = os.path.join(db_path, "data")
-        if os.path.isdir(data_dir): 
-            upload_data(server, db_name, data_dir) 
-
-    # Handle head specially
-    for db_path in ["head"]:
-        print "Pushing to: ", db_path
-        db_name = "nedm_" + os.path.basename(db_path)
-        push_database(server, db_name, db_path)
-        server_path = "http://" + server + "/" + db_name
-        data_dir = os.path.join(db_path, "data")
-        if os.path.isdir(data_dir): 
-            upload_data(server, db_name, data_dir) 
+        if os.path.isdir(data_dir):
+            upload_data(server, db_name, data_dir)
+        if db_path != "head":
+            update_security(server, db_name, db_path)
+        else:
+            push_database(server, db_name, db_path)
 
     for rqst in _pending_requests:
         response = rqst.result().json()
