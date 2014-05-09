@@ -1,0 +1,11 @@
+{
+ "_id" : "measure_on_off",
+ "type" : "control",
+ "title" : "Fluxgate measurement",
+ "description" : "Start/stop the fluxgtate measurement",
+ "template" : "start_stop_process_template",
+ "process_name" : "start_stop_fg",
+ "start_process_cmd" : "start_measure",
+ "stop_process_cmd" : "stop_measure",
+ "process_bool_variable" : "runstatus"
+}
