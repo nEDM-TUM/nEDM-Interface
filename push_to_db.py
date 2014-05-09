@@ -110,7 +110,7 @@ def update_security(host, db_name, folder):
 
     # We have to explicitly call the server, with un, and pw if it's not yet there... 
 
-    default_security_doc = json.load(open("_default/_security.json"))
+    default_security_doc = json.load(open("_default_data/_security.json"))
 
     # Search to see if there's a _security document to upload 
     folder_sec_path = os.path.join(folder, "_security.json")
@@ -163,6 +163,7 @@ def upload_data(host, db_name, folder):
     bulk_docs = [] 
     for af in glob.iglob(folder + "/*.json"):
         base_n = os.path.basename(af)
+        if base_n == "_security.json" : continue 
         with open(af) as f: 
             astr = '\n'.join([x for x in f.readlines() if x[0] != '#'])
 
