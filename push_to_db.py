@@ -14,7 +14,7 @@ except ImportError, e:
 
 Above referenced module is required.  Try installing using, e.g.:
 
-[sudo] easy_install [module_name]
+[sudo] pip install [module_name]
 """
     e.args = (msg,)
     raise 
