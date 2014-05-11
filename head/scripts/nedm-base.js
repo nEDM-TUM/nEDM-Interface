@@ -179,6 +179,7 @@ nedm.update_db_interface = function(db) {
         };
         this.request(req, callback);
     };
+    db._called_views = {};
     db.getView = function(name, view, options, callback) {
         if (!callback) {
             callback = options;
@@ -207,7 +208,42 @@ nedm.update_db_interface = function(db) {
             type: theType, 
             expect_json: true
         };
-        this.request(req, callback);
+
+        // Inform the user if the view takes a while to load
+        if (!(view in this._called_views)) {
+            this._called_views[view] = {
+                timer_notify : function() {
+                                  this.toastr = toastr.info("View (" + view + ") is currently" +
+                                              " building, results should be available soon.",
+                                              "Building view",
+                                      { timeOut : "-1",
+                                  positionClass : "toast-top-full-width",
+                                    closeButton : false
+                                      } );
+                               },
+                timeout : function() {
+                    if (this.notify_view_building === undefined) {
+                        this.notify_view_building = setTimeout(this.timer_notify, 3000);
+                    }
+                },
+                cancel : function() {
+                    clearTimeout(this.notify_view_building);
+                    if (this.toastr) toastr.clear(this.toastr);
+                    this.notify_view_building = undefined;
+                    this.toastr = undefined;
+                },
+                notify_view_building : undefined,
+                toastr : undefined
+            };
+        }
+        var cur_view = this._called_views[view];
+        cur_view.timeout();
+        var callback_wrapper = function(e, o) {
+            // Clear the informational notice.
+            cur_view.cancel();
+            callback(e,o);
+        };
+        this.request(req, callback_wrapper);
     };
 
 
