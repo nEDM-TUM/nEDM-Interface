@@ -298,12 +298,6 @@ nedm.update_header = function(event, ui) {
       nedm.update_buttons();
   });
 
-  //if (hc.find("[data-role=header]").length == 0) {
-  //  hc.load("header.html", nedm.update_buttons); 
-  //} else {
-  //  nedm.update_buttons();
-  //}
-  
 };
 
 nedm.set_user_name = function(userCtx) {
