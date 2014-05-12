@@ -213,7 +213,7 @@ nedm.update_db_interface = function(db) {
         if (!(view in this._called_views)) {
             this._called_views[view] = {
                 timer_notify : function() {
-                                  this.toastr = toastr.info("View (" + view + ") is currently" +
+                                  this.mytoastr = toastr.info("View (" + view + ") is currently" +
                                               " building, results should be available soon.",
                                               "Building view",
                                       { timeOut : "-1",
@@ -228,12 +228,12 @@ nedm.update_db_interface = function(db) {
                 },
                 cancel : function() {
                     clearTimeout(this.notify_view_building);
-                    if (this.toastr) toastr.clear(this.toastr);
+                    if (this.mytoastr) toastr.clear(this.mytoastr);
                     this.notify_view_building = undefined;
-                    this.toastr = undefined;
+                    this.mytoastr = undefined;
                 },
                 notify_view_building : undefined,
-                toastr : undefined
+                mytoastr : undefined
             };
         }
         var cur_view = this._called_views[view];
