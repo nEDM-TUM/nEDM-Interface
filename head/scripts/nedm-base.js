@@ -317,9 +317,9 @@ nedm.update_buttons = function() {
     $("a[id*=homebtn]").attr("href", nedm.using_prefix);
 };
 
-nedm.update_header = function(event, ui) {
+nedm.update_header = function(ev, ui) {
 
-  $("#" + event.target.id + " .headerChild").load("/nedm_head/_design/nedm_head/header.html", function() {
+  $(ev.target).find(".headerChild").load("/nedm_head/_design/nedm_head/header.html", function() {
       $(this).find("[data-role=header]").trigger("create").toolbar();
       var hn = $(this).find('#nedm_header_name');
       var callback = function(dbs) {
@@ -431,23 +431,12 @@ nedm.buildDBList = function(ev, id) {
            html    += '</ul></div>';
            totalhtml += nedm.compile(html)(dbs[key]);     
        }
-  
-       if (x === undefined) {
-           // Means we have no specific event, change them all
-           $(".listofdbs").empty();
-           $(".listofdbs").append(totalhtml);
-           $(".listofdbs").trigger("create");
-       } else {
-           $("#" + x.target.id + " .listofdbs").empty();
-           $("#" + x.target.id + " .listofdbs").append(totalhtml);
-           $("#" + x.target.id + " .listofdbs").trigger("create");
-       }
-   };}(ev,id)); 
-       //var listDBs = (ev) ? $(ev.target).find('.listofdbs') : $('.listofdbs');
-       var listDBs = $('.listofdbs');
+ 
+       var listDBs = (x) ? $(x.target).find('.listofdbs') : $('.listofdbs');
        listDBs.empty();
        listDBs.append(totalhtml);
        listDBs.trigger("create");
+   };}(ev,id)); 
 };
 
 nedm.dateFromKey = function(arr) {
