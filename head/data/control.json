@@ -13,10 +13,6 @@
 <div data-role='page' id='db_control_{{db_name}}'>
     <div class='headerChild'> 
     </div>
-
-    <!--<div class='headerKid'>
-    </div>
-    <script>$('headerKid').load('./index.html #standardHeader');</script> -->
     <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
         <div class='content-primary'>
             <h1 >Control</h1>
