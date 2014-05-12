@@ -18,26 +18,26 @@
 ",
   "body" : "   
 
-<div data-role='page' id='db_monitor_{{db_name}}'>
+<div data-role='page' class='db_monitor_class'>
     <div class='headerChild'> 
     </div>
 
-    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
+    <div align='center' data-role='content'>
         <div class='content-primary'>
             <h1 >Monitor</h1>
             <div data-role='controlgroup' data-type='horizontal'>
-                <a href='#' data-role='button' data-inline='true' id='makeNewPlot_{{db_name}}'>Insert New Graph</a>
-                <select name='selectCurrentPlot' id='selectCurrentPlot_{{db_name}}' class = 'ui-disabled'>
+                <a href='#' data-role='button' data-inline='true' class='makeNewPlot'>Insert New Graph</a>
+                <select class='selectCurrentPlot ui-disabled'>
                 </select>
-                <a href='#' data-role='button' data-inline='true' id='removePlot_{{db_name}}' class='ui-disabled'>Remove Selected</a>
+                <a href='#' data-role='button' data-inline='true' class='removePlot ui-disabled'>Remove Selected</a>
             </div>
             <div data-role='controlgroup' data-type='horizontal'>
-                <a href='#' data-role='button' data-inline='true' id='addSlowControl_{{db_name}}' class = 'ui-disabled'>Add to selected graph</a>
-                <select name='selectSlowControl' id='selectSlowControl_{{db_name}}' class = 'ui-disabled'>
+                <a href='#' data-role='button' data-inline='true' class='addSlowControl ui-disabled'>Add to selected graph</a>
+                <select class='selectSlowControl ui-disabled'>
                 </select>
             </div>
 
-            <div id='monitor_div_{{db_name}}'>
+            <div class='monitor_div'>
             
             </div>
         </div> <!-- content-primary -->
@@ -61,15 +61,15 @@
             };
 
             var new_name = Math.random().toString(36).substr(2,9);
-            var selection = $('#selectCurrentPlot_{{db_name}}');
+            var selection = $('.ui-page-active .selectCurrentPlot').filter(':input');
             var window_num = selection.find('option').length;
             selection.append($('<option/>').attr( { value : new_name } )
                                            .append('Window ' + window_num));
             selection[0].selectedIndex = window_num;
 
             var new_div = $('<div></div>')
-                             .attr({ class : 'monitor_class',
-                                        id : 'div_' + new_name})
+                             .attr({ class : 'monitor_class ',
+                                        id : new_name})
                              .append($('<p/>').append('Window ' + window_num))
                              .append($('<div/>').attr({class : 'show_plot'}));
 
@@ -142,7 +142,7 @@
             new_div.append(legend_div);
             new_div.append(date_div);
 
-            $('#monitor_div_{{db_name}}').append(new_div);
+            $('.ui-page-active .monitor_div').append(new_div);
             new_div.trigger('create');
 
             // Set the time of the boxes
@@ -162,11 +162,12 @@
             obj.beginListening();
 
             // Now deal with the other buttons
-            $('#removePlot_{{db_name}}').removeClass('ui-disabled');
+            $('.ui-page-active .removePlot').removeClass('ui-disabled');
             selection.removeClass('ui-disabled');
-            $('#selectSlowControl_{{db_name}}').removeClass('ui-disabled');
-            if ($('#selectSlowControl_{{db_name}}').find('option').length !== 0) {
-                $('#addSlowControl_{{db_name}}').removeClass('ui-disabled');
+            var ssc = $('.ui-page-active .selectSlowControl').filter(':input');
+            ssc.removeClass('ui-disabled');
+            if (ssc.find('option').length !== 0) {
+                $('.ui-page-active .addSlowControl').removeClass('ui-disabled');
             }
             selection.selectmenu('refresh', true);
 
@@ -265,7 +266,7 @@
               obj.setGroupLevel($(this).val());
             });
 
-            $('#db_monitor_{{db_name}}').on('pagebeforeshow', function() { 
+            $('.ui-page-active').on('pagebeforeshow', function() { 
               obj.beginListening(); 
             });
             find('.date_button_execute').on('click', change_dates);
@@ -288,13 +289,16 @@
             find('.check_box_until_now').trigger('click'); 
         }; // makeNewGraph
 
-        var destroyGraph = function() {
-            var scp = $('#selectCurrentPlot_{{db_name}}');
+        var destroyGraph = function(ev) {
+            var thispage = $(ev.target).parents('.content-primary');
+            var scp = thispage.find('.selectCurrentPlot').filter(':input');
             var selected = scp.find(':selected'); 
             var sIndex = scp[0].selectedIndex;
 
             // remove the div
-            $('#div_' + selected.val()).remove();
+            var gr = $('#' + selected.val());
+            gr.data('graph').endListening();
+            gr.remove();
 
             // Now update the select menu
             selected.remove();
@@ -303,28 +307,32 @@
 
             if (scp.find('option').length === 0) {
               // disable button if nothing is there
-              $('#removePlot_{{db_name}}').addClass('ui-disabled');
-              $('#selectSlowControl_{{db_name}}').addClass('ui-disabled');
-              $('#addSlowControl_{{db_name}}').addClass('ui-disabled');
+              thispage.find('.removePlot').addClass('ui-disabled');
+              thispage.find('.selectSlowControl').filter(':input').addClass('ui-disabled');
+              thispage.find('.addSlowControl').addClass('ui-disabled');
 
             }
             scp.selectmenu('refresh', true);
         }; // destroyGraph
 
-        var getAvailableItems = function () {
-            // We can have stale = update_after since the data types will not change all that often.
-            nedm.get_database().getView('slow_control_time', 'slow_control_time', 
+        var getAvailableItems = function (ev, ui) {
+			// We can have stale = update_after since the data types will not
+			// change all that often.
+            var adb = $(ev.target).attr('data-url').split('/');
+            adb = adb[adb.length-1];
+            nedm.get_database(adb).getView('slow_control_time', 'slow_control_time', 
                 { opts : {stale : 'update_after', group_level : 1} }, function (e, o) {
                         if (e !== null ) return;
-                        var ssc = $('#selectSlowControl_{{db_name}}');
+                        var ssc = $('.selectSlowControl', $(ev.target)).filter(':input');
+                        ssc.find('option').remove();
                         for (var i=0;i<o.rows.length;i++) {
                             var aname = o.rows[i].key;
                             ssc.append($('<option/>').attr({value : aname}).append(aname));
                         }
                         if (ssc.find('option').length !== 0) {
                             ssc.removeClass('ui-disabled');
-                            if ($('#selectCurrentPlot_{{db_name}}').find('option').length !== 0) {
-                                $('#addSlowControl_{{db_name}}').removeClass('ui-disabled');
+                            if ($('.selectCurrentPlot', $(ev.target)).find('option').length !== 0) {
+                                $('.addSlowControl', $(ev.target)).removeClass('ui-disabled');
                             }
                         }
                         ssc.selectmenu('refresh', true);
@@ -332,17 +340,22 @@
 
         }; // getAvailableItems
 
-        var exitCleanup = function () {
-            if($('.monitor_class').length) { $('.monitor_class').data('graph').endListening(); } 
+        var exitCleanup = function (ev, ui) {
+            $('.monitor_class', ui.prevPage).each( function() {
+                $(this).parents('.content-primary')
+                       .find('option[value=' + this.id + ']')               
+                       .attr('selected', 'selected');
+                destroyGraph({ target : this }); 
+            });
         }; // exitCleanup
 
         var addSelectedPlotToWindow = function() {
-            var scp = $('#selectCurrentPlot_{{db_name}}');
+            var scp = $('.ui-page-active .selectCurrentPlot');
             var selected = scp.find(':selected'); 
        
-            var the_div = $('#div_' + selected.val());
+            var the_div = $('#' + selected.val());
             var obj = the_div.data('graph');
-            var ssc = $('#selectSlowControl_{{db_name}}').find(':selected');
+            var ssc = $('.ui-page-active .selectSlowControl').find(':selected');
             if (!obj.addDataName(ssc.val())) return; 
             the_div.find('.date_button_execute').trigger('click');
 
@@ -353,11 +366,16 @@
             the_div.find('.remove_plotted').removeClass('ui-disabled');
         }; // addSelectedPlotToWindow
 
-        $('#makeNewPlot_{{db_name}}').off('click').on('click', makeNewGraph );
-        $('#removePlot_{{db_name}}').off('click').on('click', destroyGraph );
-        $('#addSlowControl_{{db_name}}').off('click').on('click', addSelectedPlotToWindow );
-        $('#db_monitor_{{db_name}}').on('pagebeforeshow', getAvailableItems);
-        $('#db_monitor_{{db_name}}').on('pagehide', exitCleanup);
+        (function() {
+            $( '.db_monitor_class' ).off('pagecreate').on( 'pagecreate', function(ev, ui) {
+                $('.makeNewPlot', $(ev.target)).off('click').on('click', makeNewGraph );
+                $('.removePlot', $(ev.target)).off('click').on('click', destroyGraph );
+                $('.addSlowControl', $(ev.target)).off('click').on('click', addSelectedPlotToWindow );
+                getAvailableItems(ev, ui);
+                $( document ).off('pagecontainerbeforeshow').on('pagecontainerbeforeshow', exitCleanup);
+            }); 
+        }()); 
+        
 
 	    </script>
     </div>
