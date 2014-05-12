@@ -443,6 +443,11 @@ nedm.buildDBList = function(ev, id) {
            $("#" + x.target.id + " .listofdbs").trigger("create");
        }
    };}(ev,id)); 
+       //var listDBs = (ev) ? $(ev.target).find('.listofdbs') : $('.listofdbs');
+       var listDBs = $('.listofdbs');
+       listDBs.empty();
+       listDBs.append(totalhtml);
+       listDBs.trigger("create");
 };
 
 nedm.dateFromKey = function(arr) {
