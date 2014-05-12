@@ -759,7 +759,8 @@ nedm.MonitoringGraph.prototype.endListening = function () {
 $(document).on('mobileinit', function() {
 
   nedm.using_prefix = "/";
-  if (document.location.pathname != '/') {
+  if (document.location.pathname != '/' &&
+      document.location.pathname.substring(0,5) != '/page') {
       nedm.using_prefix = "/nedm_head/_design/nedm_head/_rewrite/";
   }
   $(document).on('pageinit', function(x, y) {
