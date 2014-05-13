@@ -1,0 +1,247 @@
+# Switch template.   
+#
+# A template for a simple switch that stores and retrieves status from the
+# database.
+#
+# Required fields:
+#   @title
+#   @description
+#   @switch_name
+#
+
+{
+  "_id" : "graph_template",
+  "type" : "view_template",
+  "title" : "{{title}}",
+  "description" : "{{description}}",
+  "html" : "
+  <div class = 'monitor_class'> 
+    <p class='window_name_class'/>
+    <div class = 'show_plot'>
+    </div>
+    <!-- Legend -->
+    <div data-role='fieldcontain'>
+      <fieldset data-role='controlgroup' data-type='horizontal'>
+        <legend>Plotted variables:</legend>
+        <a href='#' data-role='button' data-inline='true' class='ui-disabled remove_plotted'>
+          Remove
+        </a>
+        <select class='plotted_vars'/>
+      </fieldset>
+    </div>
+    <!-- Advanced options -->
+    <div data-role='collapsible'>
+      <h4>Advanced Options</h4>
+      <div class='ui-grid-b'>
+        <div class='ui-block-a'>
+          <h5>Start:</h5>
+          <h5>End:</h5>
+        </div>
+        <div class='ui-block-b all_date_boxes'>
+        </div>
+        <div class='ui-block-c all_time_boxes'>
+        </div>
+      </div>
+      <div data-role='fieldcontain'>
+        <fieldset data-role='controlgroup' data-type='horizontal'>
+          <label><input type='checkbox' class='check_box_until_now'/>Live</label>
+          <select class='averaging_select'/>
+          <button class='ui-btn ui-corner-all date_button_execute'>Set times</button>
+        </fieldset>
+        <div class='variable_progress'/>
+      </div>
+    </div>
+  </div>
+  ",
+  "script" : "
+  function(avar, anobj) {
+    var new_div = $(avar);
+    var avg_select = $('.averaging_select', new_div);
+    $.each({
+      'Avg: None'  : 10,
+          'Minutes': 6,
+          'Hours'  : 5,
+          'Days'   : 4,
+          'Months' : 3,
+          'Years'  : 2,
+          'All'    : 1,
+    }, function(t, v) {
+        avg_select.append($('<option/>').val(v).html(t));
+    });
+    avg_select.trigger('refresh');
+    // Get a datebox
+    var gimme_datebox = function(atype, aclass) {
+         var opts = { mode : atype,
+                      lockInput : false,
+                      showInitialValue : true,
+                      useNewStyle : true }; 
+         return $('<input>').attr({ type : 'text',
+                                    'data-role' : 'datebox',
+                                    'class'     : aclass,
+                                    'data-options' : JSON.stringify(opts)});
+    };
+
+   
+    $('.all_date_boxes', new_div).append(gimme_datebox('calbox', 'date_begin'))
+                                 .append(gimme_datebox('calbox', 'date_end'))
+                                 .trigger('create');
+    $('.all_time_boxes', new_div).append(gimme_datebox('timeflipbox', 'time_begin'))
+                                 .append(gimme_datebox('timeflipbox', 'time_end'))
+                                 .trigger('create');
+    if (anobj.window_name) {
+      $('.window_name_class', $(avar)).text(anobj.window_name);
+    }
+    var now = new Date(Date.now() - 600000);
+    var now2 = new Date(now);
+    var tb = $('.time_begin', new_div);
+    tb.datebox('setTheDate', now)
+      .trigger('datebox', 
+      { method: 'set',
+        value:  tb.datebox('callFormat', '%H:%M', now)});
+    now2.setHours(0)
+    now2.setMinutes(0);
+    $('.date_begin', new_div).datebox('setTheDate',now2);
+    
+    var adb = nedm.get_database();
+    if (anobj.db) adb = anobj.db;
+    var obj = new nedm.MonitoringGraph($('.show_plot', new_div)[0], [], now, adb); 
+    new_div.data( { 
+                     thisdiv : new_div,
+                     graph : obj,
+                     remove : function() {
+                       this.graph.endListening();
+                       this.thisdiv.remove();
+                     },
+                     add_plot : function(aname) {
+                       var retVal = false;
+                       if (! this.graph.addDataName(aname) ) return retVal; 
+                       retVal = true;
+                       $('.date_button_execute', this.thisdiv).trigger('click');
+                       if ( $('select.plotted_vars option[value=' + aname + ']', this.thisdiv).length >= 1 ) return retVal;
+                       var plotted_vars = $('select.plotted_vars', this.thisdiv);
+                       plotted_vars.append($('<option/>').attr({value : aname}).append(aname));
+                       plotted_vars.selectmenu('refresh', true);
+                       $('.remove_plotted', this.thisdiv).removeClass('ui-disabled');
+
+                     } 
+                   });
+    obj.beginListening();
+
+    avg_select.on('change', function() {
+      obj.setGroupLevel($(this).val());
+    });
+    var ensure_until_now_state = function() {
+        var until_now = $('.check_box_until_now', new_div).is(':checked');
+        if ( until_now ) {
+          $('.date_end', new_div).addClass('ui-disabled');
+          $('.time_end', new_div).addClass('ui-disabled');
+        } else {
+          $('.date_end', new_div).removeClass('ui-disabled');
+          $('.time_end', new_div).removeClass('ui-disabled');
+        }
+        return until_now;
+    };
+
+    var get_new_progress = function (aname) {
+        var retDiv = $('<div/>')
+            .attr('data-role', 'fieldcontain')
+            .append(
+        $('<fieldset/>')
+            .attr({
+            'data-role': 'controlgroup',
+                'data-type': 'horizontal'
+        })
+            .append($('<a/>')
+            .attr({
+            'data-role': 'button',
+                'data-icon': 'nedm-loading',
+                'data-iconpos': 'right',
+                'class': 'cancel_button'
+        })
+            .append('Cancel '))
+            .append($('<a/>').attr({
+            'data-role': 'button',
+                'class': 'ui-disabled loading_view'
+        })
+            .append(aname + ' loading: '))
+            .data({
+            varname: aname
+        }));
+        retDiv.data({
+            varname: aname,
+            should_cancel: false
+        });
+        $('.cancel_button', retDiv).on('click',
+    
+        function () {
+            $(this).addClass('ui-disabled');
+            retDiv.data({
+                should_cancel: true
+            });
+        });
+        return retDiv;
+    };
+    var change_dates = function(eve) {
+        var get_new_date = function(prefix) {
+            var the_date = $('.date_' + prefix, new_div).datebox('getTheDate');
+            var the_time = $('.time_' + prefix, new_div).datebox('getTheDate');
+            the_date.setHours( the_time.getHours() );
+            the_date.setMinutes( the_time.getMinutes() );
+            the_date.setSeconds( the_time.getSeconds() );
+            return the_date;
+        };
+        var start_date = get_new_date('begin'); 
+        var end_date = get_new_date('end'); 
+        var until_now = ensure_until_now_state();
+        if (until_now) end_date = 0;
+        var current_progress = $('.variable_progress', new_div);
+        for (var j=0;j<obj.name.length;j++) {
+            current_progress.append(get_new_progress(obj.name[j]));
+        }
+        current_progress.trigger('create');
+        var update_function = function (objs) {
+            var retVal = true;
+            current_progress.find('[data-role=fieldcontain]').each(function () {
+                var o = $(this).data();
+                var isDone = (!objs || objs.done);
+                if (isDone || o.should_cancel) {
+                    retVal = false;
+                    $(this).remove();
+                    return true;
+                }
+                if (o.varname != objs.variable) return;
+                $(this).find('.loading_view')
+                .text(o.varname + ' loaded: ' + 
+                      objs.loaded.toString());
+                return false;
+            });
+            return retVal;
+        };
+        obj.changeTimeRange(start_date, end_date, update_function);
+
+    };
+
+
+    $('.date_button_execute', new_div).on('click', change_dates);
+    $('.check_box_until_now', new_div).on('change', function() { 
+        ensure_until_now_state(); 
+        $('.date_button_execute', new_div).trigger('click'); 
+    });
+    $('.remove_plotted', new_div).on('click', function() {
+      var ssc = $('select.plotted_vars', new_div).find(':selected');
+      obj.removeDataName(ssc.val(), function() {
+        ssc.remove(); 
+        var plt = $('select.plotted_vars', new_div);
+        if (plt.find('option').length === 0) {  
+          $('.remove_plotted', new_div).addClass('ui-disabled');
+        }
+        plt.selectmenu('refresh', true);
+      });
+    });
+    $('.check_box_until_now', new_div).trigger('click'); 
+
+  }
+  "
+  
+
+}
