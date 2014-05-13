@@ -13,23 +13,25 @@
  "html" : "
 <div data-role='fieldcontain'>
     <div data-role='controlgroup' data-type='horizontal'>
-        <input type='text' id='set_{{{cmd_name}}}_text' data-wrapper-class='controlgroup-textinput ui-btn'>
-        <button id='submit_set_{{{cmd_name}}}'>Submit</button>
+        <input type='text' data-wrapper-class='controlgroup-textinput ui-btn'>
+        <button class='set_value_class'>Submit</button>
     </div>
 </div>
  ",
  "script" : "
-    $('#submit_set_{{{cmd_name}}}').on('click', function () {
-      var but = $('#submit_set_{{{cmd_name}}}');
-      but.addClass('ui-disabled');
-      var cmd = '{{{cmd_name}}}';
-      nedm.send_command( { cmd_name : cmd, 
-                           arguments : [ parseFloat($('#set_{{{cmd_name}}}_text').val()) ],
-                           timeout : 10000,
-                           callback: function(o) { 
-                              but.removeClass('ui-disabled');
-                           } 
-                         });
-    });
+    function( avar, anobj ) {
+        $( '.set_value_class', $(avar) ).on('click', function () {
+          var but = $('.set_value_class', $(avar) );
+          but.addClass('ui-disabled');
+          var cmd = anobj.cmd_name; 
+          nedm.send_command( { cmd_name : cmd, 
+                               arguments : [ parseFloat($('[type=text]', $(avar)).val()) ],
+                               timeout : 10000,
+                               callback: function(o) { 
+                                  but.removeClass('ui-disabled');
+                               } 
+                             });
+        });
+    }
  "
 }

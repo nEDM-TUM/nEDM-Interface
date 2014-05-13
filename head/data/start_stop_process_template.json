@@ -6,57 +6,51 @@
  "html" : "
   <div data-role='fieldcontain'>
     <fieldset data-role='controlgroup' data-type='horizontal'>
-        <a href='#' id='{{{process_name}}}_button' data-role='button' data-icon='nedm-stopped' data-iconpos='right' class='ui-disabled'>Start</a>
+        <a href='#' data-role='button' data-icon='nedm-stopped' data-iconpos='right' class='ui-disabled start_stop_class'>Start</a>
     </fieldset>
   </div>
   ",
-  "pageevents" : {
-      "pagehide" :  "function() {
-        nedm.get_database().cancel_changes_feed('{{{process_name}}}');
-      }",
-      "pageshow" :  "function() {
-        nedm.get_database().listen_to_changes_feed('{{{process_name}}}', sync_{{{process_name}}}, {since : 'now'});
-      }"
-  },
   "script" : "
-    var sync_{{{process_name}}} = function() {
-      var but = $('#{{{process_name}}}_button');
-      nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-        { opts : {
-            endkey : ['{{{process_bool_variable}}}'],
-          startkey : ['{{{process_bool_variable}}}', {}],
-        descending : true,
-            reduce : false,
-             limit : 1}},
-        function(err, objs) {   
-           if (err != null) return;
-           if (objs.rows.length != 1) return; 
-           var arr = objs.rows[0];
-           if (but.data('isRunning') && (arr.value == but.data('isRunning'))) return;
-           if (arr.value) {
-             but.data('isRunning', true);
-             but.addClass('ui-icon-nedm-loading').removeClass('ui-icon-nedm-stopped');
-             but.text('Stop');
-           } else {
-             but.data('isRunning', false);
-             but.addClass('ui-icon-nedm-stopped').removeClass('ui-icon-nedm-loading');
-             but.text('Start');
-           }
-           but.removeClass('ui-disabled');
-      })  
-    };  
+    function( avar, anobj ) {
+      var sync = function() {
+        var but = $('.start_stop_class', $(avar));
+        nedm.get_database().getView('slow_control_time', 'slow_control_time', 
+          { opts : {
+              endkey : [anobj.process_bool_variable],
+            startkey : [anobj.process_bool_variable, {}],
+          descending : true,
+              reduce : false,
+               limit : 1}},
+          function(err, objs) {   
+             if (err != null) return;
+             if (objs.rows.length != 1) return; 
+             var arr = objs.rows[0];
+             if (but.data('isRunning') && (arr.value == but.data('isRunning'))) return;
+             if (arr.value) {
+               but.data('isRunning', true);
+               but.addClass('ui-icon-nedm-loading').removeClass('ui-icon-nedm-stopped');
+               but.text('Stop');
+             } else {
+               but.data('isRunning', false);
+               but.addClass('ui-icon-nedm-stopped').removeClass('ui-icon-nedm-loading');
+               but.text('Start');
+             }
+             but.removeClass('ui-disabled');
+        })  
+      };  
 
-    $('#{{{process_name}}}_button').on('click', function () {
-      var but = $('#{{{process_name}}}_button');
-      but.addClass('ui-disabled');
-      var cmd = '{{{stop_process_cmd}}}';
-      if (!but.data('isRunning')) {
-          cmd = '{{{start_process_cmd}}}';
-      } 
-      nedm.send_command( { cmd_name : cmd, timeout: 10000 } );
-    });
-    sync_{{{process_name}}}();
-    nedm.get_database().listen_to_changes_feed('{{{process_name}}}', sync_{{{process_name}}}, 
-      {since : 'now', filter :'nedm_default/doc_type', type : 'data'});
+      $('.start_stop_class', $(avar)).on('click', function () {
+        var but = $('.start_stop_class', $(avar));
+        but.addClass('ui-disabled');
+        var cmd = anobj.stop_process_cmd;
+        if (!but.data('isRunning')) {
+            cmd = anobj.start_process_cmd;
+        } 
+        nedm.send_command( { cmd_name : cmd, timeout: 10000 } );
+      });
+      sync();
+      nedm.get_database().listen_to_changes_feed(anobj.process_name, sync, 
+        {since : 'now', filter :'nedm_default/doc_type', type : 'data'});
+    }
   "
 }

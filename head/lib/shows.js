@@ -15,18 +15,11 @@ exports.page = function(doc, req) {
 exports.define_control = function(doc, req) {
   var handlebars = require('handlebars');
   var template_func = function(obj) {
-      var template = "<div label='div_{{_id}}'><h3>{{title}}</h3>{{{html}}}";
+      var template = "<h3>{{title}}</h3>{{{html}}}";
       template += "<a href='#help{{_id}}' data-rel='popup'  data-role='button' class='ui-icon-alt'";
       template += "data-inline='true' data-transition='pop' data-icon='info' data-theme='e' data-iconpos='notext'>Help</a>";
-      template += "<div data-role='popup' id='help{{_id}}'><p>{{{description}}}</p></div><script>{{{script}}}";
-      if ('pageevents' in obj) {
-          var pe = obj['pageevents'];
-          for (var ev in pe) {
-              template += handlebars.compile("$('#{{db_control}}').on('{{ev}}', {{{func}}});")({ ev : ev, func : pe[ev]});
-          }
-      }
-      template += '</script></div>';
-      return handlebars.compile(template)(obj);
+      template += "<div data-role='popup' id='help{{_id}}'><p>{{{description}}}</p></div>";
+      return { json : { html: handlebars.compile(template)(obj), doc: obj } };
    };
 
    var obj = JSON.parse(req.body);
