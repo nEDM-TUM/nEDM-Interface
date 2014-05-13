@@ -17,54 +17,50 @@
 
   "html" : "
 <!--  Here we input html that should be added to the page for this control -->
-<select id='{{{switch_name}}}-a' data-role='slider'>
+<select data-role='slider' class='switch_class'>
   <option value=0>Off</option>
   <option value=1>On</option>
 </select>
-<p id='{{{switch_name}}}_text' style='color:blue;'></p>
+<p style='color:blue;' class='switch_text_class'></p>
 ",
-
-  "pageevents" : {
-      "pagehide" :  "function() {
-        nedm.get_database().cancel_changes_feed('{{{switch_name}}}');
-      }",
-      "pageshow" :  "function() {
-        nedm.get_database().listen_to_changes_feed('{{{switch_name}}}', sync_func_{{switch_name}}, {since : 'now'});
-      }"
-  },
   "script" : "
 
-  // We define a synchronization function which synchronizes the web-site with
-  // the database
-  var sync_func_{{switch_name}} = function() {
-    nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-      { opts : {group : true, endkey : ['{{{switch_name}}}'], 
-        startkey : ['{{{switch_name}}}', {}], descending : true, limit : 1}}, 
-      function(err, objs) {  
-         if (err != null) return;
-         if (objs.rows.length != 1) return; 
-         var arr = objs.rows[0];
-         var a = arr.key;
-         var t = new Date(Date.UTC.apply(this, a.splice(1))); 
-         $('#{{{switch_name}}}-a').val(arr.value[0]);
-         $('#{{{switch_name}}}-a').slider('refresh');
-         $('#{{{switch_name}}}_text').text('Last updated: ' + t.toUTCString());
-    })
-  };
-
-  // On a change in the button, upload a document into the database
-  $('#{{{switch_name}}}-a').on( 'change' , function (event, ui) { 
-    nedm.get_database().updateDoc({ type : 'data', value : { '{{{switch_name}}}' : this.value} }, 
-        'nedm_default', 'insert_with_timestamp', function(err, obj) { 
-           if (err != null) {
-               nedm.show_error_window(err.error, err.reason);
-               sync_func_{{switch_name}}();
-           }
-    } ); 
-  });
-  sync_func_{{switch_name}}();
-  nedm.get_database().listen_to_changes_feed('{{{switch_name}}}', sync_func_{{switch_name}}, {since : 'now'});
-  
-
+    function( avar, anobj ) {
+       // We define a synchronization function which synchronizes the web-site with
+       // the database
+       var sync = function() {
+         nedm.get_database().getView('slow_control_time', 'slow_control_time', 
+           { opts : {reduce : false, 
+                    endkey : [anobj.switch_name], 
+                  startkey : [anobj.switch_name, {}], 
+                descending : true,
+                     limit : 1}}, 
+           function(err, objs) {  
+              if (err != null) return;
+              if (objs.rows.length != 1) return; 
+              var arr = objs.rows[0];
+              var a = arr.key;
+              var t = new Date(Date.UTC.apply(this, a.splice(1))); 
+              $('.switch_class', $(avar)).val(arr.value);
+              $('.switch_class', $(avar)).slider('refresh');
+              $('.switch_text_class', $(avar)).text('Last updated: ' + t.toUTCString());
+         });
+       };
+       
+       // On a change in the button, upload a document into the database
+       $('.switch_class', $(avar)).on( 'change' , function (event, ui) { 
+         var update_doc = { type: 'data', value : {} };
+         update_doc.value[anobj.switch_name] = this.value; 
+         nedm.get_database().updateDoc(update_doc,
+             'nedm_default', 'insert_with_timestamp', function(err, obj) { 
+                if (err != null) {
+                    nedm.show_error_window(err.error, err.reason);
+                    sync();
+                }
+         } ); 
+       });
+       sync();
+       nedm.get_database().listen_to_changes_feed(anobj.switch_name, sync, {since : 'now'});
+   }
 "
 }
