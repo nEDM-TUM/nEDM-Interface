@@ -22,7 +22,7 @@
               reduce : false,
                limit : 1}},
           function(err, objs) {   
-             if (err != null) return;
+             if (err) return;
              if (objs.rows.length != 1) return; 
              var arr = objs.rows[0];
              if (but.data('isRunning') && (arr.value == but.data('isRunning'))) return;
@@ -36,7 +36,7 @@
                but.text('Start');
              }
              but.removeClass('ui-disabled');
-        })  
+        }); 
       };  
 
       $('.start_stop_class', $(avar)).on('click', function () {
