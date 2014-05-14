@@ -217,7 +217,7 @@ nedm.update_db_interface = function(db) {
                                               " building, results should be available soon.",
                                               "Building view",
                                       { timeOut : "-1",
-                                  positionClass : "toast-top-full-width",
+                                  positionClass : "toast-top-right",
                                     closeButton : false
                                       } );
                                },
@@ -227,8 +227,12 @@ nedm.update_db_interface = function(db) {
                     }
                 },
                 cancel : function() {
-                    clearTimeout(this.notify_view_building);
-                    if (this.mytoastr) toastr.clear(this.mytoastr);
+                    if (this.notify_view_building) {
+                      clearTimeout(this.notify_view_building);
+                    }
+                    if (this.mytoastr) {
+                      toastr.clear(this.mytoastr);
+                    }
                     this.notify_view_building = undefined;
                     this.mytoastr = undefined;
                 },
@@ -804,6 +808,6 @@ require("jquery-mobile");
 require("jquery-mobile-datebox");
 var toastr = require("toastr");
 toastr.options = {
-  positionClass: "toast-bottom-full-width",
+  positionClass: "toast-top-right",
     closeButton: true
 };
