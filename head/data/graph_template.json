@@ -20,7 +20,7 @@
     <div class = 'show_plot'>
     </div>
     <!-- Legend -->
-    <div data-role='fieldcontain'>
+    <div data-role='fieldcontain' class='plot_legend'>
       <fieldset data-role='controlgroup' data-type='horizontal'>
         <legend>Plotted variables:</legend>
         <a href='#' data-role='button' data-inline='true' class='ui-disabled remove_plotted'>
@@ -30,7 +30,7 @@
       </fieldset>
     </div>
     <!-- Advanced options -->
-    <div data-role='collapsible'>
+    <div data-role='collapsible' class='adv_options'>
       <h4>Advanced Options</h4>
       <div class='ui-grid-b'>
         <div class='ui-block-a'>
@@ -48,9 +48,9 @@
           <select class='averaging_select'/>
           <button class='ui-btn ui-corner-all date_button_execute'>Set times</button>
         </fieldset>
-        <div class='variable_progress'/>
       </div>
     </div>
+    <div class='variable_progress'/>
   </div>
   ",
   "script" : "
@@ -190,6 +190,7 @@
             the_date.setSeconds( the_time.getSeconds() );
             return the_date;
         };
+        $('.adv_options,.plot_legend', new_div).addClass('ui-disabled');
         var start_date = get_new_date('begin'); 
         var end_date = get_new_date('end'); 
         var until_now = ensure_until_now_state();
@@ -215,6 +216,9 @@
                       objs.loaded.toString());
                 return false;
             });
+            if (!retVal) {
+                $('.adv_options,.plot_legend', new_div).removeClass('ui-disabled');
+            }
             return retVal;
         };
         obj.changeTimeRange(start_date, end_date, update_function);
