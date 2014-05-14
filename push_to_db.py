@@ -259,19 +259,21 @@ current folders.
 """
 def main(server = None):
 
-    if server is None:
-        server = "localhost:5984"
-
     if os.path.exists(".nedmrc"):
         try:
-            obj = json.load(open(".nedmrc"))
-            if "server" in obj: server = obj["server"]
-            try:
-                set_username_pw(obj["username"], obj["password"])
-            except KeyError: pass
+            obj = yaml.load(open(".nedmrc"))
+            if not server: server = obj["default"]
+            if server in obj: 
+                sv = obj[server]
+                server = sv["server"]
+                try:
+                    set_username_pw(sv["username"], sv["password"])
+                except KeyError: pass
         except ValueError:
             print ".nedmrc found, but not formatted properly.  Ignoring..."
             pass
+    elif server is None:
+        server = "http://localhost:5984"
 
     dbnames = [(db, "nedm%2F" + os.path.basename(db)) for db
                  in glob.glob("subsystems/*") if os.path.isdir(db)]
