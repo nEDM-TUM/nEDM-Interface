@@ -10,10 +10,10 @@ bs = function(haystack, needle, comparator, alow, ahigh) {
   if(typeof comparator !== "function")
     throw new TypeError("third argument to binary search is not a function");
 
-  var low  = alow 
-      mid  = 0,
-      high = ahigh,
-      cmp  = 0;
+  var low  = alow;
+  var mid  = 0;
+  var high = ahigh;
+  var cmp  = 0;
 
   while(low <= high) {
     /* Note that "(low + high) >>> 1" may overflow, and results in a typecast
