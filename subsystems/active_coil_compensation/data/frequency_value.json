@@ -1,0 +1,9 @@
+{
+ "_id" : "set_freq_value",
+ "type" : "control",
+ "title" : "Frequency value",
+  "description" : "Change the frequency (Hz) of the coil process",
+  "template" : "set_value_template",
+  "cmd_name" : "set_freq_value",
+  "sync_cmd_name" : "get_freq_value"
+}
