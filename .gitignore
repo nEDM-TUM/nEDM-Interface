@@ -1,3 +1,4 @@
 *packages
 .nedmrc*
 *.DS_Store
+*.pyc
