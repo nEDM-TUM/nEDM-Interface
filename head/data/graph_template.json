@@ -98,7 +98,7 @@
       .trigger('datebox', 
       { method: 'set',
         value:  tb.datebox('callFormat', '%H:%M', now)});
-    now2.setHours(0)
+    now2.setHours(0);
     now2.setMinutes(0);
     $('.date_begin', new_div).datebox('setTheDate',now2);
     

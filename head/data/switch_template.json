@@ -36,7 +36,7 @@
                 descending : true,
                      limit : 1}}, 
            function(err, objs) {  
-              if (err != null) return;
+              if (err) return;
               if (objs.rows.length != 1) return; 
               var arr = objs.rows[0];
               var a = arr.key;
@@ -53,7 +53,7 @@
          update_doc.value[anobj.switch_name] = this.value; 
          nedm.get_database().updateDoc(update_doc,
              'nedm_default', 'insert_with_timestamp', function(err, obj) { 
-                if (err != null) {
+                if (err) {
                     nedm.show_error_window(err.error, err.reason);
                     sync();
                 }
