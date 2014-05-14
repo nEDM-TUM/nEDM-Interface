@@ -4,5 +4,6 @@
  "title" : "Proportional value",
   "description" : "Change the proportional value",
   "template" : "set_value_template",
-  "cmd_name" : "set_prop_value"
+  "cmd_name" : "set_prop_value",
+  "sync_cmd_name" : "get_prop_value"
 }
