@@ -3,6 +3,8 @@ import getpass
 import subprocess
 import os
 import glob
+from check_jshint import check_string 
+import re
 try:
     import pexpect
     import json
@@ -162,11 +164,30 @@ def push_database(host, db_name, folder="_default", force=False):
     db_path = "http://" + host + "/" + db_name
     execute_kanso("kanso push %s %s " % (folder, db_path)) 
 
+def check_dict(adic):
+    for k,v in adic.items():
+        if type(v) == type({}):
+            check_dict(v)
+        elif type(v) == type("") and re.search("\w*function", v):
+            try:
+                check_string(v, ["W025"])
+            except Exception, e:
+                print "\n  Error in: \n", k
+                raise e
+
+def check_javascript(adoc):
+    anid = adoc["_id"]
+    if "script" in adoc:
+        check_string(adoc["script"], ["W025"])
+    if adoc["_id"][:8] == '_design/' and \
+       adoc["language"] == "javascript":
+        check_dict(adoc)
+
 """
 upload data 
 
 """
-def upload_data(host, db_name, folder):
+def upload_data(host, db_name, folder, check_js):
 
     global _pending_requests
     # push defaults
@@ -227,6 +248,8 @@ def upload_data(host, db_name, folder):
             if theid in all_docs and compare_documents(all_docs[theid], adoc):
                  continue 
             print "    Updating: ", adoc['_id'] 
+        if check_js: 
+            check_javascript(adoc) 
         resp = func(func_name, params=adoc)
         _pending_requests.append(resp)
 
@@ -255,13 +278,15 @@ def main(server = None):
 
     dbnames.append(("head", "nedm_head"))
 
+    check_js = True
     for db_path, db_name in dbnames:
         print "Pushing to: ", db_path
         print "    Checking sec/data"
-        upload_data(server, db_name, "_default_data")
+        upload_data(server, db_name, "_default_data", check_js)
+        check_js = False
         data_dir = os.path.join(db_path, "data")
         if os.path.isdir(data_dir):
-            upload_data(server, db_name, data_dir)
+            upload_data(server, db_name, data_dir, True)
         if db_path != "head":
             update_security(server, db_name, db_path)
         else:
