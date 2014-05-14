@@ -15,23 +15,42 @@
     <div data-role='controlgroup' data-type='horizontal'>
         <input type='text' data-wrapper-class='controlgroup-textinput ui-btn'>
         <button class='set_value_class'>Submit</button>
+        <button class='sync_value_class'>Sync</button>
     </div>
 </div>
  ",
  "script" : "
     function( avar, anobj ) {
+        var disable_all = function() {
+            $(':button,[type=text]', $(avar)).addClass('ui-disabled'); 
+        };
+        var enable_all = function() {
+            $(':button,[type=text]', $(avar)).removeClass('ui-disabled'); 
+        };
         $( '.set_value_class', $(avar) ).on('click', function () {
-          var but = $('.set_value_class', $(avar) );
-          but.addClass('ui-disabled');
+          disable_all(); 
           var cmd = anobj.cmd_name; 
           nedm.send_command( { cmd_name : cmd, 
                                arguments : [ parseFloat($('[type=text]', $(avar)).val()) ],
-                               timeout : 10000,
+                               timeout : 5000,
                                callback: function(o) { 
-                                  but.removeClass('ui-disabled');
+                                 $('.sync_value_class', $(avar)).trigger('click');
                                } 
                              });
         });
+        $( '.sync_value_class', $(avar) ).on('click', function () {
+          var txt = $('[type=text]', $(avar));
+          disable_all();
+          var cmd = anobj.sync_cmd_name; 
+          nedm.send_command( { cmd_name : cmd, 
+                               timeout : 5000,
+                               callback: function(o) { 
+                                  enable_all();
+                                  if (o.ok) txt.val(o.return); 
+                               } 
+                             });
+        });
+
     }
  "
 }

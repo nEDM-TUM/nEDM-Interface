@@ -4,5 +4,6 @@
  "title" : "Integration value",
   "description" : "Change the integration value",
   "template" : "set_value_template",
-  "cmd_name" : "set_int_value"
+  "cmd_name" : "set_int_value",
+  "sync_cmd_name" : "get_int_value"
 }
