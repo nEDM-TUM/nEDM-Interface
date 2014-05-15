@@ -466,6 +466,7 @@ nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
               xAxisLabelWidth: 60
           });
 
+    this.isSyncing = false;
     this.name = data_name;
     this.uuid = Math.random().toString(36).substr(2,9);
     this.setGroupLevel(9);
@@ -722,6 +723,9 @@ nedm.send_command = function(o) {
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
+    // don't sync too often...    
+    if (this.isSyncing) return;
+    this.isSyncing = true;
     var total_length = this.name.length;
     var view_clbck = function(obj) { 
         return function(e, o) { 
@@ -735,7 +739,10 @@ nedm.MonitoringGraph.prototype.syncFunction = function () {
                       obj.mergeData(all_data); 
                   } 
                   total_length -= 1;
-                  if (total_length === 0) obj.update();
+                  if (total_length === 0) { 
+                    obj.update();
+                    obj.isSyncing = false;
+                  }
               }; 
     };
     for (var i=0;i<this.name.length;i++) {
