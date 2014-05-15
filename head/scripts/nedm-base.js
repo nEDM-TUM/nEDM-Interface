@@ -209,30 +209,45 @@ nedm.update_db_interface = function(db) {
             expect_json: true
         };
 
+        var thisdb = this;
         // Inform the user if the view takes a while to load
         if (!(view in this._called_views)) {
             this._called_views[view] = {
                 timer_notify : function() {
-                                  this.mytoastr = toastr.info("View (" + view + ") is currently" +
-                                              " building, results should be available soon.",
-                                              "Building view",
-                                      { timeOut : "-1",
-                                  positionClass : "toast-top-right",
-                                    closeButton : false
-                                      } );
+                                   var base_text = "View (" + view + ") is currently building: ";
+                                   var tthis = this;
+                                   thisdb.checkViewStatus(view, function(o) {
+                                       if (o.done) {
+                                          tthis.cancel();
+                                          return;
+                                       }
+                                       if (!tthis.mytoastr) { 
+                                           tthis.mytoastr = toastr.info(base_text + " ? of ?",
+                                               "View building",
+                                               { timeOut : -1,
+                                        extendedTimeOut  : -1,
+                                           positionClass : "toast-top-right",
+                                             closeButton : false
+                                               } );
+                                       }
+                                       var perc = o.view_update_seq*100/o.db_update_seq;
+                                       if (perc > 100) perc = 100;
+                                       $(".toast-message", tthis.mytoastr).text(
+                                         base_text + o.view_update_seq.toString() + " of " + 
+                                         o.db_update_seq.toString() + " (" + perc.toFixed(2) +
+                                         "%)");
+                                   });
                                },
                 timeout : function() {
                     if (this.notify_view_building === undefined) {
-                        this.notify_view_building = setTimeout(this.timer_notify, 3000);
+                        this.notify_view_building = setTimeout(function(o) { return function() { o.timer_notify();}; }(this) , 3000);
                     }
                 },
                 cancel : function() {
                     if (this.notify_view_building) {
                       clearTimeout(this.notify_view_building);
                     }
-                    if (this.mytoastr) {
-                      toastr.clear(this.mytoastr);
-                    }
+                    if (this.mytoastr) this.mytoastr.remove();
                     this.notify_view_building = undefined;
                     this.mytoastr = undefined;
                 },
