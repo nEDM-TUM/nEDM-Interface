@@ -812,6 +812,7 @@ nedm.MonitoringGraph.prototype.beginListening = function () {
 
 nedm.MonitoringGraph.prototype.endListening = function () {
   this.db.cancel_changes_feed(this.uuid);
+  this.isSyncing = false;
 };
 
 $(document).on('mobileinit', function() {
