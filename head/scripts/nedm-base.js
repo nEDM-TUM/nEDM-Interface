@@ -250,6 +250,13 @@ nedm.update_db_interface = function(db) {
         this.request(req, callback_wrapper);
     };
 
+    db.getViewInfo = function(view, callback) {
+        var req = {
+            url: this.url + "/_design/" + view + "/_info",
+            expect_json: true,
+        };
+        this.request(req, callback);
+    };
 
     db.listen_to_changes_feed = function(tag, callback, options) {
         return nedm.listen_to_changes_feed(this, tag, callback, options);
