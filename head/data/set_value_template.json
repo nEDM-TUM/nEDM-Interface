@@ -46,7 +46,7 @@
                                timeout : 5000,
                                callback: function(o) { 
                                   enable_all();
-                                  if (o.ok) txt.val(o.return); 
+                                  if (o && o.ok) txt.val(o.return); 
                                } 
                              });
         });
