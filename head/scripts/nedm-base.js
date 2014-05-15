@@ -258,6 +258,31 @@ nedm.update_db_interface = function(db) {
         this.request(req, callback);
     };
 
+    db.checkViewStatus = function(view, callback) {
+        var obj = this; 
+        this.info( function(e, o) {
+            if (e) callback({ error: e });
+            else {
+                var cur_seq = o.update_seq;
+                var view_status = function(e, o) {
+                    if (e) callback({ error: e });
+                    else {
+                        var done = (o.view_index.update_seq >= cur_seq) || !o.view_index.updater_running;
+                        callback( { done: done, 
+                                   view : o.name, 
+                         view_update_seq: o.view_index.update_seq,
+                           db_update_seq: cur_seq } );
+                        if (!done) {
+                          setTimeout(function() { obj.getViewInfo(view, view_status); }, 1000);
+                        }
+                    }
+                }; 
+                obj.getViewInfo(view, view_status);
+            }
+        });
+    };
+
+
     db.listen_to_changes_feed = function(tag, callback, options) {
         return nedm.listen_to_changes_feed(this, tag, callback, options);
     };
