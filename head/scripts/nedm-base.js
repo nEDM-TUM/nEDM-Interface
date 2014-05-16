@@ -789,6 +789,10 @@ nedm.MonitoringGraph.prototype.syncFunction = function () {
                   } 
                   total_length -= 1;
                   if (total_length === 0) { 
+                    if (obj.data.length !== 0 && obj.time_range !== 0) { 
+                        var time_before_now = new Date(obj.data[obj.data.length-1][0].getTime() - obj.time_range*1000);
+                        obj.removeBeforeDate(time_before_now);
+                    }
                     obj.update();
                     obj.isSyncing = false;
                   }
