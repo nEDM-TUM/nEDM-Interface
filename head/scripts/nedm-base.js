@@ -222,6 +222,8 @@ nedm.update_db_interface = function(db) {
                                           return;
                                        }
                                        if (!tthis.mytoastr) { 
+                                           tthis.initial_value = o.view_update_seq;
+                                           tthis.total_diff = o.db_update_seq - tthis.initial_value;
                                            tthis.mytoastr = toastr.info(base_text + " ? of ?",
                                                "View building",
                                                { timeOut : -1,
@@ -230,11 +232,11 @@ nedm.update_db_interface = function(db) {
                                              closeButton : false
                                                } );
                                        }
-                                       var perc = o.view_update_seq*100/o.db_update_seq;
+                                       var perc = (o.view_update_seq - tthis.initial_value)*100/tthis.total_diff;
                                        if (perc > 100) perc = 100;
                                        $(".toast-message", tthis.mytoastr).text(
-                                         base_text + o.view_update_seq.toString() + " of " + 
-                                         o.db_update_seq.toString() + " (" + perc.toFixed(2) +
+                                         base_text + (o.view_update_seq - tthis.initial_value).toString() + " of " + 
+                                         tthis.total_diff.toString() + " (" + perc.toFixed(2) +
                                          "%)");
                                    });
                                },
