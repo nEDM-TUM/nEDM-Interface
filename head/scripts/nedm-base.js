@@ -179,6 +179,21 @@ nedm.update_db_interface = function(db) {
         };
         this.request(req, callback);
     };
+    db.changes = function(options, callback) {
+        if (!callback) {
+            callback = options;
+            options = {};
+        }
+        var req = {
+            url: this.url +
+                '/_changes' + nedm.build_url(options),
+            type: "GET", 
+            expect_json: true
+        };
+
+        this.request(req, callback);
+    };
+
     db._called_views = {};
     db.getView = function(name, view, options, callback) {
         if (!callback) {
@@ -417,6 +432,59 @@ nedm.compile = function(astr) {
     return handlebars.compile(astr);
 };
 
+
+nedm.all_db_listeners = {};
+nedm.database_listener = function( adb ) {
+    //if ( adb in this.all_db_listeners ) return;
+    this.all_db_listeners[adb] = {};
+    var update_function = function( acls, atype ) {
+        return function() {
+            var thedb = nedm.get_database( "nedm%2F" + adb );
+            thedb.changes(
+               { limit : 1, 
+                filter : "nedm_default/doc_type", 
+                  type : atype,
+               timeout : 10000,
+                  feed : "longpoll",
+                 since : "now"  }, 
+               function(e, o) {
+                   if (e) return;
+                   var adom = $("." + adb + " ." +acls);
+                   if (o.results.length != 1) {
+                     adom.text("OFF");
+                   } else {
+                     adom.text("ON");
+                   }
+                   if ( adb in nedm.all_db_listeners ) {
+                       setTimeout(update_function(acls, atype), 13000);
+                   }
+            });
+        };
+    };
+    update_function('control_status', "heartbeat")();
+    update_function('write_status', "data")();
+};
+
+nedm.database_status = function( all_dbs ) {
+   var tbody = $(".status_db_class tbody");
+   for (var db in all_dbs) {
+       if (db in this.all_db_listeners) continue;
+       var o = all_dbs[db];
+       var new_line = $('<tr/>').addClass(db)
+                                .append($('<th/>').addClass("db_name").text(o.prettyname))
+                                .append($('<th/>').addClass("write_status").text("?"))
+                                .append($('<th/>').addClass("control_status").text("?"));
+       tbody.append(new_line);
+       nedm.database_listener( db );
+   }
+   for (var db in this.all_db_listeners) {
+      if (!(db in all_dbs)) {
+          $('.' + db, tbody).remove();
+          delete this.all_db_listeners[db];
+      } 
+   }
+};
+
 // Returns all the most recent database info
 nedm.get_database_info = function( callback ) {
 
@@ -469,6 +537,7 @@ nedm.show_error_window = function(error, msg) {
 var listview_made = false;
 nedm.buildDBList = function(ev, id) {
    nedm.get_database_info( function( x, y ) { return function( dbs ) {
+       nedm.database_status( dbs );
        var totalhtml = '';
        for(var key in dbs) {
            var esc_name = "nedm%2F" + key; 
