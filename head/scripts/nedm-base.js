@@ -439,54 +439,69 @@ nedm.compile = function(astr) {
 
 nedm.all_db_listeners = {};
 nedm.database_listener = function( adb ) {
-    //if ( adb in this.all_db_listeners ) return;
-    this.all_db_listeners[adb] = {};
-    var update_function = function( acls, atype ) {
-        return function() {
-            var thedb = nedm.get_database( "nedm%2F" + adb );
-            thedb.changes(
-               { limit : 1, 
-                filter : "nedm_default/doc_type", 
-                  type : atype,
-               timeout : 10000,
-                  feed : "longpoll",
-                 since : "now"  }, 
-               function(e, o) {
-                   if (e) return;
-                   var adom = $("." + adb + " ." +acls);
-                   if (o.results.length != 1) {
-                     adom.text("OFF");
-                   } else {
-                     adom.text("ON");
-                   }
-                   if ( adb in nedm.all_db_listeners ) {
-                       setTimeout(update_function(acls, atype), 13000);
-                   }
-            });
+    if ( adb in this.all_db_listeners ) return;
+    this.all_db_listeners[adb] = { control_status : {date : new Date()}, 
+                                     write_status : {date : new Date()} };
+
+    var cleanup_and_restart = function( atype ) {
+         nedm.get_database( "nedm%2F" + adb).cancel_changes_feed("status_" +atype + "_" + adb); 
+         delete nedm.all_db_listeners[adb][atype];
+         if ( Object.keys(nedm.all_db_listeners[adb]).length === 0) {
+             delete nedm.all_db_listeners[adb];
+         }
+    };
+    var update_function = function( atype ) {
+        var adom = $('.' + adb + ' .' + atype); 
+        return function(e, o) {
+               if ( !(adb in nedm.all_db_listeners) || !(atype in nedm.all_db_listeners[adb])) return;
+               nedm.all_db_listeners[adb][atype].date = new Date();
+               adom.text("ON");
+               // Throttle, wait until we check again...
+               clearTimeout(nedm.all_db_listeners[adb][atype].timeout);
+               cleanup_and_restart( atype );
         };
     };
-    update_function('control_status', "heartbeat")();
-    update_function('write_status', "data")();
+    var hb_function = function( atype ) {
+        var adom = $('.' + adb + ' .' + atype); 
+        return function(e, o) {
+               if ( !(adb in nedm.all_db_listeners) || !(atype in nedm.all_db_listeners[adb])) return;
+               var now = new Date();
+               if ( now - nedm.all_db_listeners[adb][atype].date > 10000 ) { 
+                   adom.text("OFF");
+                   cleanup_and_restart( atype );
+               } else {
+                   nedm.all_db_listeners[adb][atype].timeout = setTimeout(hb_function( atype ), 5000);
+               }
+        };
+    };
+
+    var send = { heartbeat : 'control_status', data : 'write_status' };
+    var thedb = nedm.get_database( "nedm%2F" + adb );
+    for (var k in send) {
+        thedb.listen_to_changes_feed("status_" + send[k] + "_" +  adb, 
+            update_function(send[k]), 
+            {since : 'now', heartbeat : 5000, filter : 'nedm_default/doc_type', type : k}
+        );
+        nedm.all_db_listeners[adb][send[k]].timeout = setTimeout(hb_function(send[k])(), 100);
+    } 
 };
 
-nedm.database_status = function( all_dbs ) {
-   var tbody = $(".status_db_class tbody");
-   for (var db in all_dbs) {
-       if (db in this.all_db_listeners) continue;
-       var o = all_dbs[db];
-       var new_line = $('<tr/>').addClass(db)
-                                .append($('<th/>').addClass("db_name").text(o.prettyname))
-                                .append($('<th/>').addClass("write_status").text("?"))
-                                .append($('<th/>').addClass("control_status").text("?"));
-       tbody.append(new_line);
-       nedm.database_listener( db );
-   }
-   for (var db in this.all_db_listeners) {
-      if (!(db in all_dbs)) {
-          $('.' + db, tbody).remove();
-          delete this.all_db_listeners[db];
-      } 
-   }
+nedm.database_status = function( ) {
+   var db_stat = function( all_dbs ) {
+       var tbody = $(".status_db_class tbody");
+       tbody.empty();
+       for (var adb in all_dbs) {
+           if (adb in nedm.all_db_listeners) continue;
+           var o = all_dbs[adb];
+           var new_line = $('<tr/>').addClass(adb)
+                                    .append($('<th/>').addClass("db_name").text(o.prettyname))
+                                    .append($('<th/>').addClass("write_status").text("?"))
+                                    .append($('<th/>').addClass("control_status").text("?"));
+           tbody.append(new_line);
+           nedm.database_listener( adb );
+       }
+   };
+   nedm.get_database_info( db_stat );
 };
 
 // Returns all the most recent database info
@@ -541,7 +556,6 @@ nedm.show_error_window = function(error, msg) {
 var listview_made = false;
 nedm.buildDBList = function(ev, id) {
    nedm.get_database_info( function( x, y ) { return function( dbs ) {
-       nedm.database_status( dbs );
        var totalhtml = '';
        for(var key in dbs) {
            var esc_name = "nedm%2F" + key; 
