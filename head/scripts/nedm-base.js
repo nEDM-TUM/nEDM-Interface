@@ -146,6 +146,10 @@ nedm.cancel_changes_feed = function(db, tag) {
     src.removeEventListener("message", obj.callb, false); 
 
     delete nedm.open_changes_feeds.urllist[obj.url].taglist[tag];
+    if ( Object.keys( nedm.open_changes_feeds.urllist[obj.url].taglist ).length === 0 ) {
+        src.close();
+        delete nedm.open_changes_feeds.urllist[obj.url];
+    } 
     delete nedm.open_changes_feeds.taglist[tag];
 };
 
