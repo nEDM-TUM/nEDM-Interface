@@ -1,0 +1,27 @@
+{
+  "_id" : "_design/document_type",
+  "language" : "javascript",
+  "views" : {
+     "document_type" : {
+       "map" : "function(doc) {
+           if (!doc.type || !doc.timestamp) return;
+           var then = new Date(Date.parse(doc.timestamp));
+           emit([doc.type,
+                 then.getUTCFullYear(), then.getUTCMonth(), 
+                 then.getUTCDate(), then.getUTCHours(), 
+                 then.getUTCMinutes(), then.getUTCSeconds()], 1);
+        }",
+        "reduce" : "_stats"
+     },
+     "document_type_label" : {
+       "map" : "function(doc) {
+           if (!doc.type || !doc.timestamp) return;
+           var then = new Date(Date.parse(doc.timestamp));
+           emit([then.getUTCFullYear(), then.getUTCMonth(), 
+                 then.getUTCDate(), then.getUTCHours(), 
+                 then.getUTCMinutes(), then.getUTCSeconds(), doc.type], 1);
+        }",
+        "reduce" : "_stats"
+     }
+  }
+}
