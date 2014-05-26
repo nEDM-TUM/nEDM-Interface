@@ -117,7 +117,7 @@
                        if (! this.graph.addDataName(aname) ) return retVal; 
                        retVal = true;
                        $('.date_button_execute', this.thisdiv).trigger('click');
-                       if ( $('select.plotted_vars option[value=' + aname + ']', this.thisdiv).length >= 1 ) return retVal;
+                       if ( $('select.plotted_vars option[value=\"' + aname + '\"]', this.thisdiv).length >= 1 ) return retVal;
                        var plotted_vars = $('select.plotted_vars', this.thisdiv);
                        plotted_vars.append($('<option/>').attr({value : aname}).append(aname));
                        plotted_vars.selectmenu('refresh', true);
