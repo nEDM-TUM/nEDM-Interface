@@ -447,50 +447,35 @@ nedm.compile = function(astr) {
 
 nedm.all_db_listeners = {};
 nedm.database_listener = function( adb ) {
-    if ( adb in this.all_db_listeners ) return;
-    this.all_db_listeners[adb] = { control_status : {date : new Date()}, 
-                                     write_status : {date : new Date()} };
-
-    var cleanup_and_restart = function( atype ) {
-         nedm.get_database( "nedm%2F" + adb).cancel_changes_feed("status_" +atype + "_" + adb); 
-         delete nedm.all_db_listeners[adb][atype];
-         if ( Object.keys(nedm.all_db_listeners[adb]).length === 0) {
-             delete nedm.all_db_listeners[adb];
-         }
-    };
+    if (adb in nedm.all_db_listeners) return;
+    nedm.all_db_listeners[adb] = {};
     var update_function = function( atype ) {
         var adom = $('.' + adb + ' .' + atype); 
         return function(e, o) {
-               if ( !(adb in nedm.all_db_listeners) || !(atype in nedm.all_db_listeners[adb])) return;
-               nedm.all_db_listeners[adb][atype].date = new Date();
-               adom.text("ON");
-               // Throttle, wait until we check again...
-               clearTimeout(nedm.all_db_listeners[adb][atype].timeout);
-               cleanup_and_restart( atype );
-        };
-    };
-    var hb_function = function( atype ) {
-        var adom = $('.' + adb + ' .' + atype); 
-        return function(e, o) {
-               if ( !(adb in nedm.all_db_listeners) || !(atype in nedm.all_db_listeners[adb])) return;
-               var now = new Date();
-               if ( now - nedm.all_db_listeners[adb][atype].date > 10000 ) { 
-                   adom.text("OFF");
-                   cleanup_and_restart( atype );
-               } else {
-                   nedm.all_db_listeners[adb][atype].timeout = setTimeout(hb_function( atype ), 5000);
+               var text = "OFF";
+               if (!e && o.rows.length == 1) {
+                   var now = new Date();
+                   var last_data = nedm.dateFromKey(o.rows[0].key);
+                   if ( last_data > now || (now - last_data < 20000)) { 
+                       text = "ON";
+                   } 
+               } 
+               adom.text(text);
+               delete nedm.all_db_listeners[adb][atype];
+               if (Object.keys(nedm.all_db_listeners[adb]).length === 0) {
+                   delete nedm.all_db_listeners[adb];
                }
+               // Throttle, wait until we check again...
         };
     };
-
     var send = { heartbeat : 'control_status', data : 'write_status' };
     var thedb = nedm.get_database( "nedm%2F" + adb );
     for (var k in send) {
-        thedb.listen_to_changes_feed("status_" + send[k] + "_" +  adb, 
-            update_function(send[k]), 
-            {since : 'now', heartbeat : 5000, filter : 'nedm_default/doc_type', type : k}
-        );
-        nedm.all_db_listeners[adb][send[k]].timeout = setTimeout(hb_function(send[k])(), 100);
+        thedb.getView("document_type", "document_type",
+              { opts: { descending : true, reduce : false, limit : 1,
+                        endkey : [k], startkey : [k, {}] } },
+            update_function(send[k]));
+            nedm.all_db_listeners[adb][send[k]] = true;
     } 
 };
 
