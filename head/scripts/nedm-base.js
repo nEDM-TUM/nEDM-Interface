@@ -77,6 +77,14 @@ require("db").guessCurrent = function (loc1) {
     return null;
 };
 
+nedm.getNumberParts = function (x) {
+    var sig = x > 0 ? 1 : -1;
+    x = Math.abs(x);
+    var exp = Math.floor(Math.log(x)/Math.LN10);
+    var man = x/Math.pow(10, exp);
+    return {mantissa: sig*man, exponent: exp};
+};
+
 nedm.build_url = function(options) {
     var url = ""; 
 
@@ -599,7 +607,8 @@ nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
               showRoller: false,
               labels: ['Time'].concat(data_name),
               connectSeparatedPoints: true,
-              xAxisLabelWidth: 60
+              xAxisLabelWidth: 60,
+            zoomCallback : function(o) { return function() { o.recalc_axis_labels(); }; }(this)
           });
 
     this.isSyncing = false;
@@ -620,8 +629,17 @@ nedm.MonitoringGraph.prototype.prependData = function(r) {
      }
 };
 
+nedm.MonitoringGraph.prototype.recalc_axis_labels = function() {
+     var range = this.graph.yAxisRange();
+     var one_side = nedm.getNumberParts(range[1]);
+     var subtract = nedm.getNumberParts(range[1] - range[0]);
+     var sfs = one_side.exponent - subtract.exponent + 2;
+     this.graph.updateOptions({ axes : { y : { sigFigs : sfs } } });  
+};
+
 nedm.MonitoringGraph.prototype.update = function() {
      this.graph.updateOptions( { 'file': this.data, 'labels' : ['Time'].concat(this.name) } );
+     this.recalc_axis_labels();
 };
 
 nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
