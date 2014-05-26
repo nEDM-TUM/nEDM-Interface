@@ -230,12 +230,12 @@ nedm.update_db_interface = function(db) {
 
         var thisdb = this;
         // Inform the user if the view takes a while to load
-        if (!(view in this._called_views)) {
-            this._called_views[view] = {
+        if (!(name in this._called_views)) {
+            this._called_views[name] = {
                 timer_notify : function() {
-                                   var base_text = "View (" + view + ") is currently building: ";
+                                   var base_text = "View (design doc " + name + ") is currently building: ";
                                    var tthis = this;
-                                   thisdb.checkViewStatus(view, function(o) {
+                                   thisdb.checkViewStatus(name, function(o) {
                                        if (o.done) {
                                           tthis.cancel();
                                           return;
@@ -276,7 +276,7 @@ nedm.update_db_interface = function(db) {
                 mytoastr : undefined
             };
         }
-        var cur_view = this._called_views[view];
+        var cur_view = this._called_views[name];
         cur_view.timeout();
         var callback_wrapper = function(e, o) {
             // Clear the informational notice.
@@ -309,7 +309,7 @@ nedm.update_db_interface = function(db) {
                          view_update_seq: o.view_index.update_seq,
                            db_update_seq: cur_seq } );
                         if (!done) {
-                          setTimeout(function() { obj.getViewInfo(view, view_status); }, 1000);
+                          setTimeout(function() { obj.getViewInfo(view, view_status); }, 2000);
                         }
                     }
                 }; 
