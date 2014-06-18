@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["internal_coils_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["internal_coils_reader"]
+  }
+}

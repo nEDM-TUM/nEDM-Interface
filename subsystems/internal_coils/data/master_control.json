@@ -1,0 +1,108 @@
+{
+  "_id" : "master_control",
+  "type" : "control",
+  "title" : "Master Controls",
+  "description" : "Control the internal coils",
+  "read_functions" : {
+    "getstatus" : "Status",
+    "getcurrentrange" : "Current Range",
+    "getvoltrange" : "Voltage Range",
+    "getcurrent" : "Current",
+    "getvoltage" : "Voltage"
+  },
+  "write_functions" : {
+    "on" : ["On", 0],
+    "off" : ["Off", 0],
+    "setcurrentrange" : ["Current Range", 1],
+    "setvoltrange" : ["Voltage Range", 1],
+    "setcurrent" : ["Current", 1],
+    "setvoltage" : ["Voltage", 1]
+  },
+ "html" : "
+<div data-role='fieldcontain'>
+    <div data-role='controlgroup' data-type='horizontal' class='all_read_functions'>
+        <button class='get_value_class'>Get</button>
+        <select class='read_functions'/>
+        <select class='channel_spinner1'>
+        <input type='text' class='output_text' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+    </div>
+    <div data-role='controlgroup' data-type='horizontal' class='all_write_functions'>
+        <button class='set_value_class'>Set</button>
+        <select class='write_functions'/>
+        <select class='channel_spinner2'>
+        <input type='text' class='input_text' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+
+</div>
+ ",
+ "script" : "
+    function( avar, anobj ) {
+        
+        var disable_all = function() {
+            $(':button,[type=text]', $(avar)).addClass('ui-disabled'); 
+        };
+        var enable_all = function() {
+            $(':button,[type=text]', $(avar)).removeClass('ui-disabled'); 
+        };
+        var sel = $('.read_functions', $(avar));
+        $.each(anobj.read_functions, function(val, text) {
+          sel.append($('<option/>').val(val).text(text));
+        });
+        sel = $('.write_functions', $(avar));
+        $.each(anobj.write_functions, function(val, text) {
+          sel.append($('<option/>').val(val).text(text[0]).data('should_enable', (text[1] == 1)));
+        });
+        var sync_func = function(e) { 
+          var o = $(':selected', $(e.target)); 
+          if (o.data('should_enable')) {
+            $('.input_text', $(avar)).removeClass('ui-disabled');
+          } else {
+            $('.input_text', $(avar)).addClass('ui-disabled');
+          } 
+        };
+        sync_func({ target : sel });
+        sel.change(sync_func);
+
+        var chan1 = $('.channel_spinner1');
+        var chan2 = $('.channel_spinner2');
+        for (var i=1;i<40;i++) {
+          chan1.append($('<option/>').val(i).text('Ch ' + i.toString()));
+          chan2.append($('<option/>').val(i).text('Ch ' + i.toString()));
+        }
+        $(avar).trigger('refresh');
+
+        $( '.get_value_class', $(avar) ).on('click', function () {
+          var cmd = $('.read_functions :selected', $(avar)).val(); 
+          var chan = $('.channel_spinner1 :selected', $(avar)).val(); 
+          nedm.send_command( { cmd_name : cmd, 
+                               arguments : [ parseFloat(chan) ],
+                               timeout : 5000,
+                               callback: function(o) { 
+                                 if (o && o.ok) {
+                                     $('.output_text', $(avar)).val(o.return);
+                                 } 
+                                 enable_all(); 
+                               } 
+                             });
+        });
+        $( '.set_value_class', $(avar) ).on('click', function () {
+          var o = $('.write_functions :selected', $(avar));
+          var cmd = o.val();
+          var chan = $('.channel_spinner2 :selected', $(avar)).val(); 
+          var args = [ parseFloat(chan) ];
+          if (o.data('should_enable')) {
+            args[1] = parseFloat($('.input_text', $(avar)).val());
+          }
+          nedm.send_command( { cmd_name : cmd, 
+                               arguments : args, 
+                               timeout : 5000,
+                               callback: function(o) { 
+                                 enable_all(); 
+                                 sync_func({ target : sel });
+                               } 
+                             });
+        });
+    }
+ "
+
+}
