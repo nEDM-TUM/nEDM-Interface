@@ -9,6 +9,6 @@
     "names" : [
       "nedm_user"
     ],
-    "roles" : []
+    "roles" : ["nedm_user_role"]
   }
 }
