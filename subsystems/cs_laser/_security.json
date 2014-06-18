@@ -1,10 +1,10 @@
 {
   "admins" : {
     "names" : [],
-    "roles" : []
+    "roles" : ["cs_laser_writer"]
   },
   "members" : {
     "names" : [],
-    "roles" : ["cs_laser_writer"]
+    "roles" : ["cs_laser_reader"]
   }
 }
