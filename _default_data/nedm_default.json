@@ -15,6 +15,7 @@
   "filters" : {
     "doc_type" : "function(doc, req) {
         if (doc.type && doc.type == req.query.type) return true;
+        if (doc._deleted && req.query.handle_deleted) return true;
         return false;
       }"
   },
