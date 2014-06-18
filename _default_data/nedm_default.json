@@ -69,6 +69,9 @@
       
       var IS_SERVER_ADMIN = false;
       var IS_DB_WRITER = false;
+      var IS_ALARM_WRITER = false;
+      var is_alarm_doc = false;
+
       if(~ userCtx.roles.indexOf('_admin')) {
         IS_SERVER_ADMIN = true;
       }
@@ -79,8 +82,20 @@
         if(~ secObj.admins.roles.indexOf(userCtx.roles[i])) {
           IS_DB_WRITER = true;
         }
+        if (userCtx.roles[i] == 'alarm_writer') {
+          IS_ALARM_WRITER = true;
+        }
       }
-      
+ 
+      // alarm_writers can change old alarm docs
+      if (oldDoc) {
+        if (oldDoc.type == 'alarm' && newDoc && newDoc.type == 'alarm') {
+          is_alarm_doc = true; 
+        }
+      } else {
+        is_alarm_doc = (newDoc.type == 'triggered_alarm'); 
+      }
+     
       if(ddoc.access && ddoc.access.read_only ) {
         if(IS_SERVER_ADMIN) {
           log('Admin change on read-only db: ' + newDoc._id);
@@ -89,8 +104,11 @@
         }
       }
       if (!IS_SERVER_ADMIN && !IS_DB_WRITER) {
-        throw { 'forbidden' : 'Must be a server admin or DB writer' };
+        if (!(IS_ALARM_WRITER && is_alarm_doc)) {
+          throw { 'forbidden' : 'Must be a server admin or DB writer' };
+        }
       }
+      
       
       //require_field('created_by');
       
