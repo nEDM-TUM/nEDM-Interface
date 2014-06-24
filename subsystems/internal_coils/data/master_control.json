@@ -19,21 +19,108 @@
     "setvoltage" : ["Voltage", 1]
   },
  "html" : "
-<div data-role='fieldcontain'>
-    <div data-role='controlgroup' data-type='horizontal' class='all_read_functions'>
-        <button class='get_value_class'>Get</button>
-        <select class='read_functions'/>
-        <select class='channel_spinner1'>
-        <input type='text' class='output_text' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+<div>
+    <div class='all_read_div'>
+        <h2>Read functions</h2>
+        <div data-role='fieldcontain'>
+            <div data-role='controlgroup' data-type='horizontal' class='all_read_functions'>
+                <button class='get_value_class'>Get</button>
+                <select class='read_functions'/>
+                <select class='channel_spinner1'/>
+            </div>
+        </div>
+        <div class='ui-grid-c'>
+          <div class='ui-block-a'>
+            <h3>Read (return) value:</h3>
+          </div>
+          <div class='ui-block-b'>
+            <input type='text' class='output_text' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+        </div>
+        <div class='ui-grid-b'>
+          <div class='ui-block-a'>
+            <button class='read_and_clear'>Read and Clear Errors</button>
+          </div>
+        </div>
+
     </div>
-    <div data-role='controlgroup' data-type='horizontal' class='all_write_functions'>
-        <button class='set_value_class'>Set</button>
-        <select class='write_functions'/>
-        <select class='channel_spinner2'>
-        <input type='text' class='input_text' data-wrapper-class='controlgroup-textinput ui-btn'>
+    <div class='all_write_div'>
+        <h2>Write/set functions</h2>
+        <div data-role='fieldcontain'>
+            <div data-role='controlgroup' data-type='horizontal' class='all_write_functions'>
+                <button class='set_value_class'>Set</button>
+                <select class='write_functions'/>
+                <select class='channel_spinner2'/>
+            </div>
+        </div>
+        <div class='ui-grid-c'>
+          <div class='ui-block-a'>
+            <h3>Write value:</h3>
+          </div>
+          <div class='ui-block-b'>
+            <input type='text' class='input_text' data-wrapper-class='controlgroup-textinput ui-btn'>
+          </div>
+        </div>
     </div>
 
+    <br>
+    <div class='ramper_div'>
+        <h2>Ramping functions</h2>
+        <div data-role='fieldcontain'>
+            <div data-role='controlgroup' data-type='horizontal' class='advanced_ramp_function'>
+                <button class='send_ramp_data'>Set parameters</button>
+                <button class='read_ramp_data'>Read settings</button>
+                <button class='add_ramp_channel'>Add ramp channel</button>
+                <button class='run_ramp'>Run</button>
+                <button class='stop_ramp'>Stop</button>
+            </div>
+        </div>
+        <div data-role='popup' class='show_ramp_results ui-corner-all'>
+           <div data-role='header'>
+             <h1>Results</h1>
+           </div>
+           <div role='main' class='ui-corner-bottom ui-content'>
+             <h3 class='ui-title'>Readback from device:</h3>
+             <div class='text_results' > 
+             </div> 
+             <a href='#' data-role='button' data-rel='back'>Ok</a>
+           </div>
+        </div>
+        <div class='ui-grid-c'>
+          <div class='ui-block-a'>
+            <h3>Ramp time (s):</h3>
+          </div>
+          <div class='ui-block-b'>
+            <input type='text' class='ramp_time' data-wrapper-class='controlgroup-textinput ui-btn'>
+          </div>
+        </div>
+
+        <div data-role='collapsible' class='ramp_channel_ctrl_collapse' data-mini='true'>
+            <h4>Ramp channel</h4>
+            <div class='ui-grid-c'>
+              <div class='ui-block-a'>
+                <h4>Start (V or A):</h4>
+                <h4>Stop (V or A):</h4>
+              </div>
+              <div class='ui-block-b'>
+                 <input type='text' class='min_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
+                 <input type='text' class='max_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
+              </div>
+            </div>
+            <div data-role='fieldcontain'>
+                <div data-role='controlgroup' data-type='horizontal'>
+                    <select class='ramp_type'>
+                       <option value='curr'>Current</option>
+                       <option value='volt'>Voltage</option>
+                    </select>
+                    <select class='channel_spinner3'/>
+		            <button class='delete_btn ui-disabled'>Remove</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
  ",
  "script" : "
     function( avar, anobj ) {
@@ -65,10 +152,13 @@
 
         var chan1 = $('.channel_spinner1');
         var chan2 = $('.channel_spinner2');
+        var chan3 = $('.channel_spinner3');
         for (var i=1;i<40;i++) {
           chan1.append($('<option/>').val(i).text('Ch ' + i.toString()));
           chan2.append($('<option/>').val(i).text('Ch ' + i.toString()));
+          chan3.append($('<option/>').val(i).text('Ch ' + i.toString()));
         }
+        var channel_clone = $('.ramp_channel_ctrl_collapse', $(avar)).clone();
         $(avar).trigger('refresh');
 
         $( '.get_value_class', $(avar) ).on('click', function () {
@@ -102,6 +192,102 @@
                                } 
                              });
         });
+
+        var disable_ramp_ctr = function() {
+          $('.ramper_div', $(avar)).addClass('ui-disabled');
+        };
+        var enable_ramp_ctr = function() {
+          $('.ramper_div', $(avar)).removeClass('ui-disabled');
+        };
+        var disable_all_ctr = function() {
+          $(':not(div,.stop_ramp)', $('.advanced_ramp_function')).each( function() {
+            $(this).addClass('ui-disabled');
+          });
+        };
+        var enable_all_ctr = function() {
+          $(':not(div,.stop_ramp)', $('.advanced_ramp_function')).each( function() {
+            $(this).removeClass('ui-disabled');
+          });
+        };
+
+        // Now the lower controls for ramping
+        var popup_return = function(ret) {
+          $('.text_results').empty();
+          for (var j=0;j<ret.length;j++) {
+              $('.text_results').append($('<p/>').append(ret[j]));
+          }
+          $('.show_ramp_results').popup('open');
+        };
+
+        $( '.send_ramp_data', $(avar)).on('click', function() {
+          disable_ramp_ctr();
+          var adoc = {
+            'time_length' : $('.ramp_time', $(avar)).val(),
+            'channels' : [] 
+          };
+          var i = 0;
+          $('.ramp_channel_ctrl_collapse', $(avar)).each( function() {
+              adoc.channels[i] = {};
+              adoc.channels[i].type = $('.ramp_type :selected', $(this)).val();
+              adoc.channels[i].nr = $('.channel_spinner3 :selected', $(this)).val();
+              adoc.channels[i].min = $('.min_ramp_value', $(this)).val();
+              adoc.channels[i].max = $('.max_ramp_value', $(this)).val();
+              i += 1;
+          });         
+          nedm.send_command( { cmd_name : 'setup_ramp',
+                               arguments: [adoc],
+                               timeout  : 10000,
+                               callback : enable_ramp_ctr} );
+        });
+        $( '.run_ramp', $(avar)).on('click', function() {
+          disable_all_ctr(); 
+          var run_ramp_sync = function() {
+            nedm.get_most_recent_value('ramp_running', function(err, obj) {
+              if (!err && obj.rows.length == 1) {
+                if (obj.rows[0].value !== 0) { 
+                  setTimeout(run_ramp_sync, 1500);
+                  return;
+                }
+              }
+              enable_all_ctr();
+            }); 
+          };
+          nedm.send_command( { cmd_name : 'run_ramp',
+                               timeout  : 10000,
+                               callback : run_ramp_sync} );
+        });
+        $( '.stop_ramp', $(avar)).on('click', function() {
+          nedm.send_command( { cmd_name : 'stop_macro',
+                               timeout  : 10000} );
+        });
+
+        $( '.read_ramp_data', $(avar)).on('click', function() {
+          nedm.send_command( { cmd_name : 'read_macro_data',
+                               timeout  : 10000,
+                               callback : function(o) {
+                                   if ((!o || !o.ok)) return; 
+                                   popup_return(o.return);
+                               }} );
+        });
+        $( '.read_and_clear', $(avar)).on('click', function() {
+          nedm.send_command( { cmd_name : 'readallerrors',
+                               timeout  : 10000,
+                               callback : function(o) {
+                                   if ((!o || !o.ok)) return; 
+                                   popup_return(o.return);
+                               }} );
+        });
+
+
+        $( '.advanced_ramp_function .add_ramp_channel', $(avar)).on('click', function() {
+          var t = channel_clone.clone();
+          $('.ramper_div', $(avar)).append(t).trigger('create');
+          var del_btn = $('.delete_btn', $(t));
+          del_btn.removeClass('ui-disabled');
+          del_btn.on('click', function() { t.remove(); });
+          
+        });
+
     }
  "
 
