@@ -1,0 +1,8 @@
+{
+  "_id"  : "overview_vars_default",
+  "type" : "overview_vars",
+  "vars" : {
+    "nedm%2Factive_coil_compensation" : ["Coil_1", "Coil_2"],
+    "nedm%2Fcs_laser" : ["probelaser temperature"]
+  }
+}
