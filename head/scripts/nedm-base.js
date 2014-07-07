@@ -556,29 +556,32 @@ nedm.show_error_window = function(error, msg) {
 };
 
 // We build the list of DBs to point to.  This is simply subsystems
-var listview_made = false;
 nedm.buildDBList = function(ev, id) {
    nedm.get_database_info( function( x, y ) { return function( dbs ) {
-       var totalhtml = '';
-       for(var key in dbs) {
-           var esc_name = "nedm%2F" + key; 
-           var html = '<div data-role="collapsible"><h3>{{prettyname}}</h3>';
-           html    += '<ul data-role="listview" data-inset="false">';
-           if ("pages" in dbs[key]) {
-               for(var pg in dbs[key].pages) {
-                   var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
-                   html += nedm.compile('<li><a href="' + nedm.using_prefix + 'page/{{pgsrc}}/{{esc_name}}">{{pgname}}</a></li>')(
-                     {esc_name : esc_name, pgsrc : pg_name, pgname : pg});
+       nedm.get_database("nedm_head").getDoc("sidebar", function(e, o ) {
+           if (e) return;
+           var listDBs = (x) ? $(x.target).find('.listofdbs') : $('.listofdbs');
+           listDBs.empty();
+           listDBs.append(o.body);
+           var db_list = $('.all_dbs_list_class', $(listDBs));
+           for(var key in dbs) {
+               var esc_name = "nedm%2F" + key; 
+               var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
+                          .append($("<h3/>").append(dbs[key].prettyname));
+               var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
+               if ("pages" in dbs[key]) {
+                   for(var pg in dbs[key].pages) {
+                       var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
+                       ul.append($('<li/>').append($('<a/>').attr( { href : nedm.using_prefix + 'page/' + pg_name + '/' + esc_name } )
+                                                            .append(pg)));
+                   }
                }
+               html.append(ul);
+               db_list.append(html);
            }
-           html    += '</ul></div>';
-           totalhtml += nedm.compile(html)(dbs[key]);     
-       }
- 
-       var listDBs = (x) ? $(x.target).find('.listofdbs') : $('.listofdbs');
-       listDBs.empty();
-       listDBs.append(totalhtml);
-       listDBs.trigger("create");
+           
+           listDBs.trigger("create");
+       });
    };}(ev,id)); 
 };
 

@@ -24,6 +24,14 @@ module.exports = [
   , "from": "page/control/:db_name"
   , "to"  : "_show/page/control"
   },
+  { "description": "Access to pages"
+  , "from": "page/*"
+  , "to"  : "_show/page/*"
+  },
+  { "description": "Access to pages"
+  , "from": "_rewrite/page/*"
+  , "to"  : "_show/page/*"
+  },
   { "description": "Access to this database"
   , "from": "_db"
   , "to"  : "../.."
