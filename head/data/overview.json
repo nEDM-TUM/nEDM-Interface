@@ -1,0 +1,19 @@
+{
+  "_id"  : "overview",
+  "type" : "control_template",
+  'body' : "
+<div data-role='page'>
+    <div class='headerChild'> 
+    </div>
+    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
+        <div class='content-primary'>
+            <h1 >Overview</h1>
+        </div>
+        <div class='content-secondary'>
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
+            </div>
+        </div> <!-- content-secondary -->
+    </div>
+</div>
+"
+}
