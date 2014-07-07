@@ -3,7 +3,6 @@
   "prettyname" : "Active Coil Compensation",
   "pages" : {
         "Control" : "control.html",
-        "Monitor" : "monitor.html",
-        "History" : "history.html"
+        "Monitor" : "monitor.html"
   }
 }
