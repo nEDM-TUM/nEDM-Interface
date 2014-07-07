@@ -17,20 +17,12 @@ module.exports = [
   , "to"  : "_show/page/control"
   },
   { "description": "Access to pages"
-  , "from": "_rewrite/page/history/:db_name"
-  , "to"  : "_show/page/history"
-  },
-  { "description": "Access to pages"
   , "from": "page/monitor/:db_name"
   , "to"  : "_show/page/monitor"
   },
   { "description": "Access to pages"
   , "from": "page/control/:db_name"
   , "to"  : "_show/page/control"
-  },
-  { "description": "Access to pages"
-  , "from": "page/history/:db_name"
-  , "to"  : "_show/page/history"
   },
   { "description": "Access to this database"
   , "from": "_db"

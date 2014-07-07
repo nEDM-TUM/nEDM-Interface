@@ -3,8 +3,7 @@
   "prettyname" : "Hg Laser",
   "pages" : {
         "Control" : "control.html",
-        "Monitor" : "monitor.html",
-        "History" : "history.html"
+        "Monitor" : "monitor.html"
   }
 
 }
