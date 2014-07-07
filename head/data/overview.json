@@ -8,12 +8,98 @@
     <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
         <div class='content-primary'>
             <h1 >Overview</h1>
+            <div>
+              <p style='color:red;' class='last_checked'></p>
+            </div>
+            <div class='all_shown_variables'>
+            </div>
+            <div class='set_new_variable'>
+            </div>
         </div>
         <div class='content-secondary'>
             <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
             </div>
         </div> <!-- content-secondary -->
     </div>
+    <div class='ui-field-contain db_template' style='display:none;'>
+      <h3 class='db_name'></h3>
+      <div class='ui-grid-c variable_template' style='display:none;'>
+        <div class='ui-block-a'>
+          <h3 class='variable_name'></h3>
+        </div>
+        <div class='ui-block-b'>
+          <h4 class='variable_val'></h4>
+        </div>
+        <div class='ui-block-c'>
+          <p style='color:blue;' class='last_saved'></p>
+        </div>
+      </div>
+    </div>
 </div>
+<script>
+    var sync_overview_vars = function() {
+      var af = function(x) {
+        return function(e, o) {
+          if (e !== null) return;
+          if (o.rows.length != 1) return;
+          var k = o.rows[0].key;
+          var v = o.rows[0].value;
+          var t = new Date(Date.UTC.apply(this, k.splice(1))); 
+          var now = new Date();
+          var bgd_color = '';
+          if ((now-t) > 20000) bgd_color = '#ED4337';
+          else if ((now-t) > 10000) bgd_color = '#FFFC7F';
+          
+          $('.variable_val', $(x)).text(v).css('background-color', bgd_color);
+          $('.last_saved', $(x)).text('Last updated: ' + t.toUTCString());
+          $('.last_checked').text('Last checked: ' + now.toUTCString());
+          x.val(JSON.stringify(o.rows[0]));
+        }; 
+      };
+      $('.variable_deployed').each( function() {
+        var av = $(this);
+        var d = av.data();
+        nedm.get_database(d.db).get_most_recent_value(d.var, af(av)); 
+      });
+      setTimeout(sync_overview_vars, 10000);
+    }; 
+    var get_overview_vars = function(pretty_names) {
+        nedm.get_database('nedm_head').getView('overview_vars', 
+                                               'overview_vars', 
+           { opts : { stale : 'update_after', group_level : 2 } },
+           function( e, o ) {
+             if (e !== null) return;  
+             var r = o.rows;
+             var dbtoclone = $('.db_template');
+             var svs = $('.all_shown_variables');
+             var dbs = {}
+             for (var i=0;i<r.length;i++) {
+               var k = r[i].key[0];
+               var v = r[i].key[1];
+               if (! (k in dbs) ) {
+                 dbs[k] = dbtoclone.clone();
+                 dbs[k].show();
+                 var dbn = /nedm%2F(.*)/.exec(k)[1];
+                 $('.db_name', $(dbs[k])).text(pretty_names[dbn].prettyname);
+                 svs.append(dbs[k]);
+               }
+               var new_clone = $('.variable_template', $(dbs[k])).clone(); 
+               new_clone.show();
+               new_clone.data({ db : k, var : v});
+               new_clone.addClass('variable_deployed').removeClass('variable_template');
+               $(dbs[k]).append(new_clone);
+               $('.variable_name', $(new_clone)).text(v);
+             }
+            svs.trigger('create');
+            sync_overview_vars();
+      });
+    };
+    (function() {
+      nedm.get_database_info(function(d) {
+        get_overview_vars(d);
+      });
+    }()); 
+
+</script>
 "
 }
