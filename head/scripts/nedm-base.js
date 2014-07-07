@@ -163,6 +163,15 @@ nedm.cancel_changes_feed = function(db, tag) {
 
 
 nedm.update_db_interface = function(db) {
+    db.get_most_recent_value = function(var_name, callback) {
+      this.getView('slow_control_time', 'slow_control_time', 
+      { opts : {
+          endkey : [var_name],
+        startkey : [var_name, {}],
+      descending : true,
+          reduce : false,
+           limit : 1}}, callback);
+    };
     // Add updateDoc to the API
     db.updateDoc = function (doc, designname, updatename, callback) {
         var method, url = this.url;
@@ -542,14 +551,8 @@ nedm.get_database_info = function( callback ) {
 };
 
 nedm.get_most_recent_value = function(var_name, callback) {
-    nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-      { opts : {
-          endkey : [var_name],
-        startkey : [var_name, {}],
-      descending : true,
-          reduce : false,
-           limit : 1}}, callback);
-}
+    nedm.get_database().get_most_recent_value(var_name, callback);
+};
 
 nedm.show_error_window = function(error, msg) {
     toastr.error(msg, error);
