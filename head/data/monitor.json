@@ -109,7 +109,7 @@
             var adb = $(ev.target).attr('data-url').split('/');
             adb = adb[adb.length-1];
             nedm.get_database(adb).getView('slow_control_time', 'slow_control_time', 
-                { opts : {stale : 'update_after', group_level : 1} }, function (e, o) {
+                { opts : {stale : 'ok', group_level : 1} }, function (e, o) {
                         if (e !== null ) return;
                         var ssc = $('.selectSlowControl', $(ev.target)).filter(':input');
                         ssc.find('option').remove();
