@@ -24,6 +24,13 @@
             <div class='all_shown_variables'>
             </div>
             <div class='set_new_variable'>
+              <h2>Add variable (requires admin rights)</h2>
+              <div data-role='controlgroup' data-type='horizontal'>
+                  <select class='all_dbs'></select>
+                  <select class='variable_for_db'></select>
+                  <button class='submit_new_variable'>Submit</button>
+              </div>
+
             </div>
         </div>
         <div class='content-secondary'>
@@ -35,12 +42,15 @@
       <h3 class='db_name'></h3>
       <div class='ui-grid-c variable_template' style='display:none;'>
         <div class='ui-block-a'>
-          <h3 class='variable_name'></h3>
+          <button class='delete_over_var ui-btn ui-shadow ui-corner-all ui-icon-delete ui-btn-icon-notext'>Delete</button>
         </div>
         <div class='ui-block-b'>
-          <h4 class='variable_val'></h4>
+          <h3 class='variable_name'></h3>
         </div>
         <div class='ui-block-c'>
+          <h4 class='variable_val'></h4>
+        </div>
+        <div class='ui-block-d'>
           <p style='color:blue;' class='last_saved'></p>
         </div>
       </div>
@@ -88,22 +98,47 @@
              for (var i=0;i<r.length;i++) {
                var k = r[i].key[0];
                var v = r[i].key[1];
+               var id = r[i].id;
                if (! (k in dbs) ) {
                  dbs[k] = dbtoclone.clone();
                  dbs[k].show();
                  var dbn = /nedm%2F(.*)/.exec(k)[1];
-                 $('.db_name', $(dbs[k])).text(pretty_names[dbn].prettyname);
+                 $('.db_name', $(dbs[k])).text(all_dbs[dbn].prettyname);
                  svs.append(dbs[k]);
                }
-               var new_clone = $('.variable_template', $(dbs[k])).clone(); 
+               if ( dbs[k].data(v) ) continue;
+               dbs[k].data(v, true);
+               var new_clone = $('.variable_template', $(dbs[k])).clone();
                new_clone.show();
-               new_clone.data({ db : k, var : v});
+               new_clone.data({ db : k, var : v, id : id});
                new_clone.addClass('variable_deployed').removeClass('variable_template');
                $(dbs[k]).append(new_clone);
                $('.variable_name', $(new_clone)).text(v);
+               if ( id === 'overview_vars_default') $('.delete_over_var', $(new_clone)).addClass('ui-disabled');
              }
             svs.trigger('create');
             sync_overview_vars();
+             var get_vars_for_db = function(x) {
+               return function(e, o) {
+                 if (e !== null) return;
+                 x.data( { all_keys : o.rows.map( function(j) { return j.key[0]; } ) } );
+                 if ( x.prop('selected') ) $('.all_dbs').filter(':input').trigger('change');
+               };
+             };
+             var adb = $('.all_dbs').filter(':input');
+             adb.find('option').remove();
+             for (var k in all_dbs) {
+               var o = $('<option/>').val(k).text(all_dbs[k].prettyname);
+               var d = 'nedm%2F' + k;
+               o.data({ db_name : d });
+               adb.append(o);
+               nedm.get_database(d).getView('slow_control_time', 'slow_control_time',
+                 { opts : { stale : 'ok', group_level : 1 } },
+                 get_vars_for_db(o));
+             }
+             adb.selectmenu('refresh', true);
+      });
+    };
     var refresh_all = function() {
       if (time_out) clearTimeout(time_out);
       $('.all_shown_variables').empty();
@@ -119,6 +154,12 @@
     (function() {
       refresh_all();
       run_clock();
+      $('.all_dbs').change( function(ev) {
+        var opt = $(':selected', $(ev.currentTarget));
+        var vdb = $('.variable_for_db').filter(':input');
+        vdb.find('option').remove();
+        opt.data('all_keys').forEach( function(o) { vdb.append($('<option/>').val(o).text(o)); } );
+        vdb.selectmenu('refresh', true);
       });
     }()); 
 
