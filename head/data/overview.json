@@ -64,8 +64,9 @@
           function(e, doc) {
             if (e !== null) return;
             nedm.get_database('nedm_head').removeDoc(doc, function(ee, o) {
-              if (ee !== null) return;
-              refresh_all();
+              if (ee) {
+                nedm.show_error_window(ee.error, ee.reason);
+              } else refresh_all();
             });
           });
     };
@@ -171,7 +172,11 @@
       var submit_o = { type : 'overview_vars', vars : {} };
       submit_o.vars[d] = [vn];
       nedm.get_database('nedm_head').updateDoc(
-       submit_o, 'nedm_default', 'insert_with_timestamp', refresh_all);
+       submit_o, 'nedm_default', 'insert_with_timestamp', function(e,o) {
+         if (e) {
+           nedm.show_error_window(e.error, e.reason);
+         } else refresh_all();
+       });
     };
 
     (function() {
