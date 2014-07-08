@@ -3,7 +3,7 @@
   "type" : "control_template",
   'body' : "
 <div data-role='page'>
-    <div class='headerChild'> 
+    <div class='headerChild'>
     </div>
     <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
         <div class='content-primary'>
@@ -27,7 +27,7 @@
             </div>
         </div>
         <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
             </div>
         </div> <!-- content-secondary -->
     </div>
@@ -55,22 +55,21 @@
           if (o.rows.length != 1) return;
           var k = o.rows[0].key;
           var v = o.rows[0].value;
-          var t = new Date(Date.UTC.apply(this, k.splice(1))); 
           var now = new Date();
           var bgd_color = '';
           if ((now-t) > 20000) bgd_color = '#ED4337';
           else if ((now-t) > 10000) bgd_color = '#FFFC7F';
-          
+
           $('.variable_val', $(x)).text(v).css('background-color', bgd_color);
           $('.last_saved', $(x)).text('Last updated: ' + t.toUTCString());
           last_sync = now;
           x.val(JSON.stringify(o.rows[0]));
-        }; 
+        };
       };
       $('.variable_deployed').each( function() {
         var av = $(this);
         var d = av.data();
-        nedm.get_database(d.db).get_most_recent_value(d.var, af(av)); 
+        nedm.get_database(d.db).get_most_recent_value(d.var, af(av));
       });
       setTimeout(sync_overview_vars, Number($('.refresh_time').val())*1000);
     }; 
@@ -79,7 +78,7 @@
                                                'overview_vars', 
            { opts : { stale : 'update_after', group_level : 2 } },
            function( e, o ) {
-             if (e !== null) return;  
+             if (e !== null) return;
              var r = o.rows;
              var dbtoclone = $('.db_template');
              var svs = $('.all_shown_variables');
