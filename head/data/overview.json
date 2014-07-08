@@ -72,7 +72,7 @@
         var d = av.data();
         nedm.get_database(d.db).get_most_recent_value(d.var, af(av)); 
       });
-      setTimeout(sync_overview_vars, 10000);
+      setTimeout(sync_overview_vars, Number($('.refresh_time').val())*1000);
     }; 
     var get_overview_vars = function(pretty_names) {
         nedm.get_database('nedm_head').getView('overview_vars', 
