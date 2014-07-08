@@ -164,6 +164,16 @@
       clock_text.text(Math.round(time_diff));
       setTimeout(run_clock, 1000);
     };
+
+    var submit_new_variable = function() {
+      var d = $('.all_dbs :selected').data('db_name');
+      var vn = $('.variable_for_db :selected').text();
+      var submit_o = { type : 'overview_vars', vars : {} };
+      submit_o.vars[d] = [vn];
+      nedm.get_database('nedm_head').updateDoc(
+       submit_o, 'nedm_default', 'insert_with_timestamp', refresh_all);
+    };
+
     (function() {
       refresh_all();
       run_clock();
@@ -174,7 +184,8 @@
         opt.data('all_keys').forEach( function(o) { vdb.append($('<option/>').val(o).text(o)); } );
         vdb.selectmenu('refresh', true);
       });
-    }()); 
+      $('.submit_new_variable').on('click', submit_new_variable);
+    }());
 
 </script>
 </div>
