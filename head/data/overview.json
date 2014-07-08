@@ -59,6 +59,16 @@
     var last_sync = new Date();
     var clock_text = $('.last_checked');
     var time_out = null;
+    var delete_overview_var = function(ev) {
+        nedm.get_database('nedm_head').getDoc($(ev.currentTarget).parents('.variable_deployed').data('id'),
+          function(e, doc) {
+            if (e !== null) return;
+            nedm.get_database('nedm_head').removeDoc(doc, function(ee, o) {
+              if (ee !== null) return;
+              refresh_all();
+            });
+          });
+    };
     var sync_overview_vars = function() {
       var af = function(x) {
         return function(e, o) {
@@ -116,8 +126,11 @@
                $('.variable_name', $(new_clone)).text(v);
                if ( id === 'overview_vars_default') $('.delete_over_var', $(new_clone)).addClass('ui-disabled');
              }
-            svs.trigger('create');
-            sync_overview_vars();
+             svs.trigger('create');
+             // Set up the button functions
+             $('.delete_over_var').on('click', delete_overview_var);
+             sync_overview_vars();
+
              var get_vars_for_db = function(x) {
                return function(e, o) {
                  if (e !== null) return;
