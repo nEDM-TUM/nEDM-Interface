@@ -1,0 +1,18 @@
+{
+  "_id" : "_design/overview_vars",
+  "language" : "javascript",
+  "views" : {
+     "overview_vars" : {
+       "map" : "function(doc) {
+           if (!doc.type || doc.type != 'overview_vars') return;
+           var k = doc.vars;
+           for (var i in k) {
+               for (var j=0;j<k[i].length;j++) {
+                   emit([i, k[i][j]], 1); 
+               }
+           }
+        }",
+       "reduce" : "_sum"
+     }
+  }
+}
