@@ -9,7 +9,17 @@
         <div class='content-primary'>
             <h1 >Overview</h1>
             <div>
-              <p style='color:red;' class='last_checked'></p>
+            <div class='ui-grid-c'>
+              <div class='ui-block-a'>
+                <h4>Refresh every (s):</h4>
+              </div>
+              <div class='ui-block-b'>
+                <input type='range' min='1' max='20' step='1' class='refresh_time' value='10'>
+              </div>
+              <div class='ui-block-c'>
+                <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p>
+              </div>
+            </div>
             </div>
             <div class='all_shown_variables'>
             </div>
@@ -36,6 +46,8 @@
       </div>
     </div>
 <script>
+    var last_sync = new Date();
+    var clock_text = $('.last_checked');
     var sync_overview_vars = function() {
       var af = function(x) {
         return function(e, o) {
@@ -51,7 +63,7 @@
           
           $('.variable_val', $(x)).text(v).css('background-color', bgd_color);
           $('.last_saved', $(x)).text('Last updated: ' + t.toUTCString());
-          $('.last_checked').text('Last checked: ' + now.toUTCString());
+          last_sync = now;
           x.val(JSON.stringify(o.rows[0]));
         }; 
       };
@@ -93,9 +105,15 @@
             sync_overview_vars();
       });
     };
+    var run_clock = function() {
+      var time_diff = Math.round(((new Date()) - last_sync)/1000);
+      clock_text.text(Math.round(time_diff));
+      setTimeout(run_clock, 1000);
+    };
     (function() {
       nedm.get_database_info(function(d) {
         get_overview_vars(d);
+        run_clock();
       });
     }()); 
 
