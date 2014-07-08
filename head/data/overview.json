@@ -48,6 +48,7 @@
 <script>
     var last_sync = new Date();
     var clock_text = $('.last_checked');
+    var time_out = null;
     var sync_overview_vars = function() {
       var af = function(x) {
         return function(e, o) {
@@ -55,6 +56,7 @@
           if (o.rows.length != 1) return;
           var k = o.rows[0].key;
           var v = o.rows[0].value;
+          var t = new Date(Date.UTC.apply(this, k.splice(1)));
           var now = new Date();
           var bgd_color = '';
           if ((now-t) > 20000) bgd_color = '#ED4337';
@@ -71,12 +73,12 @@
         var d = av.data();
         nedm.get_database(d.db).get_most_recent_value(d.var, af(av));
       });
-      setTimeout(sync_overview_vars, Number($('.refresh_time').val())*1000);
-    }; 
-    var get_overview_vars = function(pretty_names) {
-        nedm.get_database('nedm_head').getView('overview_vars', 
-                                               'overview_vars', 
-           { opts : { stale : 'update_after', group_level : 2 } },
+      time_out = setTimeout(sync_overview_vars, Number($('.refresh_time').val())*1000);
+    };
+    var get_overview_vars = function(all_dbs) {
+        nedm.get_database('nedm_head').getView('overview_vars',
+                                               'overview_vars',
+           { opts : { reduce : false } },
            function( e, o ) {
              if (e !== null) return;
              var r = o.rows;
@@ -102,6 +104,11 @@
              }
             svs.trigger('create');
             sync_overview_vars();
+    var refresh_all = function() {
+      if (time_out) clearTimeout(time_out);
+      $('.all_shown_variables').empty();
+      nedm.get_database_info(function(d) {
+        get_overview_vars(d);
       });
     };
     var run_clock = function() {
@@ -110,9 +117,8 @@
       setTimeout(run_clock, 1000);
     };
     (function() {
-      nedm.get_database_info(function(d) {
-        get_overview_vars(d);
-        run_clock();
+      refresh_all();
+      run_clock();
       });
     }()); 
 
