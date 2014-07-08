@@ -35,7 +35,6 @@
         </div>
       </div>
     </div>
-</div>
 <script>
     var sync_overview_vars = function() {
       var af = function(x) {
@@ -101,5 +100,6 @@
     }()); 
 
 </script>
+</div>
 "
 }
