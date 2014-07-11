@@ -8,12 +8,126 @@
     <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
         <div class='content-primary'>
             <h1 >Alarms</h1>
+            <div>
+              <table data-role='table' data-mode='reflow' class='ui-responsive alarm_table'>
+                <thead>
+                  <tr>
+                    <th data-priority='1'>System</th>
+                    <th data-priority='2'>Name</th>
+                    <th data-priority='3'>Description</th>
+                    <th data-priority='4'>Last event</th>
+                    <th data-priority='5'>More info</th>
+                  </tr>
+                </thead>
+                <tbody style='display:none;' class='alarm_row_clone'>
+                  <th class='system_name'></th>
+                  <td class='alarm_name'></td>
+                  <td class='alarm_desc'></td>
+                  <td class='alarm_last_event'></td>
+                  <td class='alarm_more_info'><button class='ui-btn ui-icon-carat-r ui-btn-icon-notext'>More info
+                  </button>
+                  <div data-role='popup' data-theme='a' class='alarmpopup' >
+                    <a href='#' data-rel='back' data-role='button' data-theme='a' data-icon='delete' data-iconpos='notext' class='ui-btn-right'>Close</a>
+                    <p class='alarmisloading'>
+                      Loading...
+                    </p>
+                    <table data-role='table' data-mode='reflow' class='ui-responsive alarm_table_fired'>
+                      <thead>
+                        <tr>
+                          <th data-priority='1'>Date</th>
+                          <th data-priority='2'>Type</th>
+                          <th data-priority='3'>Message</th>
+                        </tr>
+                      </thead>
+                      <tbody style='display:none;' class='alarm_seen_clone'>
+                        <td class='alarm_date'></td>
+                        <td class='alarm_type'></td>
+                        <td class='alarm_desc'></td>
+                      </tbody>
+                    </table>
+                  </div></td>
+                </tbody>
+              </table>
+            </div>
         </div>
         <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
             </div>
         </div> <!-- content-secondary -->
     </div>
+    <script>
+    var populate_alarm_info = function(adbn, alarm, popup_div) {
+      nedm.get_database(adbn).getView('alarm', 'alarm',
+        { opts : { reduce : false,
+                  descending : true,
+                  endkey : [alarm, null],
+                  startkey : [alarm, null, {}],
+                  include_docs : true,
+                  limit : 5 } },
+        function(e, o) {
+          if (e !== null) return;
+          var the_table = $('.alarm_table_fired', $(popup_div));
+          var r = o.rows;
+          var toclone = $('.alarm_seen_clone', $(the_table));
+          for (var i=0;i<r.length;i++) {
+            var k = r[i].key;
+            var nc = toclone.clone();
+            nc.show();
+            nc.removeClass('alarm_seen_clone');
+            $('.alarm_type', $(nc)).html(k[k.length-1]);
+            $('.alarm_desc', $(nc)).html(r[i].doc.msg.verbose);
+            var t = new Date(Date.UTC.apply(this, k.splice(2, 6)));
+            $('.alarm_date', $(nc)).html(t.toString());
+            $(the_table).append(nc);
+          }
+          $('.alarmisloading', $(popup_div)).html('');
+        });
+    };
+
+    var get_alarm_info = function() {
+      nedm.get_database_info( function(all_dbs) {
+          var the_table = $('.alarm_table');
+          var the_row = $('.alarm_row_clone');
+          for (var d in all_dbs) {
+              nedm.get_database('nedm%2F' + d)
+                  .getView('document_type',
+                           'document_type',
+                           { opts :
+                         {   reduce : false,
+                             endkey : ['alarm'],
+                           startkey : ['alarm', {}],
+                         descending : true,
+                         include_docs : true } },
+              function(x) { return function( e, o ) {
+                  if (e !== null) return;
+                  var r = o.rows;
+                  for (var i=0;i<r.length;i++) {
+                    var nc = the_row.clone();
+                    var d = r[i].doc;
+                    $('.system_name', $(nc)).html(all_dbs[x].prettyname);
+                    $('.alarm_name', $(nc)).html(d.name);
+                    $('.alarm_desc', $(nc)).html(d.description);
+                    nc.show();
+                    nc.removeClass('alarm_row_clone');
+                    var popup = $('.alarmpopup').clone().removeClass('alarmpopup').attr({id : d._id + '-popup'});
+                    nc.append(popup);
+                    popup.popup().popup('close');
+                    $(':input', $('.alarm_more_info', $(nc))).on('click', function(p) {
+                      return function() { p.popup('open'); } } (popup));
+                    the_table.append(nc);
+                    populate_alarm_info('nedm%2F' + x, d._id, popup);
+                  }
+                };
+              }(d));
+          }
+      });
+    };
+    (function() {
+      get_alarm_info();
+    }());
+
+    </script>
+
 </div>
 "
 }
