@@ -360,6 +360,11 @@ dd h4 { margin:15px 0 0 0; }
 		padding-right:6%;
 		margin: 30px 0 20px 5%;
 	}
+	.content-secondary.hide-sidebar {
+		width: 0;
+		padding-right: 0;
+        display: none;
+	}
 	.type-interior .content-secondary {
 		margin: 0;
 		padding: 0;
@@ -368,6 +373,9 @@ dd h4 { margin:15px 0 0 0; }
 		width: 50%;
 		margin-right: 5%;
 		padding-right: 3%;
+	}
+	.content-primary.hide-sidebar {
+		width: 90%;
 	}
 	.type-interior .content-primary {
 		width: 60%;

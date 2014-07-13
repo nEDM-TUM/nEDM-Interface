@@ -1,13 +1,18 @@
 <!DOCTYPE html>
-<html class="ui-mobile"><head></head> 
+<html class="ui-mobile"><head></head>
 
-<body> 
+<body>
 
 <!-- Start of splash page: #one -->
 
 <div data-role="header" data-position="fixed" id="base_header" data-theme="b">
     <h1 id="nedm_header_name">nEDM Interface</h1>
-    <a href="/nedm_head/_design/nedm_head/index.html" data-icon="home" class="ui-btn-left" id="homebtn">Home</a>
+    <div class='ui-btn-left' data-role="controlgroup" data-type="horizontal">
+      <a href="/nedm_head/_design/nedm_head/index.html" data-role='button' data-icon="home" id="homebtn">Home</a>
+      <a href="#" data-icon="bars"
+         onClick="$('.content-secondary,.content-primary').each(function() { $(this).toggleClass('hide-sidebar'); })"
+         data-role='button' class="ui-btn-icon-notext">Show/hide sidebar</a>
+    </div>
     <a href="/nedm_head/_design/nedm_head/login.html" data-rel="dialog" data-icon="check" id="loginbtn" class="ui-btn-right">Login</a>
     <a href="#" id="logoutbtn" onclick="nedm.logout()" data-icon="delete" class="ui-btn-right">Logout</a>
 </div>
