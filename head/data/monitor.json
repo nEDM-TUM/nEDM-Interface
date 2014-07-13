@@ -5,17 +5,6 @@
 {
   "_id"  : "monitor",
   "type" : "control_template",
-  "header" : "
-<style> type='text/css'>
-    #monitor_div {
-    position: absolute;
-    left: 20px;
-    right: 20px;
-    top: 40px;
-    bottom: 100px;
-    }
-    </style>
-",
   "body" : "   
 
 <div data-role='page' class='db_monitor_class'>
