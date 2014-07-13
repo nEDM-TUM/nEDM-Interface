@@ -356,9 +356,9 @@ dd h4 { margin:15px 0 0 0; }
 		background-position: 38.5%;
 	}
 	.content-secondary {
-		width: 30%;
+		width: 20%;
 		padding-right:6%;
-		margin: 30px 0 20px 5%;
+		margin: 30px 0 20px 0;
 	}
 	.content-secondary.hide-sidebar {
 		width: 0;
@@ -370,7 +370,7 @@ dd h4 { margin:15px 0 0 0; }
 		padding: 0;
 	}
 	.content-primary {
-		width: 50%;
+		width: 60%;
 		margin-right: 5%;
 		padding-right: 3%;
 	}
@@ -378,7 +378,7 @@ dd h4 { margin:15px 0 0 0; }
 		width: 90%;
 	}
 	.type-interior .content-primary {
-		width: 60%;
+		width: 70%;
 	}
 }
 
