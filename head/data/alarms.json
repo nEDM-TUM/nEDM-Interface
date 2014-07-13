@@ -3,7 +3,7 @@
   "type" : "control_template",
   'body' : "
 <div data-role='page'>
-    <div class='headerChild'> 
+    <div class='headerChild'>
     </div>
     <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
         <div class='content-primary'>
@@ -23,18 +23,16 @@
                   <th class='system_name'></th>
                   <td class='alarm_name'></td>
                   <td class='alarm_desc'></td>
-                  <td class='alarm_last_event'></td>
+                  <td class='alarm_last_event'>No events</td>
                   <td class='alarm_more_info'><button class='ui-btn ui-icon-carat-r ui-btn-icon-notext'>More info
                   </button>
                   <div data-role='popup' data-theme='a' class='alarmpopup' >
                     <a href='#' data-rel='back' data-role='button' data-theme='a' data-icon='delete' data-iconpos='notext' class='ui-btn-right'>Close</a>
-                    <p class='alarmisloading'>
-                      Loading...
-                    </p>
+                    <a href='#' data-role='button' data-icon='nedm-stopped' data-iconpos='right' class='load_more_data'>Load 5 more alarms...</a>
                     <table data-role='table' data-mode='reflow' class='ui-responsive alarm_table_fired'>
                       <thead>
                         <tr>
-                          <th data-priority='1'>Date</th>
+                          <th data-priority='1'>Date (UTC)</th>
                           <th data-priority='2'>Type</th>
                           <th data-priority='3'>Message</th>
                         </tr>
@@ -56,32 +54,60 @@
         </div> <!-- content-secondary -->
     </div>
     <script>
-    var populate_alarm_info = function(adbn, alarm, popup_div) {
-      nedm.get_database(adbn).getView('alarm', 'alarm',
+
+    var load_new_alarm_info = function(ev) {
+      var targ = $(ev.currentTarget);
+      targ.addClass('ui-icon-nedm-loading')
+          .removeClass('ui-icon-nedm-stopped');
+
+      var endkey = [targ.data('id'), null];
+      var stkey = null;
+      var sk = 0;
+      if (targ.data('last_date')) {
+        stkey = [targ.data('id'), null];
+        stkey.push.apply(stkey, targ.data('last_date'));
+        sk = 1;
+      } else {
+        stkey = [targ.data('id'), null, {}];
+      }
+      nedm.get_database(targ.data('db')).getView('alarm', 'alarm',
         { opts : { reduce : false,
                   descending : true,
-                  endkey : [alarm, null],
-                  startkey : [alarm, null, {}],
+                  endkey : endkey,
+                  startkey : stkey,
                   include_docs : true,
+                  skip : sk,
                   limit : 5 } },
-        function(e, o) {
-          if (e !== null) return;
-          var the_table = $('.alarm_table_fired', $(popup_div));
+        function(tbut) {
+         return function(e, o) {
+
+          tbut.removeClass('ui-icon-nedm-loading')
+           .addClass('ui-icon-nedm-stopped');
+          if (e !== null || o.rows.length == 0) return;
+          var popup_div = tbut.data('popup');
+          var the_table = $('.alarm_table_fired', popup_div);
           var r = o.rows;
           var toclone = $('.alarm_seen_clone', $(the_table));
           for (var i=0;i<r.length;i++) {
-            var k = r[i].key;
+            var k = r[i].key.slice();
             var nc = toclone.clone();
             nc.show();
             nc.removeClass('alarm_seen_clone');
             $('.alarm_type', $(nc)).html(k[k.length-1]);
             $('.alarm_desc', $(nc)).html(r[i].doc.msg.verbose);
             var t = new Date(Date.UTC.apply(this, k.splice(2, 6)));
-            $('.alarm_date', $(nc)).html(t.toString());
+            $('.alarm_date', $(nc)).html(t.toString().split(' GMT')[0]);
             $(the_table).append(nc);
           }
-          $('.alarmisloading', $(popup_div)).html('');
-        });
+          if (! tbut.data('last_date') ) {
+            var k = r[0].key.slice();
+            var t = new Date(Date.UTC.apply(this, k.splice(2, 6)));
+            $('.alarm_last_event', tbut.data('disp_row')).html(t.toString().split(' GMT')[0]);
+          }
+          tbut.data('last_date', r[r.length-1].key.splice(2));
+         };
+        }(targ)
+      );
     };
 
     var get_alarm_info = function() {
@@ -109,13 +135,22 @@
                     $('.alarm_desc', $(nc)).html(d.description);
                     nc.show();
                     nc.removeClass('alarm_row_clone');
-                    var popup = $('.alarmpopup').clone().removeClass('alarmpopup').attr({id : d._id + '-popup'});
+                    var popup = $('.alarmpopup').clone()
+                                                .removeClass('alarmpopup')
+                                                .attr({id : d._id + '-popup'});
+                    $('.load_more_data', $(popup))
+                      .data( { db    : 'nedm%2F' + x,
+                               popup : popup,
+                                  id : d._id,
+                           last_date : null,
+                            disp_row : nc} )
+                      .on('click', load_new_alarm_info);
                     nc.append(popup);
                     popup.popup().popup('close');
                     $(':input', $('.alarm_more_info', $(nc))).on('click', function(p) {
                       return function() { p.popup('open'); } } (popup));
                     the_table.append(nc);
-                    populate_alarm_info('nedm%2F' + x, d._id, popup);
+                    $('.load_more_data', $(popup)).trigger('click');
                   }
                 };
               }(d));
