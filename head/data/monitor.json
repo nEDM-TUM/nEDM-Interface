@@ -44,7 +44,7 @@
             if (window_num > 0) {
                 window_num = parseInt($('option:last-child', selection).val()) + 1;
             }
-            var new_div = $('<div/>').append(graph_template.html);
+            var new_div = $('<div/>').append(graph_template.html).addClass('graph_monitor');;
             $('.ui-page-active .monitor_div').append(new_div);
             if (graph_template.script) {
                 graph_template.script(new_div, { window_name: 'Window ' + window_num });
