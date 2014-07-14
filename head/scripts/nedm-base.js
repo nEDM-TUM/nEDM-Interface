@@ -604,19 +604,20 @@ nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
     this.data = [];
     this.graph = new dygraphs.Dygraph(adiv, this.data,
           {
-            drawPoints: true,
+              drawPoints: true,
               showRoller: false,
-              labels: ['Time'].concat(data_name),
-              connectSeparatedPoints: true,
-              xAxisLabelWidth: 60,
-            zoomCallback : function(o) { return function() { o.recalc_axis_labels(); }; }(this)
+                  labels: ['Time'].concat(data_name),
+  connectSeparatedPoints: true,
+         xAxisLabelWidth: 60,
+                  height: dygraphs.Dygraph.DEFAULT_HEIGHT, // explicitly set
+           zoomCallback : function(o) { return function() { o.recalc_axis_labels(); }; }(this)
           });
 
     this.isSyncing = false;
     this.name = data_name;
     this.uuid = Math.random().toString(36).substr(2,9);
     this.setGroupLevel(9);
- 
+
     this.changeTimeRange(since_time_in_secs, 0);
 };
 
