@@ -206,10 +206,11 @@ def upload_data(host, db_name, folder, check_js):
     for af in glob.iglob(folder + "/*.json"):
         base_n = os.path.basename(af)
         if base_n == "_security.json" : continue 
-        with open(af) as f: 
-            astr = '\n'.join([x for x in f.readlines() if x[0] != '#'])
-
-        bulk_docs.append(yaml.load(astr))
+        try:
+            bulk_docs.append(eval(open(af).read()))
+        except Exception as e:
+            print "Error with file: ", af
+            raise(e)
 
     # We need to deal with possible conflicts
     # Here we grab the rev number from current documents

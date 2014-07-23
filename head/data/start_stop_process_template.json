@@ -3,14 +3,14 @@
  "type" : "control_template",
  "title" : "{{title}}",
  "description" : "{{description}}",
- "html" : "
+ "html" : """
   <div data-role='fieldcontain'>
     <fieldset data-role='controlgroup' data-type='horizontal'>
         <a href='#' data-role='button' data-icon='nedm-stopped' data-iconpos='right' class='ui-disabled start_stop_class'>Start</a>
     </fieldset>
   </div>
-  ",
-  "script" : "
+  """,
+  "script" : """
     function( avar, anobj ) {
       var sync = function() {
         var but = $('.start_stop_class', $(avar));
@@ -52,5 +52,5 @@
       nedm.get_database().listen_to_changes_feed(anobj.process_name, sync, 
         {since : 'now', filter :'nedm_default/doc_type', type : 'data'});
     }
-  "
+  """
 }

@@ -15,15 +15,15 @@
   "title" : "{{title}}",
   "description" : "{{description}}",
 
-  "html" : "
+  "html" : """
 <!--  Here we input html that should be added to the page for this control -->
 <select data-role='slider' class='switch_class'>
   <option value=0>Off</option>
   <option value=1>On</option>
 </select>
 <p style='color:blue;' class='switch_text_class'></p>
-",
-  "script" : "
+""",
+  "script" : """
 
     function( avar, anobj ) {
        // We define a synchronization function which synchronizes the web-site with
@@ -62,5 +62,5 @@
        sync();
        nedm.get_database().listen_to_changes_feed(anobj.switch_name, sync, {since : 'now'});
    }
-"
+"""
 }

@@ -1,7 +1,7 @@
 {
   "_id"  : "sidebar",
   "type" : "control_template",
-  'body' : "
+  'body' : """
     <div class='ui-corner-all custom-corners'>
         <div class='ui-bar ui-bar-a'>
              <h3>General</h3>
@@ -24,5 +24,5 @@
             </div>
         </div>
     </div>
-"
+"""
 }

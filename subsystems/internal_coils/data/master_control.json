@@ -18,7 +18,7 @@
     "setcurrent" : ["Current", 1],
     "setvoltage" : ["Voltage", 1]
   },
- "html" : "
+ "html" : """
 <div>
     <div class='all_read_div'>
         <h2>Read functions</h2>
@@ -289,6 +289,6 @@
         });
 
     }
- "
+ """
 
 }

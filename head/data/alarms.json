@@ -1,7 +1,7 @@
 {
   "_id"  : "alarms",
   "type" : "control_template",
-  'body' : "
+  "body" : """
 <div data-role='page'>
     <div class='headerChild'>
     </div>
@@ -163,6 +163,5 @@
 
     </script>
 
-</div>
-"
+</div>"""
 }

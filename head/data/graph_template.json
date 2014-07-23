@@ -14,7 +14,7 @@
   "type" : "view_template",
   "title" : "{{title}}",
   "description" : "{{description}}",
-  "html" : "
+  "html" : """
   <div class = 'monitor_class'> 
     <p class='window_name_class'/>
     <div class = 'show_plot'>
@@ -245,7 +245,7 @@
     $('.check_box_until_now', new_div).trigger('click'); 
 
   }
-  "
+  """
   
 
 }

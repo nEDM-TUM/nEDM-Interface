@@ -3,7 +3,7 @@
   "language" : "javascript",
   "views" : {
      "alarm" : {
-       "map" : "function(doc) {
+       "map" : """function(doc) {
            if (!doc.type || (doc.type != 'alarm' && doc.type != 'triggered_alarm')) return;
            var then = new Date(Date.parse(doc.timestamp));
            var emit_var = [doc._id, 'alarm',
@@ -27,7 +27,7 @@
                }
            }
            emit(emit_var, ret_val);
-        }",
+        }""",
         "reduce" : "_sum"
      }
   }

@@ -2,26 +2,26 @@
   "_id" : "_design/execute_commands",
   "language" : "javascript",
   "filters"  : {
-    "execute_commands" : "function(doc, req) {
+    "execute_commands" : """function(doc, req) {
            if (doc.type && doc.type == 'command' && !doc.response) { return true; }
            return false;
-    }"
+    }"""
   },
   "views" : {
     "incomplete_commands" : {
-      "map" : "function(doc) {
+      "map" : """function(doc) {
           if (!doc.type || doc.type != 'command') return;
           if (doc.response) return;
           emit([doc.execute, doc._id], 1); 
-      }",
+      }""",
       "reduce" : "_sum"
     },
     "complete_commands" : {
-      "map" : "function(doc) {
+      "map" : """function(doc) {
           if (!doc.type || doc.type != 'command') return;
           if (!doc.response) return;
           emit([doc.execute, doc._id], 1); 
-      }",
+      }""",
       "reduce" : "_sum"
     }
 
