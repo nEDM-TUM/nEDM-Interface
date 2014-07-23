@@ -3,7 +3,7 @@
   "language" : "javascript",
   "views" : {
      "overview_vars" : {
-       "map" : "function(doc) {
+       "map" : """function(doc) {
            if (!doc.type || doc.type != 'overview_vars') return;
            var k = doc.vars;
            for (var i in k) {
@@ -11,7 +11,7 @@
                    emit([i, k[i][j]], 1); 
                }
            }
-        }",
+        }""",
        "reduce" : "_sum"
      }
   }

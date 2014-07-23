@@ -5,7 +5,7 @@
 {
   "_id"  : "monitor",
   "type" : "control_template",
-  "body" : "   
+  "body" : """
 
 <div data-role='page' class='db_monitor_class'>
     <div class='headerChild'> 
@@ -163,5 +163,5 @@
 	    </script>
     </div>
 </div>
-"
+"""
 }

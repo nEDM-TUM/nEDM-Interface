@@ -4,13 +4,11 @@
  "title" : "{{title}}",
  "description" : "{{description}}",
  "pageevents" : {
-      "pagehide" :  "function() {
-      }",
-      "pageshow" :  "function() {
-      }"
+      "pagehide" :  "function() {}",
+      "pageshow" :  "function() {}"
  },
 
- "html" : "
+ "html" : """
 <div data-role='fieldcontain'>
     <div data-role='controlgroup' data-type='horizontal'>
         <input type='text' data-wrapper-class='controlgroup-textinput ui-btn'>
@@ -18,8 +16,8 @@
         <button class='sync_value_class'>Sync</button>
     </div>
 </div>
- ",
- "script" : "
+ """,
+ "script" : """
     function( avar, anobj ) {
         var disable_all = function() {
             $(':button,[type=text]', $(avar)).addClass('ui-disabled'); 
@@ -52,5 +50,5 @@
         });
 
     }
- "
+ """
 }
