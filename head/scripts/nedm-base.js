@@ -969,11 +969,12 @@ $(document).on('mobileinit', function() {
 
     }
   });  
+
+  require("jquery-mobile-datebox");
 });
 
 // Load jquery-mobile at the very end
 require("jquery-mobile");
-require("jquery-mobile-datebox");
 var toastr = require("toastr");
 toastr.options = {
   positionClass: "toast-top-right",
