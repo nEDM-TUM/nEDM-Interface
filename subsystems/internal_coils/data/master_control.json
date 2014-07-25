@@ -121,8 +121,8 @@
     </div>
 </div>
 
- ",
- "script" : "
+ """,
+ "script" : """
     function( avar, anobj ) {
         
         var disable_all = function() {
