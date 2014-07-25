@@ -5,6 +5,10 @@
   "attachments": ["index.html", "header.html", "login.html", "scripts", "css"],
   "load"    : "lib/app",
   "modules" : ["lib"],
+  "ace" : {
+    "theme" : ["github"],
+    "mode" : ["python", "javascript"]
+  },
   "dependencies": {
     "modules" : null,
     "attachments" : null,
@@ -18,6 +22,7 @@
     "jquery-mobile" : null, 
     "jquery-mobile-datebox" : null, 
     "toastr" : null,
+    "ace" : null,
     "dygraph-combined" : null 
   } 
 }
