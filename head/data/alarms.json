@@ -6,7 +6,7 @@
     <div class='headerChild'>
     </div>
     <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
-        <div class='content-primary'>
+        <div class='content-primary alarms_page'>
             <h1 >Alarms</h1>
             <div>
               <table data-role='table' data-mode='reflow' class='ui-responsive alarm_table'>
@@ -47,6 +47,33 @@
                 </tbody>
               </table>
             </div>
+            <div align='left' data-role='collapsible' class='adv_options'>
+              <h4>Submit New Alarm (admin only)</h4>
+              <h5>Name:</h5>
+              <input type='text' class='alarm_name' value='Unique name'>
+              <h5>Description:</h5>
+              <input type='text' class='alarm_desc' value='Unique description'>
+              <h5>Emails:</h5>
+              <input type='text' class='alarm_emails' value=''>
+              <h5>Code:</h5>
+              <div class='alarm_code code_editor'># the following is simple an example...
+_last_value = None
+def main(db):
+    global _last_value
+    lv = _last_value
+    _last_value = latest_value('run_status', 6)['rows'][0]['value']['max']
+    if lv is None: return
+    if lv == 0 and _last_value == 1:
+        raise AlarmEvent('Coil run begun', 'run_status has changed')
+              </div>
+              <div data-role='fieldcontain'>
+                <fieldset data-role='controlgroup' data-type='horizontal'>
+                  <select class='alarm_database_select'></select>
+                  <button class='ui-btn ui-corner-all submit_new_alarm'>Submit</button>
+                </fieldset>
+              </div>
+            </div>
+
         </div>
         <div class='content-secondary'>
             <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
@@ -157,9 +184,34 @@
           }
       });
     };
-    (function() {
+    var submit_new_alarm = function() {
+        var the_db = nedm.get_database($('.alarm_database_select :selected').val());
+        var an_obj = { type : 'alarm' };
+        an_obj.description = $('.adv_options .alarm_desc').val();
+        an_obj.name = $('.adv_options .alarm_name').val();
+        an_obj.emails = $('.adv_options .alarm_emails').val().split(',').map(
+          function(j) { return $.trim(j); });
+        an_obj.code = $('.adv_options .alarm_code').text();
+        console.log(an_obj);
+        console.log(the_db);
+    };
+    var editor = null;
+    $(document).on('pageinit', function() {
       get_alarm_info();
-    }());
+      var db_sel = $('.alarm_database_select').filter(':input');
+      nedm.get_database_info( function(dbs) {
+          db_sel.empty();
+          for(var v in dbs) {
+            db_sel.append($('<option/>').val('nedm%2F' + v).text(dbs[v].prettyname));
+          }
+          db_sel.selectmenu('refresh', true);
+      });
+      $('.adv_options .submit_new_alarm').on('click', submit_new_alarm);
+
+      editor = ace.edit($('.adv_options .alarm_code')[0]);
+      editor.getSession().setMode('ace/mode/python');
+      editor.setTheme('ace/theme/github');
+    });
 
     </script>
 
