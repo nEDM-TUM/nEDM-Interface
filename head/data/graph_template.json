@@ -52,8 +52,8 @@
     </div>
     <div class='variable_progress'/>
   </div>
-  ",
-  "script" : "
+  """,
+  "script" : """
   function(avar, anobj) {
     var new_div = $(avar);
     var avg_select = $('.averaging_select', new_div);
@@ -246,6 +246,4 @@
 
   }
   """
-  
-
 }
