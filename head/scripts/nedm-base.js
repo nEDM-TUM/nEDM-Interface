@@ -3,6 +3,8 @@ var db = require("db");
 var handlebars = require("handlebars");
 var dygraphs = require("dygraph-combined");
 $ = require("jquery");
+var ace = require("ace");
+ace.config.set("basePath", "/nedm_head/_design/nedm_head/ace/");
 bs = function(haystack, needle, comparator, alow, ahigh) {
   if(!Array.isArray(haystack))
     throw new TypeError("first argument to binary search is not an array");
