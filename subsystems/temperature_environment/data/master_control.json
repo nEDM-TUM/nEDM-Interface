@@ -1,0 +1,129 @@
+{
+  "_id" : "master_control",
+  "type" : "control",
+  "title" : "Master Controls",
+  "description" : "Control the temperature controls",
+ "html" : """
+<div>
+    <div class='all_temperature_controls'>
+        <div data-role='fieldcontain'>
+            <div data-role='controlgroup' data-type='horizontal' class='all_functions ui-disabled'>
+                <select class='temp_device_select'/>
+                <select class='function_select'/>
+                <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_val'>
+                <button class='set_function'>Set</button>
+                <button class='get_function'>Get</button>
+                <button class='call_function'>Call</button>
+            </div>
+        </div>
+        <dl class='description' style='text-align:left;'>
+            <dt>Result:</dt> 
+            <dd class='result'></dd>
+            <dt>Help information:</dt> 
+            <dd class='help_msg'></dd>
+            <dt>Units:</dt> 
+            <dd class='units'></dd>
+            <dt>Format:</dt> 
+            <dd class='format'></dd>
+        </l>
+    </div>
+</div>
+ """,
+ "script" : """
+    function( avar, anobj ) {
+       var devices = $('.temp_device_select', $(avar));
+       var funcs = $('.function_select', $(avar));
+       var setup_func = function(o) {
+           if (!o || !o.return) return;
+           for (var k in o.return) {
+               var cmds = o.return[k].cmds;
+               var j = $('<option/>').val(k).text(k).data({ cmds : cmds });
+               devices.append(j);
+           }
+           devices.selectmenu("refresh", true);
+           $('.all_functions', $(avar)).toggleClass('ui-disabled');
+           devices.trigger("change");
+       };
+       var update_functions = function(o) {
+        </l>
+    </div>
+</div>
+ """,
+ "script" : """
+    function( avar, anobj ) {
+       var devices = $('.temp_device_select', $(avar));
+       var funcs = $('.function_select', $(avar));
+       var setup_func = function(o) {
+           if (!o || !o.return) return;
+           for (var k in o.return) {
+               var cmds = o.return[k].cmds;
+               var j = $('<option/>').val(k).text(k).data({ cmds : cmds });
+               devices.append(j);
+           }
+           devices.selectmenu("refresh", true);
+           $('.all_functions', $(avar)).toggleClass('ui-disabled');
+           devices.trigger("change");
+       };
+       var update_functions = function(o) {
+           var j = $(':selected', $(o.target)).data();
+           funcs.empty();
+           if (! j.cmds ) return;
+           for (var k in j.cmds) {
+               var x = $('<option/>').val(k).text(k).data({ obj : j.cmds[k] });
+               funcs.append(x);
+           }
+           funcs.selectmenu("refresh", true);
+           funcs.trigger("change");
+       };
+       var update_buttons = function(o) {
+           var j = $(':selected', $(o.target)).data();
+           $(':button', $(avar)).each(function() { $(this).addClass('ui-disabled'); });
+           if (!j.obj) return;
+           ['set', 'get', 'call'].forEach( function(k) {
+               if (k in j.obj) {
+                 $('.' + k + '_function', $(avar)).removeClass('ui-disabled');
+               }
+           });
+           ['units', 'format', 'help_msg', 'result'].forEach( function(k) {
+               var x = $('.' + k, $(avar));
+               x.text("");
+               if (k in j.obj) {
+                 x.text(j.obj[k]); 
+               }
+           });
+       };
+       var call_buttons = function(o) {
+           var atype = $(o.currentTarget).data().type; 
+           var j = $(':selected', $(funcs)).data().obj;
+           if (!(atype in j)) return;
+           $('.all_functions', $(avar)).addClass('ui-disabled');
+           var args = [];
+           if (atype == 'set') {
+               args = [ $('.input_val', $(avar)).val() ];
+           }
+           var cmd_doc = { cmd_name : j[atype],
+                            timeout : 10000,
+                          arguments : args,
+                           callback : function(o) { 
+                               $('.all_functions', $(avar)).removeClass('ui-disabled');
+                               if (!o || !o.return) return;
+                               $('.result', $(avar)).text(JSON.stringify(o.return));
+                           }
+                         };
+           nedm.send_command( cmd_doc ); 
+       };
+       nedm.send_command( { cmd_name : "all_keys", 
+                              timeout: 10000,
+                            callback : setup_func 
+       } );
+       ['set', 'get', 'call'].forEach( function(k) {
+           $('.' + k + '_function', $(avar)).data({ type : k });
+           $('.' + k + '_function', $(avar)).on('click', call_buttons);
+       });
+
+       devices.on('change', update_functions);
+       funcs.on('change', update_buttons);
+    }
+"""
+
+}
