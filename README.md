@@ -6,7 +6,9 @@ nEDM User Interface for sub systems, also an interface for slow-control systems
 Build instructions
 ------------------
 
-1.  To push everything to DB, type:
+1.  Install kanso (http://kan.so/install).
+2.  ```cd head; kanso install``` (This only needs to be done at the beginning, and when you update kanso packages.
+3.  To push everything to DB, type at the base directory:
 
 `python push_to_db.py`
 
@@ -19,12 +21,22 @@ It is possible to save setting in a .nedmrc file, e.g.:
 ``` 
 % cat .nedmrc
 {
-  "username" : "myusername",
-  "password" : "mypwd",
-  "server"   : "localhost:5984"
+  local: {
+    username : "myusername",
+    password : "mypwd",
+    server   : "localhost:5984"
+  },
+  deployed: {
+    username : "mydeployedusername",
+    password : "mydeployedpwd",
+    server   : "deployed_host:5984"
+  }
+  ...
+  default : "local"
 }
 
 ``` 
+where the default indicates which will be used normally.
 
 Notes for developers
 --------------------
