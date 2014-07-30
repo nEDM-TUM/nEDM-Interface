@@ -12,6 +12,8 @@
                 </li>
                 <li><a href='/page/alarms'>Alarms</a>
                 </li>
+                <li><a href='/page/arduinos'>Arduinos</a>
+                </li>
             </ul>
         </div>
     </div>
