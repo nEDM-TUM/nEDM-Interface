@@ -28,7 +28,13 @@
         function loadControls(ev, ui) {
             var adb = $(ev.target).attr('data-url').split('/');
             adb = adb[adb.length-1];
-            nedm.get_database(adb).getView('nedm_default', 'controls', { opts : {stale : 'update_after', include_docs : true} }, function(err, objs) { 
+            nedm.get_database(adb).getView('document_type', 'document_type',
+            { opts : { stale : 'update_after',
+                      reduce : false,
+                      endkey : ['control', {}],
+                    startkey : ['control'],
+                include_docs : true} },
+            function(err, objs) {
                 var fillDiv = $('.controlDiv_class', $(ev.target));
                 if (fillDiv.children('div').size() != 0) fillDiv.empty();
                 if (err != null) return;
