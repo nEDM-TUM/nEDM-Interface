@@ -34,6 +34,18 @@
               </div>
 
             </div>
+            <div data-role="popup" id="arduinosConfirm" data-overlay-theme="a" data-theme="a" 
+              style="max-width:400px;" class="ui-corner-all" data-dismissible="false">
+                <div data-role="header" data-theme="a" class="ui-corner-top">
+                    <h1>Delete script?</h1>
+                </div>
+                <div role="main" class="ui-corner-bottom ui-content">
+                    <h3 class="ui-title">Are you sure you want to delete this script?</h3>
+                    <p>This action cannot be undone.</p>
+                    <a href="#" class='cancel_button' data-role="button" data-inline="true" data-rel="back" data-theme="a">Cancel</a>
+                    <a href="#" class='delete_button' data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Delete</a>
+                </div>
+            </div>
         </div>
         <div class='content-secondary'>
             <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
@@ -101,7 +113,24 @@
           $('.all_avail_code').removeClass('ui-disabled');
       };
       var remove_code = function(ev) {
-          $(ev.currentTarget).parents('.code_sample').remove();
+          $('#arduinosConfirm').data( {
+            callback : function(o) {
+               console.log(o);
+               //var par $(ev.currentTarget).parents('.code_sample');
+               //if (par.data('doc')) {
+               //    nedm.get_database('nedm_head').removeDoc(
+               //      par.data('doc'),
+               //      function(e,o) {
+               //        if(e) {
+               //          
+               //        } 
+               //    );}
+               //
+               //} else {
+               //    par.remove();
+               //}
+            }
+         }).popup('open');
       };
       var save_code = function(ev) {
           var par = $(ev.currentTarget).parents('.code_sample');
@@ -202,6 +231,21 @@
         $('.read_from_db').on('click', read_from_db);
         $('.submit_new_arduino').on('click', add_macid);
         $('.read_from_db').trigger('click');
+        var button_func = function(x) { 
+           var nm = x;
+           return function(ev) {
+                var j = $('#arduinosConfirm');
+                if (j.data('callback')) {
+                    var ret_obj = {};
+                    ret_obj[nm] = true;
+                    j.data('callback')(ret_obj);
+                    j.data({ callback : null });
+                }
+           };
+        };
+        ['cancel', 'delete'].forEach(function(o) {
+           $('.' + o + '_button', $('#arduinosConfirm')).on('click', button_func(o));
+        });
       });
     </script>
 </div>"""
