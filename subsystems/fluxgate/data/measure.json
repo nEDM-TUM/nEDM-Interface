@@ -1,0 +1,46 @@
+{
+  "_id" : "measurei",
+  "type" : "control",
+  "title" : "Make single measurement",
+  "description" : "Record single log file",
+ "html" : """
+<div class="onemeasure">
+    <div data-role="fieldcontain">
+	<div data-role="controlgroup" data-type="horizontal">
+	    <label for="text-1">Comment:</label>
+	    <input class="comment" name="text-1" value="" type="text">
+	    <button class="measureit">Record</button>
+	</div>
+    </div>
+
+</div><!-- onemeasure -->
+ """,
+ "script" : """
+    function( avar, anobj ) {
+        
+        var measure = function() {
+	    var com = $('.comment', $(avar)).val();
+            alert('Hello!!! ' + com); 
+        };
+	var record = function() {
+		var com = $('.comment', $(avar)).val();
+		var adoc = {
+			"type": "log",
+			"text": com
+		};
+		nedm.send_command( { cmd_name : "log_and_measure",
+				     arguments : com,
+    				     timeout : 1000,
+				     callback: function(err, o) {
+					     if (not(err)) {
+					     toastr.info("Success", "");
+					     }
+				     }
+				   }
+				 );
+	};
+	$('.measureit', $(avar)).on('click', record);
+    }
+ """
+
+}
