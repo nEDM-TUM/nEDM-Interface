@@ -4,14 +4,6 @@
   "access" : {
      "read_only" : False
   },
-  "views" : {
-     "controls" : {
-       "map" : """function(doc) {
-           if (!doc.type || doc.type != 'control') return;
-           emit(doc._id, null);
-        }"""
-     }
-  },
   "filters" : {
     "doc_type" : """function(doc, req) {
         if (doc.type && doc.type == req.query.type) return true;
