@@ -38,7 +38,7 @@
                 var fillDiv = $('.controlDiv_class', $(ev.target));
                 if (fillDiv.children('div').size() != 0) fillDiv.empty();
                 if (err != null) return;
-                var success_func = function(adoc, fill_it_loc) { 
+                var success_func = function(adoc, fill_it_loc) {
                                      return function(e) {
                                           fill_it_loc.append(e.html);
                                           if (e.doc && e.doc.script) {
@@ -53,19 +53,19 @@
                     var arr = objs.rows[i].doc;
                     var fill_it = $('<div/>');
                     fillDiv.append(fill_it);
-                    var addr = '/nedm_head/_design/nedm_head/_show/define_control'; 
+                    var addr = '/nedm_head/_design/nedm_head/_show/define_control';
                     if (arr.template != undefined) {
                         addr += '/' + arr.template;
                     }
                     $.ajax({ type: 'POST',
-                             url: addr, 
-                             data: JSON.stringify(arr), 
+                             url: addr,
+                             data: JSON.stringify(arr),
                              success: success_func(arr, fill_it)  });
                 }
             });
         }
         (function() {
-          $('.db_control_class').off('pagecreate').on('pagecreate', loadControls); 
+          $('.db_control_class').off('pagecreate').on('pagecreate', loadControls);
         }());
     </script>
 
