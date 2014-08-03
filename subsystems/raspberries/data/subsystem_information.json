@@ -1,0 +1,7 @@
+{
+  "_id" : "subsystem_information",
+  "prettyname" : "Raspberry Pis",
+  "pages" : {
+        "Control" : "control.html"
+  }
+}
