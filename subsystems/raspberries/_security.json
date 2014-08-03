@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["raspberry_pi_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["raspberry_pi_reader"]
+  }
+}
