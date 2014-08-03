@@ -6,7 +6,11 @@
   },
   "filters" : {
     "doc_type" : """function(doc, req) {
-        if (doc.type && doc.type == req.query.type) return true;
+        var t = JSON.parse(req.query.type);
+        if (!Array.isArray(t)) {
+          t = [t];
+        }
+        if (doc.type && t.indexOf(doc.type.toString()) > -1) return true;
         if (doc._deleted && req.query.handle_deleted) return true;
         return false;
       }"""
