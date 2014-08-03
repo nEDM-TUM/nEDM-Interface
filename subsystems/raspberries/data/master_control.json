@@ -1,73 +1,103 @@
 {
-  "_id"  : "arduinos",
-  "type" : "control_template",
-  "body" : """
-<div data-role='page'>
-    <div class='headerChild'>
-    </div>
-    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
-        <div class='content-primary arduinos_page'>
-            <h1 >Arduinos</h1>
-        
-            <div class='all_controls ui-disabled'>
-              <div data-role='fieldcontain'>
-                <fieldset data-role='controlgroup' data-type='horizontal'>
-                  <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_mac'>
-                  <button class='ui-btn ui-corner-all submit_new_arduino'>Add new MAC ID</button>
-                  <button class='ui-btn ui-corner-all read_from_db'>Read from DB</button>
-                </fieldset>
-              </div>
-              <div data-role='fieldcontain'>
-                <fieldset data-role='controlgroup' data-type='horizontal'>
-                  <select class='arduino_select'></select>
-                  <button class='ui-btn ui-corner-all add_new_code'>Add script</button>
-                </fieldset>
-              </div>
-              <div class='ui-corner-all custom-corners'>
-                  <div class='ui-bar ui-bar-a'>
-                       <h3>Available scripts:</h3>
+  "_id"  : "master_control",
+  "type" : "control",
+  "title" : "Raspberry Controls",
+  "description" : "Control the Rasp Pis",
+  "predef_cmds" : {
+    "Shutdown" : [ "halt" ],
+    "Restart" : [ "shutdown", "-r", "now" ],
+    "Reload" : [ "service", "rspby", "install" ],
+    "Restart dmn" : [ "service", "rspby", "restart" ],
+    "User def" : ""
+  },
+  "html" : """
+<div>
+    <div>
+        <div class='all_controls ui-disabled'>
+          <div data-role='fieldcontain'>
+            <fieldset data-role='controlgroup' data-type='horizontal'>
+              <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_mac'>
+              <button class='ui-btn ui-corner-all submit_new_arduino'>Add new MAC ID</button>
+              <button class='ui-btn ui-corner-all read_from_db'>Read from DB</button>
+            </fieldset>
+          </div>
+          <div data-role='fieldcontain'>
+            <fieldset data-role='controlgroup' data-type='horizontal'>
+              <select class='arduino_select'></select>
+              <button class='ui-btn ui-corner-all add_new_code'>Add script</button>
+            </fieldset>
+          </div>
+          <div>
+            <div class='ui-corner-all custom-corners send_cmd_all'>
+                <div class='ui-bar ui-bar-a'>
+                     <h3>Send command:</h3>
+                </div>
+                <div class='ui-body ui-body-a'>
+                  <div data-role='fieldcontain'>
+                    <fieldset data-role='controlgroup' data-type='horizontal'>
+                      <select class='cmd_select'></select>
+                      <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_cmd'>
+                      <button class='ui-btn ui-corner-all send_cmd'>Send</button>
+                    </fieldset>
                   </div>
-                  <div class='ui-body ui-body-a'>
-                      <div data-role='collapsible-set' class='all_avail_code' data-inset='false'>
-                      </div>
-                  </div>
-              </div>
+                </div>
+            </div>
+            <div class='ui-corner-all custom-corners'>
+                <div class='ui-bar ui-bar-a'>
+                     <h3>Available scripts:</h3>
+                </div>
+                <div class='ui-body ui-body-a'>
+                    <div data-role='collapsible-set' class='all_avail_code' data-inset='false'>
+                    </div>
+                </div>
+            </div>
+            <div class='ui-corner-all custom-corners'>
+                <div class='ui-bar ui-bar-a'>
+                     <h3>Log:</h3>
+                </div>
+                <div class='ui-body ui-body-a'>
+                  <img src='/nedm_head/_design/nedm_head/css/images/light-loader-highres.gif' class='rspy_log_loading'>
+                  <ul class='rspy_log'>
+                  </ul>
+                </div>
+            </div>
 
-            </div>
-            <div data-role="popup" id="arduinosConfirm" data-overlay-theme="a" data-theme="a" 
-              style="max-width:400px;" class="ui-corner-all" data-dismissible="false">
-                <div data-role="header" data-theme="a" class="ui-corner-top">
-                    <h1>Delete script?</h1>
-                </div>
-                <div role="main" class="ui-corner-bottom ui-content">
-                    <h3 class="ui-title">Are you sure you want to delete this script?</h3>
-                    <p>This action cannot be undone.</p>
-                    <a href="#" class='cancel_button' data-role="button" data-inline="true" data-rel="back" data-theme="a">Cancel</a>
-                    <a href="#" class='delete_button' data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Delete</a>
-                </div>
-            </div>
+          </div>
+
         </div>
-        <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
+        <div data-role="popup" id="arduinosConfirm" data-overlay-theme="a" data-theme="a"
+          style="max-width:400px;" class="ui-corner-all" data-dismissible="false">
+            <div data-role="header" data-theme="a" class="ui-corner-top">
+                <h1>Delete script?</h1>
             </div>
-        </div> <!-- content-secondary -->
-        <div align='left' data-role='collapsible' class='arduino_edit_template' style='display:none;'>
-           <h3><span class='doc_name'>(Not saved)</span></h3> 
-           <h5>Name:</h5>
-           <input type='text' class='code_name' value='Unique name'>
-           <h5>Code:</h5>
-           <div class='code_editor'># Fill the following with python code</div>
-           <div data-role='fieldcontain'>
-             <fieldset data-role='controlgroup' data-type='horizontal'>
-                <button class='ui-btn ui-corner-all save_code'>Save</button>
-                <button class='ui-btn ui-corner-all remove_code'>Remove</button>
-             </fieldset>
-           </div>
+            <div role="main" class="ui-corner-bottom ui-content">
+                <h3 class="ui-title">Are you sure you want to delete this script?</h3>
+                <p>This action cannot be undone.</p>
+                <a href="#" class='cancel_button' data-role="button" data-inline="true" data-rel="back" data-theme="a">Cancel</a>
+                <a href="#" class='delete_button' data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Delete</a>
+            </div>
         </div>
     </div>
-    <script>
-      var to_clone = $('.arduino_edit_template').clone();
-      var ac = $('.all_avail_code');
+    <div align='left' data-role='collapsible' class='arduino_edit_template' style='display:none;'>
+       <h3><span class='doc_name'>(Not saved)</span></h3>
+       <h5>Name:</h5>
+       <input type='text' class='code_name' value='Unique name'>
+       <h5>Code:</h5>
+       <div class='code_editor'># Fill the following with python code</div>
+       <div data-role='fieldcontain'>
+         <fieldset data-role='controlgroup' data-type='horizontal'>
+            <button class='ui-btn ui-corner-all save_code'>Save</button>
+            <button class='ui-btn ui-corner-all remove_code'>Remove</button>
+         </fieldset>
+       </div>
+    </div>
+</div>""",
+"script" : """
+    function(thediv, docobj) {
+      var to_clone = $('.arduino_edit_template', $(thediv)).clone();
+      var ac = $('.all_avail_code', $(thediv));
+      var ard_select = $('.arduino_select', $(thediv)).filter(':input');
+      var update_timeout;
       var update_div_with_code = function(new_code, adoc) {
           if (adoc) {
              $('.code_name', $(new_code)).val(adoc.name);
@@ -81,6 +111,49 @@
           }
       };
 
+      var submit_cmd = function(acmd, macid) {
+         var ad = { cmd : acmd, type : macid.toString() + '_cmd' };
+         var timeout = 0;
+         $('.send_cmd_all', $(thediv)).addClass('ui-disabled');
+         var check_doc = function(o) {
+             var anid = o.id || o._id;
+             return function() {
+                 nedm.get_database().getDoc(anid, function(e, o) {
+                    if (e) return;
+                    if (!o.ret) {
+                        if (timeout > 10000) {
+                          nedm.show_error_window("Timeout", "Cmd timed out");
+                          $('.send_cmd_all', $(thediv)).removeClass('ui-disabled');
+                        } else {
+                          timeout += 2000;
+                          setTimeout(check_doc(o), 2000);
+                        }
+                    } else {
+                        toastr.success("Response: " + JSON.stringify(o.ret), "Cmd response");
+                        $('.send_cmd_all', $(thediv)).removeClass('ui-disabled');
+                    }
+                 });
+           };
+         };
+         nedm.get_database().updateDoc(ad,
+             'nedm_default',
+             'insert_with_timestamp',
+             function(e,o) {
+               if (e) {
+                 nedm.show_error_window("Server error",
+                                          JSON.stringify(e));
+               } else {
+                 check_doc(o)();
+               }
+         });
+
+      };
+      var send_current_command = function(ev) {
+         var mid = $('.arduino_select :selected').val();
+         var the_cmd = JSON.parse($('.input_cmd', $(thediv)).val());
+         submit_cmd(the_cmd, mid);
+
+      };
       var add_new_code = function(ev, adoc, tag) {
           var new_code = to_clone.clone();
           new_code.removeClass('arduino_edit_template').addClass('code_sample');
@@ -93,11 +166,11 @@
 
           $('.remove_code', $(new_code)).on('click', remove_code);
           $('.save_code', $(new_code)).on('click', save_code);
-          new_code.data( { editor : editor, 
+          new_code.data( { editor : editor,
                               tag : tag || $('.arduino_select :selected').val() });
           ac.append(new_code);
           ac.collapsibleset('refresh');
-      }; 
+      };
       var update_current_code = function(ev) {
           var selected_val = $(':selected', $(ev.currentTarget)).val();
           $('.all_avail_code').addClass('ui-disabled');
@@ -111,31 +184,43 @@
               }
           });
           $('.all_avail_code').removeClass('ui-disabled');
+          $('.rspy_log', $(thediv)).empty();
+          $('.rspy_log_loading', $(thediv)).show();
+          if (update_timeout) {
+            clearTimeout(update_timeout);
+          }
+          update_log();
       };
       var remove_code = function(ev) {
-          $('#arduinosConfirm').data( {
-            callback : function(o) {
-               console.log(o);
-               //var par $(ev.currentTarget).parents('.code_sample');
-               //if (par.data('doc')) {
-               //    nedm.get_database('nedm_head').removeDoc(
-               //      par.data('doc'),
-               //      function(e,o) {
-               //        if(e) {
-               //          
-               //        } 
-               //    );}
-               //
-               //} else {
-               //    par.remove();
-               //}
-            }
-         }).popup('open');
+          var par = $(ev.currentTarget).parents('.code_sample');
+          par.addClass('ui-disabled');
+          var cbck = function(o) {
+             if (!o.delete) {
+               par.removeClass('ui-disabled');
+               return;
+             }
+             if (par.data('doc')) {
+                 nedm.get_database().removeDoc(
+                   par.data('doc'),
+                   function(e,o) {
+                       if(e) {
+                         nedm.show_error_window(e.error, e.reason);
+                         par.removeClass('ui-disabled');
+                       } else {
+                         toastr.info("Success", "Document: " + o.id + " removed");
+                         par.remove();
+                       }
+                   });
+             } else {
+                 par.remove();
+             }
+          };
+          $('#arduinosConfirm').data( { callback : cbck }).popup('open');
       };
       var save_code = function(ev) {
           var par = $(ev.currentTarget).parents('.code_sample');
           var submit_doc = {
-            name : $('.code_name', $(par)).val(), 
+            name : $('.code_name', $(par)).val(),
             code : par.data('editor').getSession().getValue(),
             type : parseInt(par.data('tag'))
           };
@@ -143,27 +228,26 @@
             submit_doc._id = par.data('doc')._id;
           }
           par.addClass('ui-disabled');
-          nedm.get_database('nedm_head').
-            updateDoc(submit_doc, 
-              'nedm_default', 
+          nedm.get_database().
+            updateDoc(submit_doc,
+              'nedm_default',
               'insert_with_timestamp',
               function(e,o) {
                 if (e) {
-                    nedm.show_error_window("Server error", 
+                    nedm.show_error_window("Server error",
                                            JSON.stringify(e));
                     par.removeClass('ui-disabled');
                 } else {
-                    nedm.get_database('nedm_head').getDoc(o.id,
+                    nedm.get_database().getDoc(o.id,
                       function(x,y) {
                         par.removeClass('ui-disabled');
                         if (x) return;
                         update_div_with_code(par, y);
                         ac.collapsibleset('refresh');
                     });
-                } 
+                }
           });
       };
-      var ard_select = $('.arduino_select', $('.arduinos_page')).filter(':input');
       var append_mac_id = function(macid) {
            var num = 0;
            var hexnum = "";
@@ -171,9 +255,15 @@
                num = macid;
                hexnum = num.toString(16);
            } else {
-               hexnum = macid;
-               num = parseInt(hexnum, 16);
-           };
+               // check first if it's an integer already
+               if (! Number.isNaN(Number(macid))) {
+                   num = parseInt(macid);
+                   hexnum = num.toString(16);
+               } else {
+                   hexnum = macid;
+                   num = parseInt(hexnum, 16);
+               }
+           }
            if (hexnum.substr(0, 6) === 'b827eb') {
                var o = $('<option/>').val(num).text(hexnum);
                ard_select.append(o);
@@ -189,29 +279,35 @@
             if (e) return;
             var r = o.rows;
             for (var i = 0;i<r.length;i++) {
-                add_new_code(null, r[i].doc, r[i].doc.type); 
+                add_new_code(null, r[i].doc, r[i].doc.type);
             }
         };
-        nedm.get_database('nedm_head')
+        nedm.get_database()
             .getView('document_type',
                      'document_type',
                      { opts :
-                   {   group_level : 1} },
+                   {
+                     reduce : false,
+                     endkey : ['heartbeat'],
+                     startkey : ['heartbeat', {}],
+                     descending : true
+                   } },
             function(e, o) {
               if (e !== null) return;
               var r = o.rows;
               for (var i = 0;i<r.length;i++) {
-                  var k = r[i].key[0];
+                  var k = r[i].id.split('_')[0];
                   if (!append_mac_id(k)) continue;
-                  nedm.get_database('nedm_head')
+                  k = parseInt(k);
+                  nedm.get_database()
                       .getView('document_type',
                                'document_type',
-                               { opts : {   
-                                 reduce : false, 
+                               { opts : {
+                                 reduce : false,
                                  endkey : [k],
                                startkey : [k, {}],
                              descending : true,
-                           include_docs : true } 
+                           include_docs : true }
                                }, add_code_from_view_results);
               }
               ard_select.selectmenu('refresh', true);
@@ -221,32 +317,106 @@
 
       };
 
+      var update_log = function() {
+          var log_name = $('.arduino_select :selected').val();
+          if (log_name) {
+            log_name += '_log';
+            var alog = $('.rspy_log', $(thediv));
+            if ($('li', alog).length === 0) {
+              $('.rspy_log_loading', $(thediv)).show();
+            }
+            nedm.get_database().getDoc(log_name,
+              function(e,o) {
+                $('.rspy_log_loading', $(thediv)).hide();
+                if (!e) {
+                  var d = $(':last', $(alog));
+                  if (d) { d = d.text(); }
+                  var remove_since_date = (new Date((new Date()) - 60000))
+                             .toISOString()
+                             .replace('T', ' ')
+                             .replace('Z', '');
+                  o.log.forEach(function(x) {
+                    if (d && d !== "" && x[0] <= d) return;
+                    if (x[0] <= remove_since_date) return;
+                    $('<li/>').html(
+                       '<span class="bolded_font">' + x[0] + '</span>' +
+                       ' [RSPBY] ' + x[1]).hide().appendTo(alog).slideDown('slow');
+                  });
+                  var i = 0;
+                  $("span", $(alog)).each( function() {
+                    if ($(this).text() <= remove_since_date) i += 1;
+                    else return false;
+                  });
+                  // Remove old entries
+                  setTimeout( function(remove_num) {
+                    var i = remove_num;
+                    return function() {
+                      $("li", $(alog)).slice(0, i).animate({
+                                   height: '0px'
+                               }, {
+                                   duration: 500,
+                                   complete: function() {
+                                       $(this).remove();
+                                   }
+                               });
+                  };}(i), 1000);
+                } else {
+                    alog.empty();
+                    alog.append($('<li/>').html(
+                       '<span class="bolded_font" style="color:red;">[ Rasp Pi log not found ]</span>'));
+                }
+                update_timeout = setTimeout(update_log, 5000);
+            });
+          } else {
+            update_timeout = setTimeout(update_log, 5000);
+          }
+      };
+
       var add_macid = function(ev) {
           var ins = $('.input_mac').val();
-          append_mac_id(ins);
-      }; 
-      $(document).on('pageinit', function() {
-        $('.arduino_select').on('change', update_current_code);
-        $('.add_new_code').on('click', add_new_code);
-        $('.read_from_db').on('click', read_from_db);
-        $('.submit_new_arduino').on('click', add_macid);
-        $('.read_from_db').trigger('click');
-        var button_func = function(x) { 
-           var nm = x;
-           return function(ev) {
-                var j = $('#arduinosConfirm');
-                if (j.data('callback')) {
-                    var ret_obj = {};
-                    ret_obj[nm] = true;
-                    j.data('callback')(ret_obj);
-                    j.data({ callback : null });
-                }
-           };
-        };
-        ['cancel', 'delete'].forEach(function(o) {
-           $('.' + o + '_button', $('#arduinosConfirm')).on('click', button_func(o));
-        });
+          if (!append_mac_id(ins)) {
+              nedm.show_error_window("Bad MAC ID", ins.toString() + " is not recognized as a Raspberry Pi MAC id.");
+          } else {
+              ard_select.selectmenu('refresh', true);
+          }
+      };
+      var update_current_cmd = function(ev) {
+         var o = $(':selected', $(ev.currentTarget));
+         var txt = o.val();
+         $('.input_cmd', $(thediv)).val(txt);
+         if (txt === '""') {
+           $('.input_cmd', $(thediv)).removeClass("ui-disabled");
+         } else {
+           $('.input_cmd', $(thediv)).addClass("ui-disabled");
+         }
+      };
+      for (var k in docobj.predef_cmds) {
+        $('.cmd_select', $(thediv)).append($('<option/>')
+          .val(JSON.stringify(docobj.predef_cmds[k]))
+          .text(k));
+      }
+      $('.arduino_select', $(thediv)).on('change', update_current_code);
+      $('.cmd_select', $(thediv)).on('change', update_current_cmd);
+      $('.add_new_code', $(thediv)).on('click', add_new_code);
+      $('.read_from_db', $(thediv)).on('click', read_from_db);
+      $('.submit_new_arduino', $(thediv)).on('click', add_macid);
+      $('.send_cmd', $(thediv)).on('click', send_current_command);
+      $('.read_from_db', $(thediv)).trigger('click');
+      var button_func = function(x) {
+         var nm = x;
+         return function(ev) {
+              var j = $('#arduinosConfirm');
+              if (j.data('callback')) {
+                  var ret_obj = {};
+                  ret_obj[nm] = true;
+                  j.data('callback')(ret_obj);
+                  j.data({ callback : null });
+              }
+         };
+      };
+      ['cancel', 'delete'].forEach(function(o) {
+         $('.' + o + '_button', $('#arduinosConfirm')).on('click', button_func(o));
       });
-    </script>
-</div>"""
+      update_log();
+  }"""
 }
