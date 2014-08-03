@@ -30,3 +30,7 @@
     border-bottom-right-radius: 0px;
     margin-top: 5px;
 }
+
+.bolded_font {
+    font-weight: bold;
+}
