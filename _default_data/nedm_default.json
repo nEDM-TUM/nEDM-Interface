@@ -108,7 +108,8 @@
       
       //require_field('created_by');
       
-      if (newDoc.created_by != userCtx.name && !IS_SERVER_ADMIN) {
+      if (oldDoc && oldDoc.created_by != newDoc.created_by &&
+            newDoc.created_by != userCtx.name && !IS_SERVER_ADMIN) {
         throw { 'forbidden' : 'User may not save as another user' };
       }
       
