@@ -18,8 +18,13 @@
   "updates" : {
     "insert_with_timestamp" : """function(doc, req) {
         // If it doesn't exist, we are making a new one
-        if (!doc) doc = {};
-        
+        if (!doc) {
+          doc = {};
+          if (req.id) {
+            doc._id = req.id;
+          }
+        }
+
         // For documents without uuids
         if (!doc._id) doc._id = req.uuid;
         
