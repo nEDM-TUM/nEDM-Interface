@@ -18,10 +18,6 @@
  "script" : """
     function( avar, anobj ) {
         
-        var measure = function() {
-	    var com = $('.comment', $(avar)).val();
-            alert('Hello!!! ' + com); 
-        };
 	var record = function() {
 		var com = $('.comment', $(avar)).val();
 		var adoc = {
@@ -29,8 +25,8 @@
 			"text": com
 		};
 		nedm.send_command( { cmd_name : "log_and_measure",
-				     arguments : com,
-    				     timeout : 1000,
+				     arguments : [ com ],
+    				     timeout : 5000,
 				     callback: function(err, o) {
 					     if (not(err)) {
 					     toastr.info("Success", "");
