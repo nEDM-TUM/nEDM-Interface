@@ -15,7 +15,7 @@
   "title" : "{{title}}",
   "description" : "{{description}}",
   "html" : """
-  <div class = 'monitor_class'> 
+  <div class = 'monitor_class'>
     <p class='window_name_class'/>
     <div class = 'show_plot'>
     </div>
@@ -76,14 +76,14 @@
          var opts = { mode : atype,
                       lockInput : false,
                       showInitialValue : true,
-                      useNewStyle : true }; 
+                      useNewStyle : true };
          return $('<input>').attr({ type : 'text',
                                     'data-role' : 'datebox',
                                     'class'     : aclass,
                                     'data-options' : JSON.stringify(opts)});
     };
 
-   
+
     $('.all_date_boxes', new_div).append(gimme_datebox('calbox', 'date_begin'))
                                  .append(gimme_datebox('calbox', 'date_end'))
                                  .trigger('create');
@@ -97,17 +97,17 @@
     var now2 = new Date(now);
     var tb = $('.time_begin', new_div);
     tb.datebox('setTheDate', now)
-      .trigger('datebox', 
+      .trigger('datebox',
       { method: 'set',
         value:  tb.datebox('callFormat', '%H:%M', now)});
     now2.setHours(0);
     now2.setMinutes(0);
     $('.date_begin', new_div).datebox('setTheDate',now2);
-    
+
     var adb = nedm.get_database();
     if (anobj.db) adb = anobj.db;
-    var obj = new nedm.MonitoringGraph($('.show_plot', new_div)[0], [], now, adb); 
-    new_div.data( { 
+    var obj = new nedm.MonitoringGraph($('.show_plot', new_div)[0], [], now, adb);
+    new_div.data( {
                      thisdiv : new_div,
                      graph : obj,
                      remove : function() {
@@ -130,8 +130,7 @@
                        });
                        plotted_vars.selectmenu('refresh', true);
                        $('.remove_plotted', this.thisdiv).removeClass('ui-disabled');
-
-                     } 
+                     }
                    });
     obj.beginListening();
 
@@ -180,7 +179,7 @@
             should_cancel: false
         });
         $('.cancel_button', retDiv).on('click',
-    
+
         function () {
             $(this).addClass('ui-disabled');
             retDiv.data({
@@ -199,8 +198,8 @@
             return the_date;
         };
         $('.adv_options,.plot_legend', new_div).addClass('ui-disabled');
-        var start_date = get_new_date('begin'); 
-        var end_date = get_new_date('end'); 
+        var start_date = get_new_date('begin');
+        var end_date = get_new_date('end');
         var until_now = ensure_until_now_state();
         if (until_now) end_date = 0;
         var current_progress = $('.variable_progress', new_div);
@@ -220,7 +219,7 @@
                 }
                 if (o.varname != objs.variable) return;
                 $(this).find('.loading_view')
-                .text(o.varname + ' loaded: ' + 
+                .text(o.varname + ' loaded: ' +
                       objs.loaded.toString());
                 return false;
             });
@@ -235,9 +234,9 @@
 
 
     $('.date_button_execute', new_div).on('click', change_dates);
-    $('.check_box_until_now', new_div).on('change', function() { 
-        ensure_until_now_state(); 
-        $('.date_button_execute', new_div).trigger('click'); 
+    $('.check_box_until_now', new_div).on('change', function() {
+        ensure_until_now_state();
+        $('.date_button_execute', new_div).trigger('click');
     });
     $('.remove_plotted', new_div).on('click', function() {
       var ssc = $('select.plotted_vars', new_div).find(':selected');
@@ -251,7 +250,7 @@
         plt.selectmenu('refresh', true);
       });
     });
-    $('.check_box_until_now', new_div).trigger('click'); 
+    $('.check_box_until_now', new_div).trigger('click');
 
   }
   """
