@@ -670,16 +670,33 @@ nedm.MonitoringGraph.prototype.appendData = function(r) {
 };
 
 nedm.MonitoringGraph.prototype.addDataName = function(aname) {
-    if (this.name.indexOf(aname) != -1 ) return false;
-    this.name.push(aname);
-    return true;
+    if (!Array.isArray(aname)) aname = [ aname ];
+    var retVal = false;
+    var arr = this.name;
+    aname.forEach(function(ev) {
+      if (arr.indexOf(ev) == -1) {
+        arr.push(ev);
+        retVal = true;
+      }
+    });
+    return retVal;
 };
 
 nedm.MonitoringGraph.prototype.removeDataName = function(aname, callback) {
-    var anIndex = this.name.indexOf(aname);
-    if (anIndex == -1 ) return;
-    this.name.splice(anIndex, 1);
-    this.data.every( function(o) { o.splice(anIndex+1, 1); return true; } );
+    if (!Array.isArray(aname)) {
+      aname = [ aname ];
+    }
+    var wasRemoved = false;
+    var arr = this.name;
+    var dat = this.data;
+    aname.forEach(function(ev) {
+        var anIndex = arr.indexOf(ev);
+        if (anIndex == -1 ) return;
+        wasRemoved = true;
+        arr.splice(anIndex, 1);
+        dat.every( function(o) { o.splice(anIndex+1, 1); return true; } );
+    });
+    if (!wasRemoved) return;
     this.update();
     if (callback) callback();
 };
