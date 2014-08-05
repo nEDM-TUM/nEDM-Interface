@@ -8,7 +8,7 @@
   "body" : """
 
 <div data-role='page' class='db_monitor_class'>
-    <div class='headerChild'> 
+    <div class='headerChild'>
     </div>
 
     <div align='center' data-role='content'>
@@ -28,11 +28,11 @@
             </div>
 
             <div class='monitor_div'>
-            
+
             </div>
         </div> <!-- content-primary -->
         <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
             </div>
         </div> <!-- content-secondary -->
         <script type='text/javascript'>
@@ -79,7 +79,7 @@
             var thispage = $(ev.target).parents('.content-primary');
             var scp = $('.selectCurrentPlot', thispage).filter(':input');
             var sIndex = scp[0].selectedIndex;
-            var selected = scp.find(':selected'); 
+            var selected = scp.find(':selected');
             removeWindow(selected);
             if (sIndex != 0) sIndex--;
             scp[0].selectedIndex = sIndex;
@@ -98,7 +98,7 @@
 			// change all that often.
             var adb = $(ev.target).attr('data-url').split('/');
             adb = adb[adb.length-1];
-            nedm.get_database(adb).getView('slow_control_time', 'slow_control_time', 
+            nedm.get_database(adb).getView('slow_control_time', 'slow_control_time',
                 { opts : {stale : 'ok', group_level : 1} }, function (e, o) {
                         if (e !== null ) return;
                         var ssc = $('.selectSlowControl', $(ev.target)).filter(':input');
@@ -114,7 +114,7 @@
                             }
                         }
                         ssc.selectmenu('refresh', true);
-                    }); 
+                    });
 
         }; // getAvailableItems
 
@@ -138,12 +138,12 @@
 
         (function() {
             $( '.db_monitor_class' ).off('pagecreate').on( 'pagecreate', function(ev, ui) {
-                var addr = '/nedm_head/_design/nedm_head/_show/define_control/graph_template'; 
+                var addr = '/nedm_head/_design/nedm_head/_show/define_control/graph_template';
                 $.ajax({ type: 'POST',
-                         url: addr, 
+                         url: addr,
                          data: JSON.stringify({}),
                          success: function(e) {
-                             graph_template = e; 
+                             graph_template = e;
                              if (e.doc && e.doc.script) {
                                  graph_template.script = eval('(' + e.doc.script + ')');
                              }
@@ -156,8 +156,8 @@
                 $('.addSlowControl', $(ev.target)).off('click').on('click', addSelectedPlotToWindow );
                 getAvailableItems(ev, ui);
                 $( document ).off('pagecontainerbeforeshow').on('pagecontainerbeforeshow', exitCleanup);
-            }); 
-        }()); 
+            });
+        }());
 	    </script>
     </div>
 </div>
