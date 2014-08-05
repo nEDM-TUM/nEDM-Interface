@@ -161,7 +161,7 @@
           update_div_with_code( new_code, adoc);
           editor = ace.edit($('.code_editor', $(new_code))[0]);
           editor.getSession().setMode('ace/mode/python');
-          editor.setTheme('ace/theme/github');
+          editor.setTheme('ace/theme/xcode');
           new_code.data({ editor : editor });
 
           $('.remove_code', $(new_code)).on('click', remove_code);

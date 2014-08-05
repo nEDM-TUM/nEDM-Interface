@@ -210,7 +210,7 @@ def main(db):
 
       editor = ace.edit($('.adv_options .alarm_code')[0]);
       editor.getSession().setMode('ace/mode/python');
-      editor.setTheme('ace/theme/github');
+      editor.setTheme('ace/theme/xcode');
     });
 
     </script>
