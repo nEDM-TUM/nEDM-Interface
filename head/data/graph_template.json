@@ -26,7 +26,9 @@
         <a href='#' data-role='button' data-inline='true' class='ui-disabled remove_plotted'>
           Remove
         </a>
-        <select class='plotted_vars'/>
+        <select class='plotted_vars' multiple='multiple' data-native-menu='false'>
+          <option>Select variable(s):</option>
+        </select>
       </fieldset>
     </div>
     <!-- Advanced options -->
@@ -114,12 +116,18 @@
                      },
                      add_plot : function(aname) {
                        var retVal = false;
-                       if (! this.graph.addDataName(aname) ) return retVal; 
+                       if (! this.graph.addDataName(aname) ) return retVal;
                        retVal = true;
                        $('.date_button_execute', this.thisdiv).trigger('click');
-                       if ( $('select.plotted_vars option[value=\"' + aname + '\"]', this.thisdiv).length >= 1 ) return retVal;
+                       if (!Array.isArray(aname)) {
+                         aname = [ aname ];
+                       }
                        var plotted_vars = $('select.plotted_vars', this.thisdiv);
-                       plotted_vars.append($('<option/>').attr({value : aname}).append(aname));
+                       aname.forEach( function(ev) {
+                           if ( $('option[value="' + ev + '"]', plotted_vars).length >= 1 ) return;
+                           plotted_vars.append($('<option/>').val(ev).text(ev));
+
+                       });
                        plotted_vars.selectmenu('refresh', true);
                        $('.remove_plotted', this.thisdiv).removeClass('ui-disabled');
 
@@ -233,10 +241,11 @@
     });
     $('.remove_plotted', new_div).on('click', function() {
       var ssc = $('select.plotted_vars', new_div).find(':selected');
-      obj.removeDataName(ssc.val(), function() {
-        ssc.remove(); 
+      var rem_names = $.makeArray(ssc.map(function() { return $(this).val(); }));
+      obj.removeDataName(rem_names, function() {
+        ssc.remove();
         var plt = $('select.plotted_vars', new_div);
-        if (plt.find('option').length === 0) {  
+        if (plt.find('option').length <= 1) {
           $('.remove_plotted', new_div).addClass('ui-disabled');
         }
         plt.selectmenu('refresh', true);

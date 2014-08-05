@@ -22,7 +22,8 @@
             </div>
             <div data-role='controlgroup' data-type='horizontal'>
                 <a href='#' data-role='button' data-inline='true' class='addSlowControl ui-disabled'>Add to selected graph</a>
-                <select class='selectSlowControl ui-disabled'>
+                <select class='selectSlowControl ui-disabled' multiple='multiple' data-native-menu='false'>
+                  <option>Available variables:</option>
                 </select>
             </div>
 
@@ -126,16 +127,13 @@
 
         var addSelectedPlotToWindow = function() {
             var scp = $('.ui-page-active .selectCurrentPlot');
-            var the_div = scp.find(':selected').data('reference'); 
-            var ssc = $('.ui-page-active .selectSlowControl').find(':selected');
-            if (!the_div.data().add_plot(ssc.val())) return; 
+            var the_div = scp.find(':selected').data('reference');
+            var ssc = $('.ui-page-active .selectSlowControl')
+                       .find(':selected')
+                       .map(function() { return $(this).val(); });
+            ssc = $.makeArray(ssc);
+            if (!the_div.data().add_plot(ssc)) return;
             the_div.find('.date_button_execute').trigger('click');
-
-            if ( the_div.find('select.plotted_vars option[value=' + ssc.val() + ']').length >= 1 ) return;
-            var plotted_vars = the_div.find('select.plotted_vars');
-            plotted_vars.append($('<option/>').attr({value : ssc.val()}).append(ssc.val()));
-            plotted_vars.selectmenu('refresh', true);
-            the_div.find('.remove_plotted').removeClass('ui-disabled');
         }; // addSelectedPlotToWindow
 
         (function() {
