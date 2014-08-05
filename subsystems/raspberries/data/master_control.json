@@ -256,7 +256,7 @@
                hexnum = num.toString(16);
            } else {
                // check first if it's an integer already
-               if (! Number.isNaN(Number(macid))) {
+               if (!isNaN(Number(macid))) {
                    num = parseInt(macid);
                    hexnum = num.toString(16);
                } else {
