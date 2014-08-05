@@ -1,42 +1,50 @@
 {
-  "_id" : "measurei",
+  "_id" : "measure",
   "type" : "control",
   "title" : "Make single measurement",
   "description" : "Record single log file",
  "html" : """
 <div class="onemeasure">
-    <div data-role="fieldcontain">
-	<div data-role="controlgroup" data-type="horizontal">
-	    <label for="text-1">Comment:</label>
-	    <input class="comment" name="text-1" value="" type="text">
-	    <button class="measureit">Record</button>
-	</div>
-    </div>
+        <div data-role="fieldcontain">
+            <div align='left'>
+                <div class="comment code_editor"></div>
+            </div>
+            <div data-role="controlgroup" data-type="horizontal">
+                <button class="measureit">Record</button>
+            </div>
+        </div>
 
 </div><!-- onemeasure -->
  """,
  "script" : """
     function( avar, anobj ) {
-        
-	var record = function() {
-		var com = $('.comment', $(avar)).val();
-		var adoc = {
-			"type": "log",
-			"text": com
-		};
-		nedm.send_command( { cmd_name : "log_and_measure",
-				     arguments : [ com ],
-    				     timeout : 5000,
-				     callback: function(err, o) {
-					     if (not(err)) {
-					     toastr.info("Success", "");
-					     }
-				     }
-				   }
-				 );
-	};
-	$('.measureit', $(avar)).on('click', record);
+
+        var cmt = $('.comment', $(avar));
+        var record = function() {
+            var com = cmt.data('editor').getSession().getValue();
+            var adoc = {
+                "type": "log",
+                "text": com
+            };
+            nedm.send_command( { cmd_name : "log_and_measure",
+                         arguments : [ com ],
+                             timeout : 5000,
+                         callback: function(err, o) {
+                             if (not(err)) {
+                             toastr.info("Success", "");
+                             }
+                         }
+                       }
+                     );
+        };
+
+        editor = ace.edit(cmt[0]);
+        editor.setTheme('ace/theme/xcode');
+        cmt.data({editor : editor});
+        $('.measureit', $(avar)).on('click', record);
     }
  """
 
 }
+
+
