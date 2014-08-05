@@ -6,7 +6,12 @@
   },
   "filters" : {
     "doc_type" : """function(doc, req) {
-        var t = JSON.parse(req.query.type);
+        var t;
+        try {
+          t = JSON.parse(req.query.type);
+        } catch (err) {
+          t = req.query.type;
+        }
         if (!Array.isArray(t)) {
           t = [t];
         }
