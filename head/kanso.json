@@ -6,7 +6,7 @@
   "load"    : "lib/app",
   "modules" : ["lib"],
   "ace" : {
-    "theme" : ["github"],
+    "theme" : ["github", "xcode"],
     "mode" : ["python", "javascript"]
   },
   "dependencies": {
