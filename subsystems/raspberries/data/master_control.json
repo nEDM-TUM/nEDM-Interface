@@ -38,6 +38,7 @@
                       <select class='cmd_select'></select>
                       <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_cmd'>
                       <button class='ui-btn ui-corner-all send_cmd'>Send</button>
+                      <button class='ui-btn ui-corner-all stop_wait'>Stop waiting</button>
                     </fieldset>
                   </div>
                 </div>
@@ -98,6 +99,7 @@
       var ac = $('.all_avail_code', $(thediv));
       var ard_select = $('.arduino_select', $(thediv)).filter(':input');
       var update_timeout;
+      var submit_cmd_timeout;
       var update_div_with_code = function(new_code, adoc) {
           if (adoc) {
              $('.code_name', $(new_code)).val(adoc.name);
@@ -114,23 +116,19 @@
       var submit_cmd = function(acmd, macid) {
          var ad = { cmd : acmd, type : macid.toString() + '_cmd' };
          var timeout = 0;
-         $('.send_cmd_all', $(thediv)).addClass('ui-disabled');
+         $('.send_cmd', $(thediv)).addClass('ui-disabled');
+         $('.stop_wait', $(thediv)).removeClass('ui-disabled');
          var check_doc = function(o) {
              var anid = o.id || o._id;
              return function() {
                  nedm.get_database().getDoc(anid, function(e, o) {
                     if (e) return;
                     if (!o.ret) {
-                        if (timeout > 10000) {
-                          nedm.show_error_window("Timeout", "Cmd timed out");
-                          $('.send_cmd_all', $(thediv)).removeClass('ui-disabled');
-                        } else {
-                          timeout += 2000;
-                          setTimeout(check_doc(o), 2000);
-                        }
+                        submit_cmd_timeout = setTimeout(check_doc(o), 2000);
                     } else {
                         toastr.success("Response: " + JSON.stringify(o.ret), "Cmd response");
-                        $('.send_cmd_all', $(thediv)).removeClass('ui-disabled');
+                        $('.send_cmd', $(thediv)).removeClass('ui-disabled');
+                        $('.stop_wait', $(thediv)).addClass('ui-disabled');
                     }
                  });
            };
@@ -402,6 +400,12 @@
       $('.submit_new_arduino', $(thediv)).on('click', add_macid);
       $('.send_cmd', $(thediv)).on('click', send_current_command);
       $('.read_from_db', $(thediv)).trigger('click');
+      $('.stop_wait', $(thediv)).on('click', function() {
+        if (submit_cmd_timeout) clearTimeout(submit_cmd_timeout);
+        submit_cmd_timeout = null;
+        $('.send_cmd', $(thediv)).removeClass('ui-disabled');
+        $('.stop_wait', $(thediv)).addClass('ui-disabled');
+      });
       var button_func = function(x) {
          var nm = x;
          return function(ev) {
