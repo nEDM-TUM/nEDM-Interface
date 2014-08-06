@@ -30,8 +30,8 @@
                          arguments : [ com ],
                              timeout : 5000,
                          callback: function(err, o) {
-                             if (not(err)) {
-                             toastr.info("Success", "");
+                             if (!err) {
+                                 toastr.info("Success", "");
                              }
                          }
                        }
