@@ -148,7 +148,16 @@
       };
       var send_current_command = function(ev) {
          var mid = $('.arduino_select :selected').val();
-         var the_cmd = JSON.parse($('.input_cmd', $(thediv)).val());
+         var the_cmd = $('.input_cmd', $(thediv)).val();
+         try {
+           the_cmd = JSON.parse(the_cmd);
+         } catch(err) {
+           // Ok, here we failed to get parsed
+           the_cmd = the_cmd.split(" ");
+         }
+         if (!Array.isArray(the_cmd)) {
+           the_cmd = [ the_cmd ];
+         }
          submit_cmd(the_cmd, mid);
 
       };
