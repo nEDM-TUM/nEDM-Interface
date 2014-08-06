@@ -1,0 +1,19 @@
+{
+  "_id" : "_design/log",
+  "language" : "javascript",
+  "views" : {
+     "log" : {
+       "map" : """function(doc) {
+           if (!doc.type) return;
+           if (doc.type === "log") {
+             emit([doc._id, "log"], 0);
+           }
+           if (!doc.logids) return;
+           for(var i = 0;i<doc.logids.length;i++) {
+             emit([doc.logids[i], doc.type], 1);
+           }
+        }""",
+        "reduce" : "_sum"
+     }
+  }
+}
