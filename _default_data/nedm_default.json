@@ -60,8 +60,12 @@
                       ' (' + ts + ')';
 
         // Always update the created_by and timestamp
-        doc.created_by = user;
-        doc.timestamp  = ts;
+        if (!doc.created_by) {
+          doc.created_by = user;
+        }
+        if (!doc.timestamp) {
+          doc.timestamp  = ts;
+        }
         return [doc, JSON.stringify({msg : message, id : doc._id, ok : true})];
       }"""
   },
