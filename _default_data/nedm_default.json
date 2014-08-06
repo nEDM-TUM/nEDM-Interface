@@ -67,6 +67,38 @@
           doc.timestamp  = ts;
         }
         return [doc, JSON.stringify({msg : message, id : doc._id, ok : true})];
+      }""",
+    "update_with_log" : """function(doc, req) {
+        // The document must exist
+        if (!doc) {
+            return [null, JSON.stringify({msg : 'No document found', error : true})];
+        }
+        // This would be odd, there should always be a body
+        if (!req.body) {
+            return [null, JSON.stringify({msg : 'No document to insert', error : true})];
+        }
+
+        // Pull the information from the body, insert into current document
+        _ref = JSON.parse(req.body);
+        if (!_ref.logids) {
+            return [null, JSON.stringify({msg : 'No log field', error : true})];
+        }
+
+        var logids = _ref.logids;
+        if (!Array.isArray(logids)) {
+          logids = [ logids ];
+        }
+        if (req.query.overwrite || !doc.logids) {
+          doc.logids = [];
+        }
+        for (var i=0;i<logids.length;i++) {
+          if (doc.logids.indexOf(logids[i]) < 0) {
+            doc.logids.push(logids[i]);
+          }
+        }
+
+        var message = 'update with log id(s) ' + JSON.stringify(logids);
+        return [doc, JSON.stringify({msg : message, id : doc._id, ok : true})];
       }"""
   },
   "rewrites" : [],
