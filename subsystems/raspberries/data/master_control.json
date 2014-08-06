@@ -41,6 +41,10 @@
                       <button class='ui-btn ui-corner-all stop_wait'>Stop waiting</button>
                     </fieldset>
                   </div>
+                  <div align='left'>
+                    <p><span class="bolded_font">Last output: </span><pre class="returned_output"></pre></p>
+                    <p><span class="bolded_font">Last error: </span><pre class="returned_error"></pre></p>
+                  </div>
                 </div>
             </div>
             <div class='ui-corner-all custom-corners'>
@@ -126,7 +130,9 @@
                     if (!o.ret) {
                         submit_cmd_timeout = setTimeout(check_doc(o), 2000);
                     } else {
-                        toastr.success("Response: " + JSON.stringify(o.ret), "Cmd response");
+                        toastr.success("Responded", "Cmd response");
+                        $('.returned_output', $(thediv)).text(o.ret[0]);
+                        $('.returned_error', $(thediv)).text(o.ret[1]);
                         $('.send_cmd', $(thediv)).removeClass('ui-disabled');
                         $('.stop_wait', $(thediv)).addClass('ui-disabled');
                     }
