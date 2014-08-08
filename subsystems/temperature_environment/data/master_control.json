@@ -18,13 +18,13 @@
         </div>
         <dl class='description' style='text-align:left;'>
             <dt>Result:</dt> 
-            <dd class='result'></dd>
+            <dd><pre class='result'></pre></dd>
             <dt>Help information:</dt> 
-            <dd class='help_msg'></dd>
+            <dd><pre class='help_msg'></pre></dd>
             <dt>Units:</dt> 
-            <dd class='units'></dd>
+            <dd><pre class='units'></pre></dd>
             <dt>Format:</dt> 
-            <dd class='format'></dd>
+            <dd><pre class='format'></pre></dd>
         </l>
     </div>
 </div>
