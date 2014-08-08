@@ -1,4 +1,4 @@
-# Monitor template 
+# Monitor template
 #
 #
 
@@ -38,33 +38,39 @@
         <script type='text/javascript'>
         var graph_template;
 
-        var makeNewGraph = function() {
-            var selection = $('.ui-page-active .selectCurrentPlot').filter(':input');
+        var makeNewGraph = function(ev) {
+            var aP = $(ev.target);
+            if (!aP.hasClass('db_monitor_class')) {
+              aP = aP.parents('.db_monitor_class');
+            }
+            var selection = $('.selectCurrentPlot', aP).filter(':input');
             var select_length = selection.find('option').length;
             var window_num = select_length;
             if (window_num > 0) {
                 window_num = parseInt($('option:last-child', selection).val()) + 1;
             }
             var new_div = $('<div/>').append(graph_template.html).addClass('graph_monitor');;
-            $('.ui-page-active .monitor_div').append(new_div);
+            $('.monitor_div', aP).append(new_div);
             if (graph_template.script) {
                 graph_template.script(new_div, { window_name: 'Window ' + window_num });
             }
             new_div.trigger('create');
             selection.append($('<option/>').attr( { value : window_num } )
                                            .append('Window ' + window_num)
-                                           .data( { reference : new_div } ));
+                                           .data( { reference : new_div,
+                                                    num : window_num } ));
             selection[0].selectedIndex = select_length;
             // Now deal with the other buttons
-            $('.ui-page-active .removePlot').removeClass('ui-disabled');
+            $('.removePlot', aP).removeClass('ui-disabled');
             selection.removeClass('ui-disabled');
-            var ssc = $('.ui-page-active .selectSlowControl').filter(':input');
+            var ssc = $('.selectSlowControl', aP).filter(':input');
             ssc.removeClass('ui-disabled');
             if (ssc.find('option').length !== 0) {
-                $('.ui-page-active .addSlowControl').removeClass('ui-disabled');
+                $('.addSlowControl', aP).removeClass('ui-disabled');
             }
             selection.selectmenu('refresh', true);
-
+            updateCookies();
+            return $(':selected', $(selection));
             // Begin additional functions
         }; // makeNewGraph
 
@@ -93,11 +99,27 @@
             scp.selectmenu('refresh', true);
         }; // destroyGraph
 
+        var populateGraphsWithCookies = function(ev) {
+            if ( $('.monitor_div', $(ev.target)).children().length > 0 ) return;
+            var durl = $(ev.target).attr('data-url');
+            var old_plots = $.cookie('current_plots' + durl);
+            $.removeCookie('current_plots' + durl, { path : '/' });
+            if (old_plots) {
+                for (var i=0;i<old_plots.length;i++) {
+                    var x = old_plots[i];
+                    var gr = makeNewGraph(ev);
+                    gr.data('reference').data().add_plot(x.name);
+                }
+            }
+        };
+
         var getAvailableItems = function (ev, ui) {
 			// We can have stale = update_after since the data types will not
 			// change all that often.
-            var adb = $(ev.target).attr('data-url').split('/');
+            var durl = $(ev.target).attr('data-url');
+            var adb = durl.split('/');
             adb = adb[adb.length-1];
+            var ev = ev;
             nedm.get_database(adb).getView('slow_control_time', 'slow_control_time',
                 { opts : {stale : 'ok', group_level : 1} }, function (e, o) {
                         if (e !== null ) return;
@@ -113,13 +135,29 @@
                                 $('.addSlowControl', $(ev.target)).removeClass('ui-disabled');
                             }
                         }
+                        populateGraphsWithCookies(ev);
                         ssc.selectmenu('refresh', true);
                     });
 
         }; // getAvailableItems
 
+        var updateCookies = function() {
+            var current_plots = [];
+            var durl = $('.ui-page-active').attr('data-url');
+            $('.ui-page-active select.selectCurrentPlot option').each( function() {
+                var graph = $(this).data('reference').data('graph');
+                var next_obj = {};
+                ["name", "time_prev", "time_range", "until_time"].forEach( function(o) {
+                   next_obj[o] = graph[o];
+                });
+                current_plots.push(next_obj);
+            });
+            $.cookie('current_plots' + durl, current_plots, { path : '/' , expires : 365});
+        };
+
         var exitCleanup = function (ev, ui) {
-            $('select.selectCurrentPlot option', ui.prevPage).each( function() {
+            updateCookies();
+            $('.ui-page-active select.selectCurrentPlot option').each( function() {
                 removeWindow($(this));
             });
             $('select.selectCurrentPlot').selectmenu('refresh', true);
@@ -128,17 +166,22 @@
         var addSelectedPlotToWindow = function() {
             var scp = $('.ui-page-active .selectCurrentPlot');
             var the_div = scp.find(':selected').data('reference');
+            var win_num = scp.find(':selected').data('num');
             var ssc = $('.ui-page-active .selectSlowControl')
                        .find(':selected')
                        .map(function() { return $(this).val(); });
             ssc = $.makeArray(ssc);
             if (!the_div.data().add_plot(ssc)) return;
             the_div.find('.date_button_execute').trigger('click');
+            updateCookies();
         }; // addSelectedPlotToWindow
 
         (function() {
-            $( '.db_monitor_class' ).off('pagecreate').on( 'pagecreate', function(ev, ui) {
+            $( '.db_monitor_class' ).off('pageinit').on( 'pageinit', function(ev, ui) {
+                var ev = ev;
+                var ui = ui;
                 var addr = '/nedm_head/_design/nedm_head/_show/define_control/graph_template';
+                var tthis = $(this);
                 $.ajax({ type: 'POST',
                          url: addr,
                          data: JSON.stringify({}),
@@ -147,6 +190,9 @@
                              if (e.doc && e.doc.script) {
                                  graph_template.script = eval('(' + e.doc.script + ')');
                              }
+                             getAvailableItems(ev, ui);
+                             // Set up also for later
+                             tthis.on('pageshow', populateGraphsWithCookies);
                              $('.makeNewPlot', $(ev.target)).removeClass('ui-disabled');
                          }
                 });
@@ -154,8 +200,7 @@
                 $('.makeNewPlot', $(ev.target)).off('click').on('click', makeNewGraph );
                 $('.removePlot', $(ev.target)).off('click').on('click', destroyGraph );
                 $('.addSlowControl', $(ev.target)).off('click').on('click', addSelectedPlotToWindow );
-                getAvailableItems(ev, ui);
-                $( document ).off('pagecontainerbeforeshow').on('pagecontainerbeforeshow', exitCleanup);
+                tthis.on('pagebeforehide', exitCleanup);
             });
         }());
 	    </script>
