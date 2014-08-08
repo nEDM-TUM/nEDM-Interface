@@ -22,6 +22,7 @@
     "jquery-mobile" : null, 
     "jquery-mobile-datebox" : null, 
     "toastr" : null,
+    "jquery-cookie" : null,
     "ace" : null,
     "dygraph-combined" : null 
   } 
