@@ -96,12 +96,14 @@
     var now = new Date(Date.now() - 600000);
     var now2 = new Date(now);
     var tb = $('.time_begin', new_div);
+    tb.datebox();
     tb.datebox('setTheDate', now)
       .trigger('datebox',
       { method: 'set',
         value:  tb.datebox('callFormat', '%H:%M', now)});
     now2.setHours(0);
     now2.setMinutes(0);
+    $('.date_begin', new_div).datebox();
     $('.date_begin', new_div).datebox('setTheDate',now2);
 
     var adb = nedm.get_database();
