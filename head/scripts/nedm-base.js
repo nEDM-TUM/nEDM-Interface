@@ -460,23 +460,25 @@ nedm.compile = function(astr) {
 
 nedm.all_db_listeners = {};
 nedm.database_listener = function( adb ) {
+    var adb = adb;
     if (adb in nedm.all_db_listeners) return;
     nedm.all_db_listeners[adb] = {};
     var update_function = function( atype ) {
         var adom = $('.' + adb + ' .' + atype); 
         return function(e, o) {
-               var text = "OFF";
+               var text = "nedm-status-r";
                if (!e && o.rows.length == 1) {
                    var now = new Date();
                    var last_data = nedm.dateFromKey(o.rows[0].key);
                    if ( last_data > now || (now - last_data < 20000)) { 
-                       text = "ON";
+                       text = "nedm-status-g";
                    } 
                } 
-               adom.text(text);
+               adom.removeClass('nedm-status-y').addClass(text);
                delete nedm.all_db_listeners[adb][atype];
                if (Object.keys(nedm.all_db_listeners[adb]).length === 0) {
                    delete nedm.all_db_listeners[adb];
+                   setTimeout(function() { nedm.database_listener( adb ); }, 10000);
                }
                // Throttle, wait until we check again...
         };
