@@ -4,6 +4,11 @@ module.exports = [
   , "to"  : "index.html"
   }
 , 
+  { "description": "Access to favicon.ico"
+  , "from": "favicon.ico"
+  , "to"  : "favicon.ico"
+  }
+,
   { "description": "Access to _rewrite"
   , "from": "_rewrite/_couchdb/*"
   , "to"  : "../../../*"
