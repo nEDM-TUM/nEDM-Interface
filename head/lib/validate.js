@@ -1,6 +1,3 @@
-var couchtypes = require('couchtypes/types'),
-    types = require('./types');
-
 
 module.exports = function(newDoc, oldDoc, userCtx, secObj) {
   var ddoc = this;
