@@ -15,6 +15,33 @@
     padding-bottom:.22em;
 }
 
+th.db_name {
+    vertical-align:middle;
+}
+
+.nedm-status-r, .nedm-status-y, .nedm-status-g {
+    font-family:Lucida Console;
+    width: 50px;
+    height: 50px;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    text-align: center;
+    vertical-align:middle;
+    display: table-cell;
+}
+
+.nedm-status-r {
+        background-image: url(images/RedLight.png);
+}
+
+.nedm-status-g {
+        background-image: url(images/GreenLight.png);
+}
+
+.nedm-status-y {
+        background-image: url(images/YellowLight.png);
+}
+
 @media only screen and (-webkit-min-device-pixel-ratio: 2) {
     .ui-icon-nedm-loading:after {   
 	    background: url(images/light-loader-highres.gif) no-repeat rgba(0, 0, 0, 0.0);
