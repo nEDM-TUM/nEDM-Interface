@@ -277,7 +277,8 @@
                    num = parseInt(hexnum, 16);
                }
            }
-           if (hexnum.substr(0, 6) === 'b827eb') {
+           var thestr = hexnum.substr(0, 6);
+           if (thestr === 'b827eb' || thestr === '48022a') {
                var o = $('<option/>').val(num).text(hexnum);
                ard_select.append(o);
                return true;
