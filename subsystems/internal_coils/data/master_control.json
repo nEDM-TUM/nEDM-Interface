@@ -16,7 +16,10 @@
     "setcurrentrange" : ["Current Range", 1],
     "setvoltrange" : ["Voltage Range", 1],
     "setcurrent" : ["Current", 1],
-    "setvoltage" : ["Voltage", 1]
+    "setvoltage" : ["Voltage", 1],
+    "userwrite" : ["User write command", 1],
+    "userask" : ["User read command", 1],
+    "clearstatus" : ["Clear Status", 0]
   },
  "html" : """
 <div>
@@ -181,7 +184,7 @@
           var chan = $('.channel_spinner2 :selected', $(avar)).val(); 
           var args = [ parseFloat(chan) ];
           if (o.data('should_enable')) {
-            args[1] = parseFloat($('.input_text', $(avar)).val());
+            args[1] = $('.input_text', $(avar)).val();
           }
           nedm.send_command( { cmd_name : cmd, 
                                arguments : args, 
