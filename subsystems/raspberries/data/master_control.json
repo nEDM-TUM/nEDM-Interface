@@ -295,6 +295,7 @@
             for (var i = 0;i<r.length;i++) {
                 add_new_code(null, r[i].doc, r[i].doc.type);
             }
+            update_current_code( { currentTarget : ard_select });
         };
         nedm.get_database()
             .getView('document_type',
@@ -325,7 +326,6 @@
                                }, add_code_from_view_results);
               }
               ard_select.selectmenu('refresh', true);
-              update_current_code( { currentTarget : ard_select });
               $('.all_controls').removeClass('ui-disabled');
             });
 
