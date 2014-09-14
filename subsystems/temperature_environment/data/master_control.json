@@ -33,27 +33,7 @@
     function( avar, anobj ) {
        var devices = $('.temp_device_select', $(avar));
        var funcs = $('.function_select', $(avar));
-       var setup_func = function(o) {
-           if (!o || !o.return) return;
-           for (var k in o.return) {
-               var cmds = o.return[k].cmds;
-               var j = $('<option/>').val(k).text(k).data({ cmds : cmds });
-               devices.append(j);
-           }
-           devices.selectmenu("refresh", true);
-           $('.all_functions', $(avar)).toggleClass('ui-disabled');
-           devices.trigger("change");
-       };
-       var update_functions = function(o) {
-        </l>
-    </div>
-</div>
- """,
- "script" : """
-    function( avar, anobj ) {
-       var devices = $('.temp_device_select', $(avar));
-       var funcs = $('.function_select', $(avar));
-       var setup_func = function(o) {
+       var setup_func = function(e, o) {
            if (!o || !o.return) return;
            for (var k in o.return) {
                var cmds = o.return[k].cmds;
@@ -104,7 +84,7 @@
            var cmd_doc = { cmd_name : j[atype],
                             timeout : 10000,
                           arguments : args,
-                           callback : function(o) { 
+                           callback : function(e, o) {
                                $('.all_functions', $(avar)).removeClass('ui-disabled');
                                if (!o || !o.return) return;
                                $('.result', $(avar)).text(JSON.stringify(o.return));
@@ -114,7 +94,7 @@
        };
        nedm.send_command( { cmd_name : "all_keys", 
                               timeout: 10000,
-                            callback : setup_func 
+                            callback : setup_func
        } );
        ['set', 'get', 'call'].forEach( function(k) {
            $('.' + k + '_function', $(avar)).data({ type : k });
