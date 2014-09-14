@@ -31,7 +31,7 @@
           nedm.send_command( { cmd_name : cmd, 
                                arguments : [ parseFloat($('[type=text]', $(avar)).val()) ],
                                timeout : 5000,
-                               callback: function(o) { 
+                               callback: function(e, o) {
                                  $('.sync_value_class', $(avar)).trigger('click');
                                } 
                              });
@@ -42,7 +42,7 @@
           var cmd = anobj.sync_cmd_name; 
           nedm.send_command( { cmd_name : cmd, 
                                timeout : 5000,
-                               callback: function(o) { 
+                               callback: function(e, o) {
                                   enable_all();
                                   if (o && o.ok) txt.val(o.return); 
                                } 

@@ -170,7 +170,7 @@
           nedm.send_command( { cmd_name : cmd, 
                                arguments : [ parseFloat(chan) ],
                                timeout : 5000,
-                               callback: function(o) { 
+                               callback: function(e, o) {
                                  if (o && o.ok) {
                                      $('.output_text', $(avar)).val(o.return);
                                  } 
@@ -189,7 +189,7 @@
           nedm.send_command( { cmd_name : cmd, 
                                arguments : args, 
                                timeout : 5000,
-                               callback: function(o) { 
+                               callback: function(e, o) {
                                  enable_all(); 
                                  sync_func({ target : sel });
                                } 

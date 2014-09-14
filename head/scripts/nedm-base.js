@@ -347,8 +347,70 @@ nedm.update_db_interface = function(db) {
     db.cancel_changes_feed = function(tag) {
         return nedm.cancel_changes_feed(this, tag);
     };
-
-
+    db.send_command = function(o) {
+      var adoc = { type : 'command', execute : o.cmd_name };
+      if ('arguments' in o) { adoc['arguments'] = o['arguments']; }
+      var callback;
+      var quiet;
+      var timeout = 0;
+      var that = this;
+      if ('timeout' in o) timeout = o.timeout;
+      if (timeout < 0) timeout = 0;
+      if ('callback' in o) callback = o.callback;
+      if ('quiet' in o) quiet = o.quiet;
+      var ret_function = function(err, resp) {
+          if (err) {
+            if (callback) callback(err); 
+            if (!quiet) nedm.show_error_window(err.error, err.reason);
+          } else {
+            if (callback) callback(null, resp); 
+            if (!quiet) toastr.success(resp.toastr.msg, resp.toastr.title);
+          }
+      };
+      that.updateDoc(adoc,  
+          'nedm_default', 'insert_with_timestamp', function(err, obj) { 
+             if (err !== null) {
+                 return ret_function(err);
+             } 
+             var cmd_str = "Command submitted: " + o.cmd_name; 
+             if ('arguments' in adoc) {
+                 cmd_str += ", with args: " + JSON.stringify(adoc['arguments']);
+             }
+             if (!quiet) toastr.info(cmd_str, "");
+             // Check for the return of the function...
+             var total_timeout = timeout;
+             var check_cmd_return = function() {
+                 that.getView("execute_commands", "complete_commands",
+                   { opts: { reduce : false, key : [o.cmd_name, obj.id], include_docs : true } },
+                   function(err, objs) {
+                       if (err !== null) return;
+                       if (objs.rows.length != 1 || objs.rows[0].doc.response === undefined) {
+                           // call again
+                           if (timeout > 0) {
+                               total_timeout -= 1000;
+                               if (total_timeout <= 0) {
+                                   return ret_function(
+                                      { error  : "Timeout on reaction for command: " + o.cmd_name, 
+                                        reason :"Timeout" });
+                               } 
+                           }
+                           setTimeout(check_cmd_return, 1000);
+                       } else { 
+                           var resp = objs.rows[0].doc.response;
+                           var resp_str = "Response for (" + o.cmd_name + "): " + resp.content + "\n" +
+                                          "    return value: " + JSON.stringify(resp['return']); 
+                           if (!("ok" in resp)) { 
+                               return ret_function( { error : resp_str, reason : "Error" } );
+                           } else {
+                               resp.toastr = { msg : resp_str, title : "Success" }; 
+                               return ret_function(null, resp);
+                           }
+                       }
+                   });
+             };
+             check_cmd_return();
+      });  
+    };
 };
 
 
@@ -845,60 +907,7 @@ nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
 };
 
 nedm.send_command = function(o) {
-      var adoc = { type : 'command', execute : o.cmd_name };
-      if ('arguments' in o) { adoc['arguments'] = o['arguments']; }
-      var callback;
-      var timeout = 0;
-      if ('timeout' in o) timeout = o.timeout;
-      if (timeout < 0) timeout = 0;
-      if ('callback' in o) callback = o.callback;
-      nedm.get_database().updateDoc(adoc,  
-          'nedm_default', 'insert_with_timestamp', function(err, obj) { 
-             if (err !== null) {
-                 nedm.show_error_window(err.error, err.reason);
-                 return;
-             } 
-             var cmd_str = "Command submitted: " + o.cmd_name; 
-             if ('arguments' in adoc) {
-                 cmd_str += ", with args: " + JSON.stringify(adoc['arguments']);
-             }
-             toastr.info(cmd_str, "");
-             // Check for the return of the function...
-             var total_timeout = timeout;
-             var check_cmd_return = function() {
-                 nedm.get_database().getView("execute_commands", "complete_commands",
-                   { opts: { reduce : false, key : [o.cmd_name, obj.id], include_docs : true } },
-                   function(err, objs) {
-                       if (err !== null) return;
-                       if (objs.rows.length != 1 || objs.rows[0].doc.response === undefined) {
-                           // call again
-                           if (timeout > 0) {
-                               total_timeout -= 1000;
-                               if (total_timeout <= 0) {
-                                   toastr.error("Timeout on reaction for command: " + o.cmd_name, "Timeout");
-                                   if (callback) callback();
-                                   return;
-                               } 
-                           }
-                           setTimeout(check_cmd_return, 1000);
-                       } else { 
-                           var resp = objs.rows[0].doc.response;
-                           var func = toastr.success;
-                           var title = "Success";
-                           if (!("ok" in resp)) { 
-                               func = toastr.error; 
-                               title = "Error";
-                           }
-                           func("Response for (" + o.cmd_name + "): " + resp.content + "\n" +
-                                "    return value: " + JSON.stringify(resp['return']),  
-                             title);
-                           if (callback === undefined) return;
-                           callback(resp); 
-                       }
-                   });
-             };
-             check_cmd_return();
-      });  
+      nedm.get_database().send_command(o);
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
