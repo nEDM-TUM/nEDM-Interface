@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["system_health_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["system_health_reader"]
+  }
+}
