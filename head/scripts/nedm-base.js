@@ -32,7 +32,7 @@ bs = function(haystack, needle, comparator, alow, ahigh) {
     /* Too high. */
     else if(cmp > 0)
       high = mid - 1;
-    
+
     /* Key found. */
     else
       return mid;
@@ -90,7 +90,7 @@ nedm.getNumberParts = function (x) {
 };
 
 nedm.build_url = function(options) {
-    var url = ""; 
+    var url = "";
 
     var first = true;
     for(var key in options) {
@@ -111,16 +111,16 @@ nedm.get_current_db_name = function() {
 	// Following gets rid of nedm%2F for those browsers that don't
 	// automatically convert to /
 	temp = temp[temp.length-1].split("%2F");
-    return "nedm%2F" + temp[temp.length-1]; 
+    return "nedm%2F" + temp[temp.length-1];
 };
 
 nedm.get_database = function(name) {
-    if (name === undefined) { 
-      name = nedm.get_current_db_name(); 
+    if (name === undefined) {
+      name = nedm.get_current_db_name();
     }
     if (!(name in nedm.available_database)) {
         nedm.available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
-    } 
+    }
     return nedm.available_database[name];
 };
 
@@ -143,32 +143,32 @@ nedm.listen_to_changes_feed = function(db, tag, callback, options) {
         console.log("Warning: removing tag '" + tag +"'");
         nedm.cancel_changes_feed(db, tag);
     }
-    nedm.open_changes_feeds.taglist[tag] = {callb: callback, url: url}; 
-    nedm.open_changes_feeds.urllist[url].src.addEventListener("message", callback, false); 
+    nedm.open_changes_feeds.taglist[tag] = {callb: callback, url: url};
+    nedm.open_changes_feeds.urllist[url].src.addEventListener("message", callback, false);
     nedm.open_changes_feeds.urllist[url].taglist[tag] = {};
 };
 
 nedm.cancel_changes_feed = function(db, tag) {
 
-    if (!(tag in nedm.open_changes_feeds.taglist)) return; 
-    
-    var obj = nedm.open_changes_feeds.taglist[tag]; 
+    if (!(tag in nedm.open_changes_feeds.taglist)) return;
+
+    var obj = nedm.open_changes_feeds.taglist[tag];
     var src = nedm.open_changes_feeds.urllist[obj.url].src;
-    
-    src.removeEventListener("message", obj.callb, false); 
+
+    src.removeEventListener("message", obj.callb, false);
 
     delete nedm.open_changes_feeds.urllist[obj.url].taglist[tag];
     if ( Object.keys( nedm.open_changes_feeds.urllist[obj.url].taglist ).length === 0 ) {
         src.close();
         delete nedm.open_changes_feeds.urllist[obj.url];
-    } 
+    }
     delete nedm.open_changes_feeds.taglist[tag];
 };
 
 
 nedm.update_db_interface = function(db) {
     db.get_most_recent_value = function(var_name, callback) {
-      this.getView('slow_control_time', 'slow_control_time', 
+      this.getView('slow_control_time', 'slow_control_time',
       { opts : {
           endkey : [var_name],
         startkey : [var_name, {}],
@@ -212,7 +212,7 @@ nedm.update_db_interface = function(db) {
         var req = {
             url: this.url +
                 '/_changes' + nedm.build_url(options),
-            type: "GET", 
+            type: "GET",
             expect_json: true
         };
 
@@ -245,7 +245,7 @@ nedm.update_db_interface = function(db) {
                 '/_design/' + this.encode(name) +
                 '/_view/' + viewname + nedm.build_url(options.opts),
             data: data,
-            type: theType, 
+            type: theType,
             expect_json: true
         };
 
@@ -261,7 +261,7 @@ nedm.update_db_interface = function(db) {
                                           tthis.cancel();
                                           return;
                                        }
-                                       if (!tthis.mytoastr) { 
+                                       if (!tthis.mytoastr) {
                                            tthis.initial_value = o.view_update_seq;
                                            tthis.total_diff = o.db_update_seq - tthis.initial_value;
                                            tthis.mytoastr = toastr.info(base_text + " ? of ?",
@@ -275,7 +275,7 @@ nedm.update_db_interface = function(db) {
                                        var perc = (o.view_update_seq - tthis.initial_value)*100/tthis.total_diff;
                                        if (perc > 100) perc = 100;
                                        $(".toast-message", tthis.mytoastr).text(
-                                         base_text + (o.view_update_seq - tthis.initial_value).toString() + " of " + 
+                                         base_text + (o.view_update_seq - tthis.initial_value).toString() + " of " +
                                          tthis.total_diff.toString() + " (" + perc.toFixed(2) +
                                          "%)");
                                    });
@@ -316,7 +316,7 @@ nedm.update_db_interface = function(db) {
     };
 
     db.checkViewStatus = function(view, callback) {
-        var obj = this; 
+        var obj = this;
         this.info( function(e, o) {
             if (e) callback({ error: e });
             else {
@@ -325,15 +325,15 @@ nedm.update_db_interface = function(db) {
                     if (e) callback({ error: e });
                     else {
                         var done = (o.view_index.update_seq >= cur_seq) || !o.view_index.updater_running;
-                        callback( { done: done, 
-                                   view : o.name, 
+                        callback( { done: done,
+                                   view : o.name,
                          view_update_seq: o.view_index.update_seq,
                            db_update_seq: cur_seq } );
                         if (!done) {
                           setTimeout(function() { obj.getViewInfo(view, view_status); }, 2000);
                         }
                     }
-                }; 
+                };
                 obj.getViewInfo(view, view_status);
             }
         });
@@ -360,19 +360,19 @@ nedm.update_db_interface = function(db) {
       if ('quiet' in o) quiet = o.quiet;
       var ret_function = function(err, resp) {
           if (err) {
-            if (callback) callback(err); 
+            if (callback) callback(err);
             if (!quiet) nedm.show_error_window(err.error, err.reason);
           } else {
-            if (callback) callback(null, resp); 
+            if (callback) callback(null, resp);
             if (!quiet) toastr.success(resp.toastr.msg, resp.toastr.title);
           }
       };
-      that.updateDoc(adoc,  
-          'nedm_default', 'insert_with_timestamp', function(err, obj) { 
+      that.updateDoc(adoc,
+          'nedm_default', 'insert_with_timestamp', function(err, obj) {
              if (err !== null) {
                  return ret_function(err);
-             } 
-             var cmd_str = "Command submitted: " + o.cmd_name; 
+             }
+             var cmd_str = "Command submitted: " + o.cmd_name;
              if ('arguments' in adoc) {
                  cmd_str += ", with args: " + JSON.stringify(adoc['arguments']);
              }
@@ -390,51 +390,51 @@ nedm.update_db_interface = function(db) {
                                total_timeout -= 1000;
                                if (total_timeout <= 0) {
                                    return ret_function(
-                                      { error  : "Timeout on reaction for command: " + o.cmd_name, 
+                                      { error  : "Timeout on reaction for command: " + o.cmd_name,
                                         reason :"Timeout" });
-                               } 
+                               }
                            }
                            setTimeout(check_cmd_return, 1000);
-                       } else { 
+                       } else {
                            var resp = objs.rows[0].doc.response;
                            var resp_str = "Response for (" + o.cmd_name + "): " + resp.content + "\n" +
-                                          "    return value: " + JSON.stringify(resp['return']); 
-                           if (!("ok" in resp)) { 
+                                          "    return value: " + JSON.stringify(resp['return']);
+                           if (!("ok" in resp)) {
                                return ret_function( { error : resp_str, reason : "Error" } );
                            } else {
-                               resp.toastr = { msg : resp_str, title : "Success" }; 
+                               resp.toastr = { msg : resp_str, title : "Success" };
                                return ret_function(null, resp);
                            }
                        }
                    });
              };
              check_cmd_return();
-      });  
+      });
     };
 };
 
 
-// Fix db function use 
+// Fix db function use
 nedm.old_use = require("db").use;
 // overwrite faulty db functions
 require("db").use = function (url) {
     /* Force leading slash; make absolute path. */
- 
+
     // From https://gist.github.com/jlong/2428561
-    // We use the DOM to get us info about the url 
+    // We use the DOM to get us info about the url
     var parse = document.createElement('a');
-    parse.href = url; 
- 
+    parse.href = url;
+
     // First check if it's already absolute:
     if (parse.href != url) {
         // We are on the same host
         // Now ensure we have a relative root-path
-        if (url[0] != '/') parse.href = '/' + url; 
-    }    
- 
+        if (url[0] != '/') parse.href = '/' + url;
+    }
+
     // Make absolute path
     url = parse.href;
-    var db = nedm.old_use(url); 
+    var db = nedm.old_use(url);
 
     // hack to fix version 0.13 of db
     if (db.url[0] =='/') db.url = db.url.substr(1);
@@ -444,10 +444,11 @@ require("db").use = function (url) {
     return db;
 };
 
+
 nedm.namespace = function(namespaceString) {
     var parts = namespaceString.split('.'),
     parent = window,
-    currentPart = '';    
+    currentPart = '';
     for(var i = 0, length = parts.length; i < length; i++) {
         currentPart = parts[i];
         parent[currentPart] = parent[currentPart] || {};
@@ -459,8 +460,8 @@ nedm.namespace = function(namespaceString) {
 
 nedm.update_buttons = function() {
     var user_status = nedm.check_user_status();
-    var loginbtn = $("a[id*=loginbtn]"); 
-    var logoutbtn = $("a[id*=logoutbtn]"); 
+    var loginbtn = $("a[id*=loginbtn]");
+    var logoutbtn = $("a[id*=logoutbtn]");
     if (user_status === null) {
         loginbtn.show();
         logoutbtn.hide();
@@ -482,7 +483,7 @@ nedm.update_header = function(ev, ui) {
         var db = /nedm%2F(.*)/.exec(nedm.get_current_db_name())[1];
         if (db in dbs) {
           hn.text("nEDM Interface: " + dbs[db].prettyname);
-        } 
+        }
       };
       nedm.get_database_info(callback);
 
@@ -492,12 +493,12 @@ nedm.update_header = function(ev, ui) {
 };
 
 nedm.set_user_name = function(userCtx) {
-       nedm.logged_in_as = userCtx.name; 
+       nedm.logged_in_as = userCtx.name;
 };
 
 nedm.check_user_status = function() {
     session.info(function(err, info) {
-       if (info) nedm.set_user_name(info.userCtx); 
+       if (info) nedm.set_user_name(info.userCtx);
     });
     return nedm.logged_in_as;
 };
@@ -507,11 +508,11 @@ nedm.logout = function() {
 };
 
 nedm.validate = function(un, pw, callback) {
-    session.login(un, pw, 
+    session.login(un, pw,
             function(err, response) {
                 var success = true;
                 if(err) success = false;
-                if (callback) callback(success); 
+                if (callback) callback(success);
             });
 };
 
@@ -526,16 +527,16 @@ nedm.database_listener = function( adb ) {
     if (adb in nedm.all_db_listeners) return;
     nedm.all_db_listeners[adb] = {};
     var update_function = function( atype ) {
-        var adom = $('.' + adb + ' .' + atype); 
+        var adom = $('.' + adb + ' .' + atype);
         return function(e, o) {
                var text = "nedm-status-r";
                if (!e && o.rows.length == 1) {
                    var now = new Date();
                    var last_data = nedm.dateFromKey(o.rows[0].key);
-                   if ( last_data > now || (now - last_data < 20000)) { 
+                   if ( last_data > now || (now - last_data < 20000)) {
                        text = "nedm-status-g";
-                   } 
-               } 
+                   }
+               }
                adom.removeClass('nedm-status-y').addClass(text);
                delete nedm.all_db_listeners[adb][atype];
                if (Object.keys(nedm.all_db_listeners[adb]).length === 0) {
@@ -553,7 +554,7 @@ nedm.database_listener = function( adb ) {
                         endkey : [k], startkey : [k, {}] } },
             update_function(send[k]));
             nedm.all_db_listeners[adb][send[k]] = true;
-    } 
+    }
 };
 
 nedm.database_status = function( ) {
@@ -579,12 +580,12 @@ nedm.get_database_info = function( callback ) {
 
     // First define a function to grab all the information
     function getDBInfo(db_name) {
-           var esc_name = "nedm%2F" + db_name; 
+           var esc_name = "nedm%2F" + db_name;
            var dfd = new $.Deferred();
            var callback = function (data, msg) {
-               return [db_name, data, msg]; 
+               return [db_name, data, msg];
            };
-           var json_subm = $.getJSON("/nedm_head/_design/nedm_head/_rewrite/_couchdb/" + esc_name + "/subsystem_information"); 
+           var json_subm = $.getJSON("/nedm_head/_design/nedm_head/_rewrite/_couchdb/" + esc_name + "/subsystem_information");
            json_subm.done( function(data) {
                dfd.resolve( callback(data, "found") );
            });
@@ -600,9 +601,9 @@ nedm.get_database_info = function( callback ) {
         $.each(data, function(key, val) {
             if (patt.exec(val) !== null) {
                 var db_name = val.substring(5);
-                if ( db_name.localeCompare("head") === 0 ) return; 
+                if ( db_name.localeCompare("head") === 0 ) return;
                 db_infos.push(getDBInfo(db_name));
-            }       
+            }
         });
         $.when.apply($, db_infos).done(function() {
             var current_database_info = {};
@@ -614,7 +615,7 @@ nedm.get_database_info = function( callback ) {
             callback( current_database_info );
         });
     });
-        
+
 
 };
 
@@ -636,7 +637,7 @@ nedm.buildDBList = function(ev, id) {
            listDBs.append(o.body);
            var db_list = $('.all_dbs_list_class', $(listDBs));
            for(var key in dbs) {
-               var esc_name = "nedm%2F" + key; 
+               var esc_name = "nedm%2F" + key;
                var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
                           .append($("<h3/>").append(dbs[key].prettyname));
                var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
@@ -650,10 +651,10 @@ nedm.buildDBList = function(ev, id) {
                html.append(ul);
                db_list.append(html);
            }
-           
+
            listDBs.trigger("create");
        });
-   };}(ev,id)); 
+   };}(ev,id));
 };
 
 nedm.dateFromKey = function(arr) {
@@ -694,7 +695,7 @@ nedm.MonitoringGraph.prototype.setGroupLevel = function(gl) {
 };
 
 nedm.MonitoringGraph.prototype.prependData = function(r) {
-     for (var i=0;i<r.length;i++) { 
+     for (var i=0;i<r.length;i++) {
          this.data.unshift(r[i]);
      }
 };
@@ -704,7 +705,7 @@ nedm.MonitoringGraph.prototype.recalc_axis_labels = function() {
      var one_side = nedm.getNumberParts(range[1]);
      var subtract = nedm.getNumberParts(range[1] - range[0]);
      var sfs = one_side.exponent - subtract.exponent + 2;
-     this.graph.updateOptions({ axes : { y : { sigFigs : sfs } } });  
+     this.graph.updateOptions({ axes : { y : { sigFigs : sfs } } });
 };
 
 nedm.MonitoringGraph.prototype.update = function() {
@@ -723,12 +724,12 @@ nedm.MonitoringGraph.prototype.dataFromKeyVal = function(obj) {
         } else outp.push(null);
     }
     if (!seen) return null;
-    return outp; 
+    return outp;
 };
 
 nedm.MonitoringGraph.prototype.appendData = function(r) {
      var append = 0;
-     for (var i=0;i<r.length;i++) { 
+     for (var i=0;i<r.length;i++) {
          this.data.push(r[i]);
          append++;
      }
@@ -771,7 +772,7 @@ nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
     var data = this.data;
     if (data.length === 0) return 0;
     var j = 0;
-    while (j < data.length && data[j][0].getTime() < adate.getTime()) j++; 
+    while (j < data.length && data[j][0].getTime() < adate.getTime()) j++;
     return data.splice(0, j);
 };
 
@@ -779,10 +780,10 @@ nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
 nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time, callback) {
 
     this.time_prev = prev_time;
-    if (typeof until_time === 'object' ) { 
+    if (typeof until_time === 'object' ) {
 	  // this means we go until a particular time
       if (prev_time > until_time) {
-          toastr.error("Time incorrect: " + prev_time.toString() + " > " + until_time.toString(), "Time"); 
+          toastr.error("Time incorrect: " + prev_time.toString() + " > " + until_time.toString(), "Time");
           if (callback) callback();
           return;
       }
@@ -800,25 +801,25 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
     var last_key = [9999];
     if (this.until_time !== 0) {
         last_key = [
-                 this.until_time.getUTCFullYear(), this.until_time.getUTCMonth(), 
-                 this.until_time.getUTCDate(), this.until_time.getUTCHours(), 
+                 this.until_time.getUTCFullYear(), this.until_time.getUTCMonth(),
+                 this.until_time.getUTCDate(), this.until_time.getUTCHours(),
                  this.until_time.getUTCMinutes(), this.until_time.getUTCSeconds()-1];
     }
-    first_key = [ 
-                 this.time_prev.getUTCFullYear(), this.time_prev.getUTCMonth(), 
-                 this.time_prev.getUTCDate(), this.time_prev.getUTCHours(), 
+    first_key = [
+                 this.time_prev.getUTCFullYear(), this.time_prev.getUTCMonth(),
+                 this.time_prev.getUTCDate(), this.time_prev.getUTCHours(),
                  this.time_prev.getUTCMinutes(), this.time_prev.getUTCSeconds()];
 
     if (this.name.length === 0 && callback) callback();
     var warning_shown = false;
     var limit = 3000;
-    var names_to_check = this.name.length; 
-    var view_clbck = function(obj, tl_entries, cr_name, local_opts) { 
-        return function(e, o) { 
-                  if (e !== null) return; 
-                  var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
+    var names_to_check = this.name.length;
+    var view_clbck = function(obj, tl_entries, cr_name, local_opts) {
+        return function(e, o) {
+                  if (e !== null) return;
+                  var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) {
                       if (o !== null) return true;
-                      return false; 
+                      return false;
                   });
                   if (!warning_shown && tl_entries > 50000) {
                       toastr.warning("Data length is > 50000 entries, suggest setting averaging or selecting a smaller visualization range", "");
@@ -826,35 +827,35 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
                   }
                   var recv_length = all_data.length;
                   if (recv_length !== 0) {
-                      obj.mergeData(all_data); 
+                      obj.mergeData(all_data);
                       tl_entries += recv_length;
                       if (recv_length < limit) {
                           if (callback) {
                               // The callback can request that we stop loading
-                              callback({ loaded : tl_entries, 
-                                       variable : cr_name, 
+                              callback({ loaded : tl_entries,
+                                       variable : cr_name,
                                            done : true });
                           }
                           names_to_check -= 1;
-                          if (names_to_check <= 0) obj.update(); 
+                          if (names_to_check <= 0) obj.update();
                       } else {
-                          local_opts.startkey = o.rows[o.rows.length-1].key; 
+                          local_opts.startkey = o.rows[o.rows.length-1].key;
                           local_opts.skip = 1;
                           if (callback) {
                               // The callback can request that we stop loading
-                              if (!callback({ loaded : tl_entries, 
-                                            variable : cr_name, 
+                              if (!callback({ loaded : tl_entries,
+                                            variable : cr_name,
                                                 done : false })) {
                                   names_to_check -= 1;
-                                  if (names_to_check <= 0) obj.update(); 
+                                  if (names_to_check <= 0) obj.update();
                                   return;
                               }
                           }
-                          obj.db.getView("slow_control_time", "slow_control_time", 
+                          obj.db.getView("slow_control_time", "slow_control_time",
                               { opts: local_opts }, view_clbck(obj, tl_entries, cr_name, local_opts));
                       }
                   } else if (callback) callback();
-              }; 
+              };
     };
 
 
@@ -864,13 +865,13 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
         var curr_name = this.name[i];
         new_first_key.unshift(curr_name);
         new_last_key.unshift(curr_name);
-        var opts = { descending: true, 
-                      startkey : new_last_key, 
-                        endkey : new_first_key, 
+        var opts = { descending: true,
+                      startkey : new_last_key,
+                        endkey : new_first_key,
                         reduce : true,
                         group_level : this.group_level,
-                        limit  : limit}; 
-        this.db.getView("slow_control_time", "slow_control_time", 
+                        limit  : limit};
+        this.db.getView("slow_control_time", "slow_control_time",
               { opts : opts }, view_clbck(this, 0, curr_name, opts));
     }
 
@@ -887,10 +888,10 @@ nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
    var dIndex = 0;
    var comp_func = function(a,b) { return a[0] - b[0]; };
    while (dIndex < new_data.length && new_data[dIndex][0] >= dt[0][0]) {
-       // find where we need to insert 
+       // find where we need to insert
        var cI = bs(dt, new_data[dIndex], comp_func, 0, curIndex);
        if (cI >= 0) {
-           // means the value is already at an index 
+           // means the value is already at an index
            curIndex = cI;
            for (var j=1;j<new_data[dIndex].length;j++) {
               if (new_data[dIndex][j] !== null) dt[curIndex][j] = new_data[dIndex][j];
@@ -911,35 +912,35 @@ nedm.send_command = function(o) {
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
-    // don't sync too often...    
+    // don't sync too often...
     if (this.isSyncing) return;
     this.isSyncing = true;
     var total_length = this.name.length;
-    var view_clbck = function(obj) { 
-        return function(e, o) { 
-                  if (e !== null) return; 
-                  var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) { 
+    var view_clbck = function(obj) {
+        return function(e, o) {
+                  if (e !== null) return;
+                  var all_data = o.rows.map(obj.dataFromKeyVal, obj).filter( function(o) {
                       if (o !== null) return true;
-                      return false; 
+                      return false;
                   });
                   var recv_length = all_data.length;
                   if (recv_length !== 0) {
-                      obj.mergeData(all_data); 
-                  } 
+                      obj.mergeData(all_data);
+                  }
                   total_length -= 1;
-                  if (total_length === 0) { 
-                    if (obj.data.length !== 0 && obj.time_range !== 0) { 
+                  if (total_length === 0) {
+                    if (obj.data.length !== 0 && obj.time_range !== 0) {
                         var time_before_now = new Date(obj.data[obj.data.length-1][0].getTime() - obj.time_range*1000);
                         obj.removeBeforeDate(time_before_now);
                     }
                     obj.update();
                     obj.isSyncing = false;
                   }
-              }; 
+              };
     };
     for (var i=0;i<this.name.length;i++) {
         this.db.getView('slow_control_time', 'slow_control_time',
-          { opts : { descending : true, 
+          { opts : { descending : true,
                     group_level : this.group_level,
                          reduce : true,
                          limit  : 1,
@@ -970,7 +971,7 @@ $(document).on('mobileinit', function() {
   $(document).on('pageinit', function(x, y) {
       nedm.update_header(x, y);
       nedm.buildDBList(x, y);
-  }); 
+  });
 
   // Handle page load fails from couchDB, forward to error handling.
   $(document).on('pageloadfailed', function( event, data) {
@@ -983,14 +984,14 @@ $(document).on('mobileinit', function() {
                 $.mobile.hidePageLoadingMsg();
     }, $.mobile.loadPage.defaults.loadMsgDelay);
 
-    // parse the error/reason 
+    // parse the error/reason
     var error = escape(JSON.parse(data.xhr.responseText).error);
     var msg = escape(JSON.parse(data.xhr.responseText).reason);
     nedm.show_error_window(error, msg);
 
     // Resolve the deferred object.
-    data.deferred.reject(data.absUrl, data.options);    
-  }); 
+    data.deferred.reject(data.absUrl, data.options);
+  });
 
   $(document).on('pageload', function( event, data) {
     var cIndex = $.mobile.navigate.history.activeIndex;
@@ -1000,7 +1001,7 @@ $(document).on('mobileinit', function() {
         stck.splice(cIndex+1, 1);
 
     }
-  });  
+  });
 
   require("jquery-mobile-datebox");
 });
