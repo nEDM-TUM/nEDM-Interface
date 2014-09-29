@@ -19,6 +19,25 @@ th.db_name {
     vertical-align:middle;
 }
 
+.nedm-status-button-r, .nedm-status-button-loading, .nedm-status-button-g {
+    width: 32px;
+    height: 32px;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    display: block;
+    float: right;
+}
+
+.nedm-status-button-r {
+    background: url(images/RedLight-small.png);
+}
+.nedm-status-button-loading {
+    background: url(images/light-loader-highres.gif);
+}
+.nedm-status-button-g {
+    background: url(images/GreenLight-small.png);
+}
+
 .nedm-status-r, .nedm-status-y, .nedm-status-g {
     font-family:Lucida Console;
     width: 50px;
