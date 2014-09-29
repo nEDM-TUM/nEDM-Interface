@@ -1,0 +1,521 @@
+{
+  "_id"  : "master_control",
+  "type" : "control",
+  "title" : "Measurements",
+  "description" : "Run measurements",
+  "protocol_types" : {
+    "Command" : { 
+      "html" : """
+            <div class='ui-grid-b'>
+              <div class='ui-block-a'>
+                <h5>Name:</h5>
+                <h5>Argument(s):</h5>
+              </div>
+             <div class='ui-block-b'>
+                <select class='cmd_name'></select>
+                <input type="text" class='all_args'>
+                <div data-role='collapsible'>
+                  <h4>Cmd Info</h4>
+                  <div align='left'>
+                    <p>Description:<br>
+                      <pre class='cmd_info'></pre>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+      """,
+      "setup_function" : """
+        function(adiv, database_cache) {
+          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
+          var cmds = $('.cmd_name', $(adiv)).filter(':input');
+          var cmd_info = $('.cmd_info', $(adiv)); 
+          cmds.addClass('ui-disabled');
+          cmds.empty();
+          cmds.on('change', function(e) {
+            var dat = cmds.find(':selected').data('obj');
+            if (dat.Info) cmd_info.text(dat.Info); 
+          });
+          database_cache.get_db(db_name).get_commands(function(all_cmds) {
+            if (all_cmds.keys) { 
+                for (var k in all_cmds.keys) {
+                    var o = all_cmds.keys[k];
+                    cmds.append($('<option/>').val(k).text(k).data({ obj : o }));
+                }
+            }
+            cmds.removeClass('ui-disabled');
+            cmds.selectmenu('refresh', true);
+            cmds.trigger('change');
+          });
+        }
+      """,
+      "script" : """
+        function(adiv, cbck) {
+          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
+          var cmd_name = $('.cmd_name', $(adiv)).find(':selected').val();
+          var args = $('.all_args', $(adiv)).val();
+          try {
+            args = JSON.parse(args);
+          } catch (err) {
+            args = null;
+          }
+          if (!Array.isArray(args)) args = [args];
+          nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
+            arguments : args, 
+            callback : cbck,
+            quiet : true
+          }); 
+        }
+      """
+    },
+    "Check" : { 
+      "html" : """
+            <div class='ui-grid-b'>
+              <div class='ui-block-a'>
+                <h5>Variable name:</h5>
+                <h5>Min:</h5>
+                <h5>Max:</h5>
+              </div>
+              <div class='ui-block-b'>
+                <select class='var_name'/>
+                <input type="text" class='var_min'>
+                <input type="text" class='var_max'>
+              </div>
+            </div>
+      """,
+      "setup_function" : """
+        function(adiv, database_cache) {
+          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
+          var vars = $('.var_name', $(adiv)).filter(':input');
+          vars.addClass('ui-disabled');
+          vars.empty();
+          database_cache.get_db(db_name).get_variables(function(all_vars) {
+            for (var i=0;i<all_vars.length;i++) {
+               var k = all_vars[i].key[0];
+               vars.append($('<option/>').val(k).text(k));
+            }
+            vars.removeClass('ui-disabled');
+            vars.selectmenu('refresh', true);
+          });
+        }
+      """,
+      "script" : """
+        function(adiv, cbck) {
+          var callback = cbck;
+          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
+          var var_name = $('.var_name', $(adiv)).find(':selected').val();
+          var var_min = parseFloat($('.var_min', $(adiv)).val());
+          var var_max = parseFloat($('.var_max', $(adiv)).val());
+          nedm.get_database(db_name).get_most_recent_value(var_name,
+            function(e, o) {
+              if (e) {
+                return callback(e);
+              }
+              if (o.rows.length != 1) {
+                return callback({error: var_name + " not found", reason: "Not found"});
+              }
+              var aval = o.rows[0].value;
+              if (!( aval >= var_min && aval <= var_max ) ) {
+                callback( { error: var_name + " (value: " + aval.toString() + ") out of range (" +
+                                   var_min.toString() + " -> " + var_max.toString() + ")",
+                           reason: "Out of range" });
+              } else {
+                callback();
+              }
+          });
+        }
+      """
+    }
+  },
+  "html" : """
+<div>
+    <div class='entire_protocol'>
+      <h4><span class='measurement_status'>(Not saved)</span></h4>
+      <div>
+         <div class='current_protocol ui-disabled'>
+            <div data-role='collapsibleset' data-inset="false" class='protocol_table'>
+              <div data-role="collapsible" style='display:none;' class='protocol_clone'>
+                  <h2><span class="current_title">(No name)</span> <span class='current_status'></span></h2>
+                  <div data-role='controlgroup' data-type='horizontal'>
+                      <input type="text" class='step_name' value="(No name)">
+                      <select class='all_dbs'></select>
+                      <select class='protocol_type'></select>
+                      <button class='ui-btn ui-icon-delete ui-btn-icon-notext protocol_remove'>Remove
+                      </button>
+                  </div>
+                  <div class='protocol_settings'></div>
+              </div>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+              <button class="ui-btn ui-icon-plus ui-btn-icon-left add_protocol_line">Add protocol line</button>
+              <button class="ui-btn run_process">Run process</button>
+              <button class="ui-btn stop_process ui-disabled">Stop process</button>
+            </div>
+         </div>
+      </div>
+      <div>
+        <div data-role="collapsible">
+          <h2>Log</h2>
+          <div data-role="fieldcontain">
+            <div align='left'>
+                <div class="comment code_editor">
+                </div>
+            </div>
+          </div>
+        </div>
+        <div data-role="collapsible" class='list_of_files'>
+          <h2>Attach/remove files</h2>
+          <div class="actual_file_list">
+            <div class='ui-grid-b add_one_file_class'>
+              <div class='ui-block-a'>
+                <input type="file" class="add_files_class">
+              </div>
+              <div class='ui-block-b'>
+                <button class='ui-btn ui-icon-delete ui-btn-icon-notext file_remove ui-disabled'>Remove
+                </button>
+              </div>
+              <div class='ui-block-c'>
+                <progress style='display:none;' class='progress_bar' value="0" max="100"></progress> 
+              </div>
+            </div>
+          </div>
+          <div data-role='controlgroup' data-type='horizontal'>
+            <button class="ui-btn upload_files">Upload Files</button>
+            <button class="ui-btn ui-disabled cancel_upload">Cancel</button>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    <div>
+      <div data-role='controlgroup' class='save_div' data-type='horizontal'>
+        <button class="ui-btn save_measurement">Save Measurement</button>
+      </div>
+    </div>
+</div>
+
+""",
+"script" : """
+    function(thediv, docobj) {
+      // Grab the line to clone before jquery mobile changes it
+      var line_clone = $('.protocol_clone', $(thediv)).clone();
+      var prot_sel = $('.protocol_type', $(line_clone));
+      var command_obj = {};
+      function DatabaseCache() {
+        function VarType() {
+            var listeners = [];
+            var content = null;
+            this.callback_or_listen = function(cbck) {
+                if (!content) listeners[listeners.length] = cbck;
+                else cbck(content); 
+            };
+            this.set_content = function(acnt) {
+                content = acnt;
+                listeners.forEach( function(o) { o(content); } );
+                listeners = [];
+            };
+        }
+        var myvars = {
+          commands : new VarType(),
+          variables : new VarType()
+        };
+        var that = this;
+        var define_function = function(var_name) {
+          that["set_" + var_name] = myvars[var_name].set_content; 
+          that["get_" + var_name] = myvars[var_name].callback_or_listen; 
+        }; 
+
+        // This sets the interface
+        for (var k in myvars) {
+          define_function(k);
+        }
+      }
+      function CentralCache() {
+        var all_dbs = [];
+        var that = this;
+        this.get_db = function(aname) {
+          if (!(aname in all_dbs)) return null;
+          return all_dbs[aname];
+        };
+        this.add_db = function(aname) {
+          all_dbs[aname] = new DatabaseCache();
+          return that.get_db(aname); 
+        };
+      }
+      var central_cache = new CentralCache();
+      for (var x in docobj.protocol_types) {
+        var t = docobj.protocol_types[x];
+        /* jshint -W061 */
+        var func = eval("(" + t.script + ")");
+        var new_opt = $('<option/>').text(x).val(x); 
+        prot_sel.append(new_opt); 
+        var new_div = $('<div/>').addClass(x + "_class").append(t.html).hide();
+        command_obj[x] = { func : func };
+        if (t.setup_function) {
+          command_obj[x].setup_function = eval("(" + t.setup_function + ")");  
+        }
+        $('.protocol_settings', $(line_clone)).append(new_div);
+      }
+
+      var remove_function = function(e) {
+         $(e.currentTarget).closest(".protocol_clone_act").remove();
+      };
+
+      var handle_type_change = function(e) {
+        var affected_div = $(e.currentTarget).closest(".protocol_clone_act");
+        $('.protocol_settings', $(affected_div)).children().each(function() {
+          $(this).hide();
+        });
+        var cl = $('.protocol_type', $(affected_div)).find(":selected").val();
+        $('.protocol_settings .' + cl + '_class', $(affected_div)).show();
+        if (command_obj[cl].setup_function) {
+          command_obj[cl].setup_function($(affected_div), central_cache);
+        }
+      };
+      $('.add_protocol_line', $(thediv)).on("click", function() {
+         var nc = line_clone.clone(); 
+         nc.removeClass('protocol_clone').addClass('protocol_clone_act');
+         nc.show();
+         var curr_number = $(".protocol_table").children(".protocol_clone_act").length;
+         $('.protocol_remove', $(nc)).on("click", remove_function); 
+         $('.step_name', $(nc)).on("change", function(e) {
+           $(".current_title", $(nc)).text($(e.currentTarget).val());
+         }); 
+         $('.protocol_type', $(nc)).on("change", handle_type_change);
+         $('.all_dbs', $(nc)).on("change", handle_type_change);
+         $('.protocol_table', $(thediv)).append(nc);
+         $('.protocol_table', $(thediv)).trigger("create");
+         $('.protocol_type', $(nc)).trigger("change");
+      });
+      var load_database_info = function(adb) {
+          var my_db = central_cache.get_db(adb);
+          nedm.get_database(adb).getDoc("commands", function(e, o) {
+            var set_obj = {}; 
+            if (!e) set_obj = o; 
+            my_db.set_commands(set_obj);
+          });
+          nedm.get_database(adb).getView(
+            "slow_control_time", "slow_control_time", 
+            { opts : {
+              group_level : 1
+            }}, 
+            function(e, o) {
+              var set_obj = []; 
+              if (!e) set_obj = o.rows; 
+              my_db.set_variables(set_obj);
+          });
+      };
+      nedm.get_database_info(function(all_dbs) {
+         var adbs = $('.all_dbs', $(line_clone)); 
+         for (var x in all_dbs) {
+           adbs.append($("<option/>").text(all_dbs[x].prettyname).val('nedm%2F' + x));
+           central_cache.add_db("nedm%2F" + x);
+           load_database_info("nedm%2F" + x);
+         }
+         $('.current_protocol', $(thediv)).removeClass('ui-disabled');
+      });
+
+      var should_stop = false;
+      var run_process = function(e) {
+         should_stop = false;
+         var process_list = $('.protocol_table');
+         var disable_list = [ $(e.currentTarget), process_list, $('.add_protocol_line', $(thediv))];
+         disable_list.forEach( function(o) { o.addClass("ui-disabled"); });
+         $(".stop_process", $(thediv)).removeClass("ui-disabled");
+         var run_step = function(astep) {
+             var as = $(astep);
+             var cl = $('.protocol_type', as).find(":selected").val();
+             var func = command_obj[cl].func; 
+             $(".current_status", as).addClass("nedm-status-button-loading");
+             func( as, function(err, obj) {
+               var nxt = $(as).next(".protocol_clone_act");
+               $(".current_status", as).removeClass("nedm-status-button-loading");
+               if (!err) {
+                 $(".current_status", as).addClass("nedm-status-button-g");
+               }
+               if (nxt.length > 0 && !should_stop && !err) { 
+                 run_step(nxt);
+               } else {
+                 disable_list.forEach( function(o) { o.removeClass("ui-disabled"); });
+                 $(".stop_process", $(thediv)).addClass("ui-disabled");
+                 if (err) {
+                   $(".current_status", as).addClass("nedm-status-button-r");
+                   nedm.show_error_window(err.reason, err.error);
+                 }
+               }
+             });
+         };
+         $(".current_status", process_list).each( function () {
+           $(this).removeClass("nedm-status-button-r nedm-status-button-g nedm-status-button-loading");
+         });
+         run_step($(process_list).children(".protocol_clone_act")[0]);
+      };
+      $('.run_process', $(thediv)).on("click", run_process); 
+      $('.stop_process', $(thediv)).on("click", function(e) {
+         $(e.currentTarget).addClass("ui-disabled");
+         should_stop = true;
+      }); 
+
+      //*****************************************************
+      // Deal with files
+      $('.add_files_class', $(thediv)).on("change", function(ev) { 
+          var tgt = $(ev.currentTarget);
+          var thefile = ev.target.files[0];
+          tgt.closest('.add_one_file_class').find('.file_remove').removeClass('ui-disabled');
+          var new_obj = $('<a/>').addClass('file_name_class').text(thefile.name).data({file : thefile});
+          tgt.closest('.actual_file_list').append(file_cloner.clone(true)).trigger('create');
+          tgt.closest('.ui-input-text').replaceWith(new_obj);
+          tgt.remove();
+      });
+      $('.file_remove', $(thediv)).on("click", function(ev) { 
+          var tgt = $(ev.currentTarget).closest(".add_one_file_class"); 
+          tgt.addClass('ui-disabled');
+          var file_obj = $(tgt).find('.file_name_class');
+          var remove_and_delete = function() {
+            if (tgt.closest('.actual_file_list').find('.add_one_file_class').length == 1) {
+              tgt.replaceWith(file_cloner.clone(true)); 
+            } else {
+              tgt.remove();
+            }
+          };
+
+          if (file_obj.data('uploaded')) {
+            // Try to delete it...
+            nedm.get_database().removeAttachment(
+              { _id : $(thediv).data('current_doc') }, 
+              file_obj.text(),
+              function(err, obj) {
+                if (err) {
+                  nedm.show_error_window("Couldn't remove attachment");
+                  tgt.removeClass('ui-disabled');
+                } else {
+                  remove_and_delete();
+                }
+            });
+          } else {
+            remove_and_delete();
+          }
+      });
+      var file_cloner = $('.add_one_file_class').clone(true);
+
+      var get_all_files = function() {
+        return $.map($('.actual_file_list', $(thediv)).find('.file_name_class'),
+              function(o) {
+                if ($(o).data('uploaded')) return null;
+                return { obj: $(o), file: $(o).data('file') };
+              }); 
+      };
+      //*****************************************************
+
+      //*****************************************************
+      // Set up text editor
+      var cmt = $('.code_editor', $(thediv));
+      var editor = ace.edit(cmt[0]);
+      editor.setTheme('ace/theme/xcode');
+      cmt.data({editor : editor});
+      
+      //*****************************************************
+
+      //*****************************************************
+      // Upload files 
+      var cancel_upload = false;
+      var cncl_btn = $('.cancel_upload', $(thediv));
+      cncl_btn.on('click', function() { 
+        cancel_upload = true; 
+        cncl_btn.addClass('ui-disabled');
+      });
+      var upload_btn = $('.upload_files', $(thediv));
+
+      var upload_files = function(ev) {
+        var the_doc = { _id : $(thediv).data('current_doc') };
+        if (!the_doc._id) {
+          nedm.show_error_window("Unsaved doc", "Measurement needs to be saved before documents can be uploaded");
+          return;
+        }
+        cancel_upload = false;
+        var file_setup = $('.actual_file_list', $(thediv));
+        file_setup.addClass('ui-disabled');
+        cncl_btn.removeClass('ui-disabled');
+        upload_btn.addClass('ui-disabled');
+        var reset_disabled_state = function() {
+          file_setup.removeClass('ui-disabled');
+          cncl_btn.addClass('ui-disabled');
+          upload_btn.removeClass('ui-disabled');
+        };
+        var fes = get_all_files();
+        var i = 0;
+        var add_next_file = function(doc) {
+          if (i >= fes.length) {
+            reset_disabled_state();
+            return;
+          }
+          var curr_obj = fes[i];
+          var curr_progress = curr_obj.obj.closest('.add_one_file_class').find('.progress_bar'); 
+          curr_progress.val(0);
+          curr_progress.show();
+          function Callbacks() {
+              var tthis = this;
+              tthis.xhr = null;
+              tthis.progress =  function(evt) {
+                if (evt.lengthComputable) {
+                  curr_progress.val(100*evt.loaded/evt.total);
+                }
+                if (cancel_upload && tthis.xhr) tthis.xhr.abort();
+              };
+              tthis.success = function(err, obj) {
+                if (err) {
+                  var msg = "Error loading file: " + curr_obj.file.name;
+                  if (cancel_upload) msg = "User requested cancel";
+                  nedm.show_error_window(msg);
+                  reset_disabled_state();
+                  return;
+                } 
+                curr_progress.val(100);
+                curr_obj.obj.data('uploaded', true);
+                curr_obj.obj.attr({ href : nedm.get_database().url + "/" + doc._id + "/" + curr_obj.obj.text() });
+                i += 1;
+                curr_progress.replaceWith($('<span/>').text('Uploaded, remove will delete'));
+                add_next_file(doc);
+              };
+          }
+
+          nedm.get_database().addAttachment(doc, 
+            curr_obj.file, new Callbacks());
+        };
+        add_next_file(the_doc);
+      };
+      upload_btn.on('click', upload_files);
+
+      //*****************************************************
+
+      //*****************************************************
+      // Save measurement
+      $('.save_measurement').on('click', function(ev) {
+        var tthis = $(ev.currentTarget);
+        $('.entire_protocol', $(thediv)).addClass('ui-disabled');
+        var adoc = {
+          type : "measurement",
+          log : cmt.data('editor').getSession().getValue()
+        };
+        if ($(thediv).data('current_doc')) {
+          adoc._id = $(thediv).data('current_doc');
+        }
+        nedm.get_database().updateDoc(adoc, 
+          'nedm_default', 'insert_with_timestamp', 
+          {
+            success : function(err, obj) {
+              $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
+              if (err) {
+                nedm.show_error_window("Error loading document");
+                return;
+              } 
+              $(thediv).data('current_doc', obj.id);
+              $('.measurement_status', $(thediv)).text('Saved: ' + obj.id);
+            }
+          }
+        );
+      });
+      //*****************************************************
+  }"""
+}

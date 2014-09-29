@@ -1,0 +1,7 @@
+{
+  "_id" : "subsystem_information",
+  "prettyname" : "Measurements",
+  "pages" : {
+        "Control" : "control.html"
+  }
+}
