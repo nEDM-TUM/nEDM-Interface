@@ -224,6 +224,55 @@ nedm.update_db_interface = function(db) {
       else callback = null;
       return this.old_request(req, callback);
     };
+
+    // Remove an attachment from a document
+    db.removeAttachment = function(doc, file_name, callback) {
+      var tthis = this;
+      var req = {
+        type : "DELETE",
+        url : this.url + "/" + doc._id + "/" + file_name,
+      };
+
+      var exec_rem = function(rev) {
+        req.url += "?rev=" + rev;
+        tthis.request(req, callback);
+      };
+      if (doc._rev) {
+        exec_rem(doc._rev);
+      } else {
+        tthis.getDoc(doc._id, function(err, obj) {
+          if (err) return;
+          exec_rem(obj._rev);
+        });
+      }
+    };
+
+
+    // Add an attachment to a document
+    db.addAttachment = function(doc, file_object, callback) {
+      var tthis = this;
+      var req = {
+        type : "PUT",
+        url : this.url + "/" + doc._id + "/" + file_object.name,
+        processData : false,
+        data : file_object,
+        contentType : file_object.type || "application/octet-stream"
+      };
+
+      var exec_upload = function(rev) {
+        req.url += "?rev=" + rev;
+        tthis.request(req, callback);
+      };
+      if (doc._rev) {
+        exec_upload(doc._rev);
+      } else {
+        tthis.getDoc(doc._id, function(err, obj) {
+          if (err) return;
+          exec_upload(obj._rev);
+        });
+      }
+    };
+
     db.changes = function(options, callback) {
         if (!callback) {
             callback = options;
