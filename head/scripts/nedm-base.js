@@ -167,6 +167,7 @@ nedm.cancel_changes_feed = function(db, tag) {
 
 
 nedm.update_db_interface = function(db) {
+    db.old_request = db.request;
     db.get_most_recent_value = function(var_name, callback) {
       this.getView('slow_control_time', 'slow_control_time',
       { opts : {
@@ -203,6 +204,25 @@ nedm.update_db_interface = function(db) {
             expect_json: true
         };
         this.request(req, callback);
+    };
+	// update the request to handle the possibility that callback has
+	// progress/success requests
+    db.request = function(req, callback) {
+      if (!callback || typeof callback !== 'object') return this.old_request(req, callback);
+      var cbck = callback;
+      if (cbck.progress) {
+        req.xhr = function() {
+          var xhr = new XMLHttpRequest();
+          if (cbck.progress) {
+            xhr.upload.addEventListener("progress", cbck.progress, false);
+          }
+          cbck.xhr = xhr;
+          return xhr;
+        };
+      }
+      if (callback.success) callback = callback.success;
+      else callback = null;
+      return this.old_request(req, callback);
     };
     db.changes = function(options, callback) {
         if (!callback) {
