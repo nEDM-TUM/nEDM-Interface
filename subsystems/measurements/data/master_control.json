@@ -169,7 +169,7 @@
       <h4><span class='measurement_status'>(Not saved)</span></h4>
       <div>
          <div class='current_protocol ui-disabled'>
-            <div data-role='collapsibleset' data-inset="false" class='protocol_table'>
+            <div class='protocol_table'>
               <div data-role="collapsible" style='display:none;' class='protocol_clone'>
                   <h2><span class="current_title">(No name)</span> <span class='current_status'></span></h2>
                   <div data-role='controlgroup' data-type='horizontal'>
