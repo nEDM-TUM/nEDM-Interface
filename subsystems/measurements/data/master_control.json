@@ -211,7 +211,7 @@
                 </button>
               </div>
               <div class='ui-block-c'>
-                <progress style='display:none;' class='progress_bar' value="0" max="100"></progress> 
+                <progress style='display:none;' class='progress_bar' value="0" max="100"></progress>
               </div>
             </div>
           </div>
@@ -220,7 +220,7 @@
             <button class="ui-btn ui-disabled cancel_upload">Cancel</button>
           </div>
         </div>
-      
+
       </div>
     </div>
     <div>
@@ -243,7 +243,7 @@
             var content = null;
             this.callback_or_listen = function(cbck) {
                 if (!content) listeners[listeners.length] = cbck;
-                else cbck(content); 
+                else cbck(content);
             };
             this.set_content = function(acnt) {
                 content = acnt;
@@ -257,15 +257,16 @@
         };
         var that = this;
         var define_function = function(var_name) {
-          that["set_" + var_name] = myvars[var_name].set_content; 
-          that["get_" + var_name] = myvars[var_name].callback_or_listen; 
-        }; 
+          that["set_" + var_name] = myvars[var_name].set_content;
+          that["get_" + var_name] = myvars[var_name].callback_or_listen;
+        };
 
         // This sets the interface
         for (var k in myvars) {
           define_function(k);
         }
       }
+      // Provides a central cache of information for dbs, etc.
       function CentralCache() {
         var all_dbs = [];
         var that = this;
@@ -275,7 +276,7 @@
         };
         this.add_db = function(aname) {
           all_dbs[aname] = new DatabaseCache();
-          return that.get_db(aname); 
+          return that.get_db(aname);
         };
       }
       var central_cache = new CentralCache();
@@ -283,8 +284,8 @@
         var t = docobj.protocol_types[x];
         /* jshint -W061 */
         var obj = eval("(" + t.object + ")")();
-        var new_opt = $('<option/>').text(x).val(x); 
-        prot_sel.append(new_opt); 
+        var new_opt = $('<option/>').text(x).val(x);
+        prot_sel.append(new_opt);
         var new_div = $('<div/>').addClass(x + "_class").append(t.html).hide();
         command_obj[x] = obj;
         $('.protocol_settings', $(line_clone)).append(new_div);
@@ -310,10 +311,10 @@
          nc.removeClass('protocol_clone').addClass('protocol_clone_act');
          nc.show();
          var curr_number = $(".protocol_table").children(".protocol_clone_act").length;
-         $('.protocol_remove', $(nc)).on("click", remove_function); 
+         $('.protocol_remove', $(nc)).on("click", remove_function);
          $('.step_name', $(nc)).on("change", function(e) {
            $(".current_title", $(nc)).text($(e.currentTarget).val());
-         }); 
+         });
          $('.protocol_type', $(nc)).on("change", handle_type_change);
          $('.all_dbs', $(nc)).on("change", handle_type_change);
          $('.protocol_table', $(thediv)).append(nc);
@@ -323,23 +324,23 @@
       var load_database_info = function(adb) {
           var my_db = central_cache.get_db(adb);
           nedm.get_database(adb).getDoc("commands", function(e, o) {
-            var set_obj = {}; 
-            if (!e) set_obj = o; 
+            var set_obj = {};
+            if (!e) set_obj = o;
             my_db.set_commands(set_obj);
           });
           nedm.get_database(adb).getView(
-            "slow_control_time", "slow_control_time", 
+            "slow_control_time", "slow_control_time",
             { opts : {
               group_level : 1
-            }}, 
+            }},
             function(e, o) {
-              var set_obj = []; 
-              if (!e) set_obj = o.rows; 
+              var set_obj = [];
+              if (!e) set_obj = o.rows;
               my_db.set_variables(set_obj);
           });
       };
       nedm.get_database_info(function(all_dbs) {
-         var adbs = $('.all_dbs', $(line_clone)); 
+         var adbs = $('.all_dbs', $(line_clone));
          for (var x in all_dbs) {
            adbs.append($("<option/>").text(all_dbs[x].prettyname).val('nedm%2F' + x));
            central_cache.add_db("nedm%2F" + x);
@@ -366,7 +367,7 @@
                if (!err) {
                  $(".current_status", as).addClass("nedm-status-button-g");
                }
-               if (nxt.length > 0 && !should_stop && !err) { 
+               if (nxt.length > 0 && !should_stop && !err) {
                  run_step(nxt);
                } else {
                  disable_list.forEach( function(o) { o.removeClass("ui-disabled"); });
@@ -383,11 +384,11 @@
          });
          run_step($(process_list).children(".protocol_clone_act")[0]);
       };
-      $('.run_process', $(thediv)).on("click", run_process); 
+      $('.run_process', $(thediv)).on("click", run_process);
       $('.stop_process', $(thediv)).on("click", function(e) {
          $(e.currentTarget).addClass("ui-disabled");
          should_stop = true;
-      }); 
+      });
 
       //*****************************************************
       // Deal with files
@@ -406,7 +407,7 @@
           var file_obj = $(tgt).find('.file_name_class');
           var remove_and_delete = function() {
             if (tgt.closest('.actual_file_list').find('.add_one_file_class').length == 1) {
-              tgt.replaceWith(file_cloner.clone(true)); 
+              tgt.replaceWith(file_cloner.clone(true));
             } else {
               tgt.remove();
             }
@@ -415,7 +416,7 @@
           if (file_obj.data('uploaded')) {
             // Try to delete it...
             nedm.get_database().removeAttachment(
-              { _id : $(thediv).data('current_doc') }, 
+              { _id : $(thediv).data('current_doc') },
               file_obj.text(),
               function(err, obj) {
                 if (err) {
@@ -436,7 +437,7 @@
               function(o) {
                 if ($(o).data('uploaded')) return null;
                 return { obj: $(o), file: $(o).data('file') };
-              }); 
+              });
       };
       //*****************************************************
 
@@ -450,11 +451,11 @@
       //*****************************************************
 
       //*****************************************************
-      // Upload files 
+      // Upload files
       var cancel_upload = false;
       var cncl_btn = $('.cancel_upload', $(thediv));
-      cncl_btn.on('click', function() { 
-        cancel_upload = true; 
+      cncl_btn.on('click', function() {
+        cancel_upload = true;
         cncl_btn.addClass('ui-disabled');
       });
       var upload_btn = $('.upload_files', $(thediv));
@@ -483,7 +484,7 @@
             return;
           }
           var curr_obj = fes[i];
-          var curr_progress = curr_obj.obj.closest('.add_one_file_class').find('.progress_bar'); 
+          var curr_progress = curr_obj.obj.closest('.add_one_file_class').find('.progress_bar');
           curr_progress.val(0);
           curr_progress.show();
           function Callbacks() {
@@ -502,7 +503,7 @@
                   nedm.show_error_window(msg);
                   reset_disabled_state();
                   return;
-                } 
+                }
                 curr_progress.val(100);
                 curr_obj.obj.data('uploaded', true);
                 curr_obj.obj.attr({ href : nedm.get_database().url + "/" + doc._id + "/" + curr_obj.obj.text() });
@@ -512,7 +513,7 @@
               };
           }
 
-          nedm.get_database().addAttachment(doc, 
+          nedm.get_database().addAttachment(doc,
             curr_obj.file, new Callbacks());
         };
         add_next_file(the_doc);
