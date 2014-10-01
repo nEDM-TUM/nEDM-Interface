@@ -190,13 +190,11 @@
          </div>
       </div>
       <div>
-        <div data-role="collapsible">
+        <div data-role="collapsible" class="comment_code_collapsible">
           <h2>Log</h2>
-          <div data-role="fieldcontain">
-            <div align='left'>
-                <div class="comment code_editor">
-                </div>
-            </div>
+          <div align='left'>
+              <div class="comment code_editor">
+              </div>
           </div>
         </div>
         <div data-role="collapsible" class='list_of_files'>
@@ -225,8 +223,12 @@
     </div>
     <div>
       <div data-role='controlgroup' class='save_div' data-type='horizontal'>
+        <label><input type='checkbox'/>Overwrite</label>
         <button class="ui-btn save_measurement">Save Measurement</button>
       </div>
+      <p>
+        When creating a new measurement (not Overwriting), attachments will *not* be transfered to the new document.
+      </p>
     </div>
 </div>
 
@@ -237,6 +239,8 @@
       var line_clone = $('.protocol_clone', $(thediv)).clone();
       var prot_sel = $('.protocol_type', $(line_clone));
       var command_obj = {};
+
+      // Database cache, caches the available databases
       function DatabaseCache() {
         function VarType() {
             var listeners = [];
@@ -306,8 +310,10 @@
           command_obj[cl].setup_function($(affected_div), central_cache);
         }
       };
-      $('.add_protocol_line', $(thediv)).on("click", function() {
-         var nc = line_clone.clone(); 
+
+
+      var add_protocol_line_fn = function(obj) {
+         var nc = line_clone.clone();
          nc.removeClass('protocol_clone').addClass('protocol_clone_act');
          nc.show();
          var curr_number = $(".protocol_table").children(".protocol_clone_act").length;
@@ -320,6 +326,20 @@
          $('.protocol_table', $(thediv)).append(nc);
          $('.protocol_table', $(thediv)).trigger("create");
          $('.protocol_type', $(nc)).trigger("change");
+         if (obj) {
+           for (var k in obj) {
+             var o = obj[k];
+             $('.all_dbs', $(nc)).filter(':input').val(o.db_name).trigger('change');
+             $('.protocol_type', $(nc)).filter(':input').val(k).trigger('change');
+             $('.step_name', $(nc)).val(o.name).trigger('change');
+             check_protocol(nc, o);
+             command_obj[k].set(nc, o);
+           }
+         }
+      };
+
+      $('.add_protocol_line', $(thediv)).on("click", function() {
+        add_protocol_line_fn();
       });
       var load_database_info = function(adb) {
           var my_db = central_cache.get_db(adb);
@@ -392,17 +412,27 @@
 
       //*****************************************************
       // Deal with files
-      $('.add_files_class', $(thediv)).on("change", function(ev) { 
-          var tgt = $(ev.currentTarget);
-          var thefile = ev.target.files[0];
-          tgt.closest('.add_one_file_class').find('.file_remove').removeClass('ui-disabled');
-          var new_obj = $('<a/>').addClass('file_name_class').text(thefile.name).data({file : thefile});
-          tgt.closest('.actual_file_list').append(file_cloner.clone(true)).trigger('create');
-          tgt.closest('.ui-input-text').replaceWith(new_obj);
-          tgt.remove();
-      });
-      $('.file_remove', $(thediv)).on("click", function(ev) { 
-          var tgt = $(ev.currentTarget).closest(".add_one_file_class"); 
+      var set_uploaded = function(obj, url) {
+        $(obj).attr('href', url).data('uploaded', true);
+        $(obj).closest('.add_one_file_class').find('.progress_bar')
+           .replaceWith($('<span/>').text('Uploaded, remove will delete'));
+      };
+      var add_file_fn = function(ev, thefile) {
+        var tgt = $(ev.currentTarget);
+        if (!thefile) thefile = ev.target.files[0];
+        tgt.closest('.add_one_file_class').find('.file_remove').removeClass('ui-disabled');
+        var new_obj = $('<a/>').addClass('file_name_class').text(thefile.name).data({file : thefile});
+        tgt.closest('.actual_file_list').append(file_cloner.clone(true)).trigger('create');
+        tgt.closest('.ui-input-text').replaceWith(new_obj);
+        tgt.remove();
+        if (thefile.href) {
+          set_uploaded(new_obj, thefile.href);
+        }
+
+      };
+      $('.add_files_class', $(thediv)).on("change", add_file_fn);
+      $('.file_remove', $(thediv)).on("click", function(ev) {
+          var tgt = $(ev.currentTarget).closest(".add_one_file_class");
           tgt.addClass('ui-disabled');
           var file_obj = $(tgt).find('.file_name_class');
           var remove_and_delete = function() {
@@ -443,11 +473,22 @@
 
       //*****************************************************
       // Set up text editor
+      var save_id = function(anid) {
+        $(thediv).data('current_doc', anid);
+        var msg = 'Saved: ' + anid;
+        if (anid === null) msg = '(Not saved)';
+        $('.measurement_status', $(thediv)).text(msg);
+      };
+      //*****************************************************
+
+      //*****************************************************
+      // Set up text editor
       var cmt = $('.code_editor', $(thediv));
       var editor = ace.edit(cmt[0]);
       editor.setTheme('ace/theme/xcode');
       cmt.data({editor : editor});
-      
+      editor.getSession().setValue("");
+
       //*****************************************************
 
       //*****************************************************
@@ -467,7 +508,7 @@
           return;
         }
         cancel_upload = false;
-        var file_setup = $('.actual_file_list', $(thediv));
+        var file_setup = $('.file_remove', $(thediv));
         file_setup.addClass('ui-disabled');
         cncl_btn.removeClass('ui-disabled');
         upload_btn.addClass('ui-disabled');
@@ -505,10 +546,9 @@
                   return;
                 }
                 curr_progress.val(100);
-                curr_obj.obj.data('uploaded', true);
-                curr_obj.obj.attr({ href : nedm.get_database().url + "/" + doc._id + "/" + curr_obj.obj.text() });
+                set_uploaded(curr_obj.obj,
+                  nedm.get_database().url+"/" + doc._id+"/"+curr_obj.obj.text());
                 i += 1;
-                curr_progress.replaceWith($('<span/>').text('Uploaded, remove will delete'));
                 add_next_file(doc);
               };
           }
@@ -523,32 +563,132 @@
       //*****************************************************
 
       //*****************************************************
-      // Save measurement
-      $('.save_measurement').on('click', function(ev) {
-        var tthis = $(ev.currentTarget);
-        $('.entire_protocol', $(thediv)).addClass('ui-disabled');
-        var adoc = {
-          type : "measurement",
-          log : cmt.data('editor').getSession().getValue()
-        };
-        if ($(thediv).data('current_doc')) {
-          adoc._id = $(thediv).data('current_doc');
-        }
-        nedm.get_database().updateDoc(adoc, 
-          'nedm_default', 'insert_with_timestamp', 
-          {
-            success : function(err, obj) {
-              $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
-              if (err) {
-                nedm.show_error_window("Error loading document");
-                return;
-              } 
-              $(thediv).data('current_doc', obj.id);
-              $('.measurement_status', $(thediv)).text('Saved: ' + obj.id);
+
+      // Check measurement
+      var check_protocol = function(proto, cmp) {
+        var as = $(proto);
+        var cl = $('.protocol_type', as).find(":selected").val();
+        var name = $('.step_name', as).val();
+        var tmp_obj = command_obj[cl].save(as);
+        var passed = true;
+        if (!cmp) {
+          for (var k in tmp_obj) {
+            if (tmp_obj[k] === null) {
+              nedm.show_error_window(k + " is 'null' in " + name);
+              passed = false;
             }
           }
-        );
+        } else {
+          for (var i in tmp_obj) {
+            if (!(i in cmp)) {
+              nedm.show_error_window(i + " (expected) not found in " + name);
+              passed = false;
+            } else if (cmp[i] === null) {
+              nedm.show_error_window(i + " is 'null' in " + name);
+              passed = false;
+            }
+          }
+        }
+        return passed;
+      };
+      // Save measurement
+      $('.save_measurement').on('click', function(ev) {
+        var protocol_list = [];
+        var tthis = $(ev.currentTarget);
+        var get_information = function(astep) {
+          var as = $(astep);
+          var cl = $('.protocol_type', as).find(":selected").val();
+          if (!check_protocol(as)) {
+            nedm.show_error_window('Errors in ' + $('.step_name', as).val(), "Not saved");
+            return;
+          }
+          var obj = {};
+          obj[cl] = command_obj[cl].save(as);
+          obj[cl].name = $('.step_name', as).val();
+          protocol_list[protocol_list.length] = obj;
+          var nxt = $(as).next(".protocol_clone_act");
+          if (nxt.length > 0) {
+            get_information(nxt);
+          } else {
+            $('.entire_protocol', $(thediv)).addClass('ui-disabled');
+            var adoc = {
+              type : "measurement",
+              log : cmt.data('editor').getSession().getValue(),
+              protocol : protocol_list
+            };
+
+            if ($(thediv).data('current_doc') &&
+              tthis.siblings('.ui-checkbox').find(':input').is(':checked')) {
+              adoc._id = $(thediv).data('current_doc');
+            }
+            nedm.get_database().updateDoc(adoc,
+              'nedm_default', 'insert_with_timestamp',
+              {
+                success : function(err, obj) {
+                  $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
+                  if (err) {
+                    nedm.show_error_window("Error loading document");
+                    return;
+                  }
+                  nedm.get_database().getDoc(obj.id,
+                    function(e, o) {
+                      if (e) {
+                        nedm.show_error_window("Error reloading document");
+                        return;
+                      }
+                      load_from_object(o);
+                  });
+                }
+              }
+            );
+          }
+        };
+        var process_list = $('.protocol_table');
+        get_information($(process_list).children(".protocol_clone_act")[0]);
       });
       //*****************************************************
-  }"""
+      // Load measurement
+      var load_from_object = function(obj) {
+        cmt.data('editor').getSession().setValue(obj.log);
+        // Do protocol
+        $('.protocol_table').children('.protocol_clone_act').each(function() {
+          $(this).remove();
+        });
+        if (obj.protocol) {
+          for (var i = 0;i<obj.protocol.length;i++) {
+            add_protocol_line_fn(obj.protocol[i]);
+          }
+        }
+        // Remove old attachments
+        $('.actual_file_list', $(thediv)).find('.file_name_class').each(
+          function() {
+            $(this).closest('.add_one_file_class').remove();
+        });
+        if (obj._attachments) {
+          for (var k in obj._attachments) {
+            var cur = $('.add_files_class', $(thediv));
+            add_file_fn( { currentTarget : cur },
+               { name : k,
+                 href : nedm.get_database().url+"/" + obj._id+"/"+k });
+          }
+        }
+        save_id(obj._id);
+      };
+      var load_with_docid = function(doc_id) {
+        nedm.get_database().getDoc(doc_id,
+          function(err, obj) {
+            if (err) {
+              nedm.show_error_window("Document not found: " + doc_id);
+            } else {
+              load_from_object(obj);
+            }
+        });
+      };
+
+      // Export the ability to load from other controls
+      $(thediv).addClass('current_measurement_view').data(
+        { load_with_docid : load_with_docid } );
+
+  }
+"""
 }
