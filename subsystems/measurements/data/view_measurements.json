@@ -92,33 +92,34 @@
     };
 
     var get_events_on_day = function(begin, end, callback) {
-
-        the_cal.addClass('ui-disabled');
-        var tmp  = {  opts : {
-                           reduce : false,
-                           endkey : ['measurement'],
-                           startkey : ['measurement']
-                                }
-                   };
-        Array.prototype.push.apply(tmp.opts.endkey, nedm.keyFromDate(end));
-        Array.prototype.push.apply(tmp.opts.startkey, nedm.keyFromDate(begin));
-        nedm.get_database().getView('document_type', 'document_type', tmp,
-           function(err, obj) {
-             the_cal.removeClass('ui-disabled');
-             if (err) {
-               nedm.show_error_window("Error loading view!");
-               callback([]);
-               return;
-             }
-             callback( $.map( obj.rows, function(o) {
-               var d = nedm.dateFromKey(o.key);
-               return {
-                 summary : o.id,
-                 begin : d,
-                 end : d
-               };
-             }));
-           });
+      var cbck = callback;
+      the_cal.addClass('ui-disabled');
+      var tmp  = {  opts : {
+                         reduce : false,
+                         endkey : ['measurement'],
+                         startkey : ['measurement']
+                              }
+                 };
+      Array.prototype.push.apply(tmp.opts.endkey, nedm.keyFromDate(end));
+      Array.prototype.push.apply(tmp.opts.startkey, nedm.keyFromDate(begin));
+      nedm.get_database().getView('document_type', 'document_type', tmp,
+         function(err, obj) {
+           the_cal.removeClass('ui-disabled');
+           var proc = [];
+           if (err) {
+             nedm.show_error_window("Error loading view!");
+           } else {
+             proc = $.map( obj.rows, function(o) {
+                 var d = nedm.dateFromKey(o.key);
+                 return {
+                   summary : o.id,
+                   begin : d,
+                   end : d
+                 };
+             });
+           }
+           cbck(proc);
+         });
     };
 
     var onDateClick = function(ev) {
