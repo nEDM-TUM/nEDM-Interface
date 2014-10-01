@@ -4,7 +4,7 @@
   "title" : "Measurements",
   "description" : "Run measurements",
   "protocol_types" : {
-    "Command" : { 
+    "Command" : {
       "html" : """
             <div class='ui-grid-b'>
               <div class='ui-block-a'>
@@ -26,50 +26,67 @@
             </div>
 
       """,
-      "setup_function" : """
-        function(adiv, database_cache) {
-          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
-          var cmds = $('.cmd_name', $(adiv)).filter(':input');
-          var cmd_info = $('.cmd_info', $(adiv)); 
-          cmds.addClass('ui-disabled');
-          cmds.empty();
-          cmds.on('change', function(e) {
-            var dat = cmds.find(':selected').data('obj');
-            if (dat.Info) cmd_info.text(dat.Info); 
-          });
-          database_cache.get_db(db_name).get_commands(function(all_cmds) {
-            if (all_cmds.keys) { 
-                for (var k in all_cmds.keys) {
-                    var o = all_cmds.keys[k];
-                    cmds.append($('<option/>').val(k).text(k).data({ obj : o }));
-                }
+      "object" : """
+      function() {
+        function CommandObj() {
+          var tthis = this;
+          tthis.setup_function = function(adiv, database_cache) {
+            var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
+            var cmds = $('.cmd_name', $(adiv)).filter(':input');
+            var cmd_info = $('.cmd_info', $(adiv));
+            cmds.addClass('ui-disabled');
+            cmds.empty();
+            cmds.on('change', function(e) {
+              var dat = cmds.find(':selected').data('obj');
+              if (dat && dat.Info) cmd_info.text(dat.Info);
+            });
+            database_cache.get_db(db_name).get_commands(function(all_cmds) {
+              if (all_cmds.keys) {
+                  for (var k in all_cmds.keys) {
+                      var o = all_cmds.keys[k];
+                      cmds.append($('<option/>').val(k).text(k).data({ obj : o }));
+                  }
+              }
+              cmds.removeClass('ui-disabled');
+              cmds.selectmenu('refresh', true);
+              cmds.trigger('change');
+            });
+          };
+          tthis.save = function(adiv) {
+            return {
+              db_name : $('.all_dbs', $(adiv)).find(':selected').val(),
+              cmd_name : $('.cmd_name', $(adiv)).find(':selected').val(),
+              args : $('.all_args', $(adiv)).val()
+            };
+          };
+          tthis.set = function(adiv, obj) {
+            $('.cmd_name', $(adiv)).filter(':input').val(obj.cmd_name);
+            $('.all_args', $(adiv)).val(obj.args);
+          };
+
+          tthis.script = function(adiv, cbck) {
+            var obj = tthis.save(adiv);
+            var db_name = obj.db_name;
+            var cmd_name = obj.cmd_name;
+            var args = obj.args;
+            try {
+              args = JSON.parse(args);
+            } catch (err) {
+              args = null;
             }
-            cmds.removeClass('ui-disabled');
-            cmds.selectmenu('refresh', true);
-            cmds.trigger('change');
-          });
+            if (!Array.isArray(args)) args = [args];
+            nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
+              arguments : args,
+              callback : cbck,
+              quiet : true
+            });
+          };
         }
-      """,
-      "script" : """
-        function(adiv, cbck) {
-          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
-          var cmd_name = $('.cmd_name', $(adiv)).find(':selected').val();
-          var args = $('.all_args', $(adiv)).val();
-          try {
-            args = JSON.parse(args);
-          } catch (err) {
-            args = null;
-          }
-          if (!Array.isArray(args)) args = [args];
-          nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
-            arguments : args, 
-            callback : cbck,
-            quiet : true
-          }); 
-        }
-      """
+        return new CommandObj();
+      }
+"""
     },
-    "Check" : { 
+    "Check" : {
       "html" : """
             <div class='ui-grid-b'>
               <div class='ui-block-a'>
@@ -84,46 +101,64 @@
               </div>
             </div>
       """,
-      "setup_function" : """
-        function(adiv, database_cache) {
-          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
-          var vars = $('.var_name', $(adiv)).filter(':input');
-          vars.addClass('ui-disabled');
-          vars.empty();
-          database_cache.get_db(db_name).get_variables(function(all_vars) {
-            for (var i=0;i<all_vars.length;i++) {
-               var k = all_vars[i].key[0];
-               vars.append($('<option/>').val(k).text(k));
-            }
-            vars.removeClass('ui-disabled');
-            vars.selectmenu('refresh', true);
-          });
-        }
-      """,
-      "script" : """
-        function(adiv, cbck) {
-          var callback = cbck;
-          var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
-          var var_name = $('.var_name', $(adiv)).find(':selected').val();
-          var var_min = parseFloat($('.var_min', $(adiv)).val());
-          var var_max = parseFloat($('.var_max', $(adiv)).val());
-          nedm.get_database(db_name).get_most_recent_value(var_name,
-            function(e, o) {
-              if (e) {
-                return callback(e);
-              }
-              if (o.rows.length != 1) {
-                return callback({error: var_name + " not found", reason: "Not found"});
-              }
-              var aval = o.rows[0].value;
-              if (!( aval >= var_min && aval <= var_max ) ) {
-                callback( { error: var_name + " (value: " + aval.toString() + ") out of range (" +
-                                   var_min.toString() + " -> " + var_max.toString() + ")",
-                           reason: "Out of range" });
-              } else {
-                callback();
-              }
-          });
+      "object" : """
+        function() {
+          function CheckObj() {
+             var tthis = this;
+             tthis.setup_function = function(adiv, database_cache) {
+               var db_name = $('.all_dbs', $(adiv)).find(':selected').val();
+               var vars = $('.var_name', $(adiv)).filter(':input');
+               vars.addClass('ui-disabled');
+               vars.empty();
+               database_cache.get_db(db_name).get_variables(function(all_vars) {
+                 for (var i=0;i<all_vars.length;i++) {
+                    var k = all_vars[i].key[0];
+                    vars.append($('<option/>').val(k).text(k));
+                 }
+                 vars.removeClass('ui-disabled');
+                 vars.selectmenu('refresh', true);
+               });
+             };
+             tthis.save = function(adiv) {
+               return {
+                 db_name : $('.all_dbs', $(adiv)).find(':selected').val(),
+                 var_name : $('.var_name', $(adiv)).find(':selected').val(),
+                 var_min : parseFloat($('.var_min', $(adiv)).val()),
+                 var_max : parseFloat($('.var_max', $(adiv)).val())
+               };
+             };
+             tthis.set = function(adiv, obj) {
+               $('.var_name', $(adiv)).filter(':input').val(obj.var_name);
+               $('.var_min', $(adiv)).val(obj.var_min);
+               $('.var_max', $(adiv)).val(obj.var_max);
+             };
+             tthis.script = function(adiv, cbck) {
+               var callback = cbck;
+               var obj = tthis.save(adiv);
+               var db_name = obj.db_name;
+               var var_name = obj.var_name;
+               var var_min = obj.var_min;
+               var var_max = obj.var_max;
+               nedm.get_database(db_name).get_most_recent_value(var_name,
+                 function(e, o) {
+                   if (e) {
+                     return callback(e);
+                   }
+                   if (o.rows.length != 1) {
+                     return callback({error: var_name + " not found", reason: "Not found"});
+                   }
+                   var aval = o.rows[0].value;
+                   if (!( aval >= var_min && aval <= var_max ) ) {
+                     callback( { error: var_name + " (value: " + aval.toString() + ") out of range (" +
+                                        var_min.toString() + " -> " + var_max.toString() + ")",
+                                reason: "Out of range" });
+                   } else {
+                     callback();
+                   }
+               });
+             };
+          }
+          return new CheckObj();
         }
       """
     }
@@ -247,14 +282,11 @@
       for (var x in docobj.protocol_types) {
         var t = docobj.protocol_types[x];
         /* jshint -W061 */
-        var func = eval("(" + t.script + ")");
+        var obj = eval("(" + t.object + ")")();
         var new_opt = $('<option/>').text(x).val(x); 
         prot_sel.append(new_opt); 
         var new_div = $('<div/>').addClass(x + "_class").append(t.html).hide();
-        command_obj[x] = { func : func };
-        if (t.setup_function) {
-          command_obj[x].setup_function = eval("(" + t.setup_function + ")");  
-        }
+        command_obj[x] = obj;
         $('.protocol_settings', $(line_clone)).append(new_div);
       }
 
@@ -326,7 +358,7 @@
          var run_step = function(astep) {
              var as = $(astep);
              var cl = $('.protocol_type', as).find(":selected").val();
-             var func = command_obj[cl].func; 
+             var func = command_obj[cl].script;
              $(".current_status", as).addClass("nedm-status-button-loading");
              func( as, function(err, obj) {
                var nxt = $(as).next(".protocol_clone_act");
