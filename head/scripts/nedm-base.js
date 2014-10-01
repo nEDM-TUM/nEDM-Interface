@@ -27,7 +27,7 @@ bs = function(haystack, needle, comparator, alow, ahigh) {
     cmp = comparator(haystack[mid], needle);
 
     /* Too low. */
-    if(cmp < 0) 
+    if(cmp < 0)
       low  = mid + 1;
 
     /* Too high. */
