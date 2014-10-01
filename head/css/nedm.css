@@ -2,6 +2,7 @@
 @import url("toastr.css");
 @import url("jquery-mobile.css");
 @import url("jquery-mobile-datebox.css");
+@import url("jw-jqm-cal.css");
 
 .ui-icon-nedm-loading:after {
         background: url(images/light-loader.gif) no-repeat rgba(0, 0, 0, 0.0);

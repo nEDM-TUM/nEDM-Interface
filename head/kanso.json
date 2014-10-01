@@ -23,6 +23,7 @@
     "toastr" : null,
     "jquery-cookie" : null,
     "ace" : null,
+    "jqm-calendar" : null,
     "dygraph-combined" : null 
   } 
 }

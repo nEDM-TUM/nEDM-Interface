@@ -6,6 +6,7 @@ $ = require("jquery");
 require("jquery-cookie");
 $.cookie.json = true;
 var ace = require("ace");
+var jqm_cal = require("jqm-calendar");
 ace.config.set("basePath", "/nedm_head/_design/nedm_head/ace/");
 bs = function(haystack, needle, comparator, alow, ahigh) {
   if(!Array.isArray(haystack))
@@ -735,6 +736,19 @@ nedm.dateFromKey = function(arr) {
   }
   return new Date(Date.UTC.apply(this, arr.slice(start, arr.length-end)));
 };
+
+nedm.keyFromUTCDate = function(date) {
+  return [date.getUTCFullYear(), date.getUTCMonth(),
+          date.getUTCDate(),     date.getUTCHours(),
+          date.getUTCMinutes(),  date.getUTCSeconds()];
+};
+
+nedm.keyFromDate = function(date) {
+  return [date.getFullYear(), date.getMonth(),
+          date.getDate(),     date.getHours(),
+          date.getMinutes(),  date.getSeconds()];
+};
+
 
 nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
 
