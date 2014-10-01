@@ -1,0 +1,149 @@
+{
+  "_id"  : "view_measurements",
+  "type" : "control",
+  "title" : "Past/Saved Measurements",
+  "description" : "Measurements that have been run",
+  "single_measurement" : {
+    "html" : """
+<div>
+    <div data-role="collapsible" style='display:none;' class='one_past_measurement'>
+         <h2><span class="current_title">(No name)</span></h2>
+         <div data-role='controlgroup' data-type='horizontal'>
+            Coming...
+         </div>
+    </div>
+
+</div>
+  """
+  },
+  "html" : """
+<div>
+   <div data-role='collapsible' data-inset="false">
+     <h2><span class="current_title">Calendar</span></h2>
+     <div class='past_measurements ui-disabled'>
+     </div>
+   </div>
+</div>
+
+""",
+"script" : """
+  function(thediv, docobj) {
+    var sing_msmnt = docobj.single_measurement;
+    var since_rev = "now";
+    var timeout = 4000;
+    var all_events = [];
+    var load_function = null;
+    var the_cal = $(".past_measurements", $(thediv));
+    var day_importance = null;
+    var changes_since_rev = function() {
+      var opts = {
+        filter : "nedm_default/doc_type",
+        type : "measurement"
+      };
+      if (since_rev) opts.since = since_rev;
+      nedm.get_database().changes(opts, function(err, obj) {
+        if (err) nedm.show_err_window(JSON.stringify(err), "Error");
+        else {
+          since_rev = obj.last_seq;
+          if (obj.results.length > 0) {
+            the_cal.trigger('refresh');
+          }
+          setTimeout(changes_since_rev, timeout);
+        }
+      });
+    };
+    changes_since_rev();
+
+    var is_calling_view = false;
+    var list_of_callbacks = {};
+    var get_day_importance = function(date, callback) {
+      if (day_importance === null) {
+        list_of_callbacks[date] = callback;
+        if (is_calling_view) {
+          return;
+        }
+        is_calling_view = true;
+        var tmp  = {     opts : {
+                           group_level : 4,
+                           endkey : ['measurement', {}],
+                         startkey : ['measurement']
+                                }
+                   };
+        nedm.get_database().getView('document_type', 'document_type', tmp,
+           function(err, obj) {
+             day_importance = {};
+             if (err) {
+               nedm.show_error_window("Error loading view!");
+             } else {
+               var r = obj.rows;
+               for (var i=0;i<r.length;i++) {
+                 var k = r[i].key;
+                 day_importance[(new Date(k[1], k[2], k[3])).toString()] = (r[i].value.sum > 1) ? 2 : 1;
+               }
+             }
+             for (var j in list_of_callbacks) get_day_importance(j, list_of_callbacks[j]);
+             list_of_callbacks = {};
+             the_cal.removeClass('ui-disabled');
+        });
+      } else {
+        if (date in day_importance) callback(day_importance[date]);
+        else callback(0);
+      }
+    };
+
+    var get_events_on_day = function(begin, end, callback) {
+
+        the_cal.addClass('ui-disabled');
+        var tmp  = {  opts : {
+                           reduce : false,
+                           endkey : ['measurement'],
+                           startkey : ['measurement']
+                                }
+                   };
+        Array.prototype.push.apply(tmp.opts.endkey, nedm.keyFromDate(end));
+        Array.prototype.push.apply(tmp.opts.startkey, nedm.keyFromDate(begin));
+        nedm.get_database().getView('document_type', 'document_type', tmp,
+           function(err, obj) {
+             the_cal.removeClass('ui-disabled');
+             if (err) {
+               nedm.show_error_window("Error loading view!");
+               callback([]);
+               return;
+             }
+             callback( $.map( obj.rows, function(o) {
+               var d = nedm.dateFromKey(o.key);
+               return {
+                 summary : o.id,
+                 begin : d,
+                 end : d
+               };
+             }));
+           });
+    };
+
+    var onDateClick = function(ev) {
+      if (! load_function ) {
+        load_function = $(thediv).siblings('.current_measurement_view')
+                                 .data('load_with_docid');
+      }
+      load_function($(ev.currentTarget).data('docid'));
+    };
+
+    var listItemFormat = function($li, ts, sum, ev) {
+      var text = ts.split('-')[0] + " " + sum;
+      $('<a></a>').text( text )
+                  .attr( 'href', '#')
+                  .data( { docid : sum })
+                  .on('click', onDateClick)
+                  .appendTo($li);
+    };
+    the_cal.jqmCalendar({
+      eventHandler : {
+        getImportanceOfDay : get_day_importance,
+        getEventsOnDay : get_events_on_day
+      },
+      listItemFormatter : listItemFormat
+    });
+  }
+"""
+}
