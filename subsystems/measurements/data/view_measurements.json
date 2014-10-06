@@ -30,15 +30,16 @@
   function(thediv, docobj) {
     var sing_msmnt = docobj.single_measurement;
     var since_rev = "now";
-    var timeout = 4000;
     var all_events = [];
     var load_function = null;
     var the_cal = $(".past_measurements", $(thediv));
     var day_importance = null;
     var changes_since_rev = function() {
       var opts = {
+        feed   : "longpoll",
         filter : "nedm_default/doc_type",
-        type : "measurement"
+        type : "measurement",
+        heartbeat : 5000
       };
       if (since_rev) opts.since = since_rev;
       nedm.get_database().changes(opts, function(err, obj) {
@@ -48,7 +49,7 @@
           if (obj.results.length > 0) {
             the_cal.trigger('refresh');
           }
-          setTimeout(changes_since_rev, timeout);
+          changes_since_rev();
         }
       });
     };
