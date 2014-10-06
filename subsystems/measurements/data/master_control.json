@@ -167,7 +167,8 @@
   "html" : """
 <div>
     <div class='entire_protocol'>
-      <h4><span class='measurement_status'>(Not saved)</span></h4>
+      <h4>Name: <span class='measurement_name'>(No name)</span></h4>
+      <h4>Saved: <span class='measurement_status'>(Not saved)</span></h4>
       <div>
          <div class='current_protocol ui-disabled'>
             <div class='protocol_table'>
@@ -197,6 +198,14 @@
         <div data-role="collapsible" class="comment_code_collapsible">
           <h2>Log</h2>
           <div align='left'>
+              <div class='ui-grid-b'>
+                <div class='ui-block-a'>
+                  <h4>Measurement name:</h4>
+                </div>
+                <div class='ui-block-b'>
+                  <input type="text" class='set_measurement_name' value="(No name)">
+                </div>
+              </div>
               <div class="comment code_editor">
               </div>
           </div>
@@ -485,13 +494,20 @@
       //*****************************************************
 
       //*****************************************************
-      // Set up text editor
+      // Get direct properties
       var save_id = function(anid) {
         $(thediv).data('current_doc', anid);
-        var msg = 'Saved: ' + anid;
+        var msg = anid;
         if (anid === null) msg = '(Not saved)';
         $('.measurement_status', $(thediv)).text(msg);
       };
+      var set_measurement_name = function(aname) {
+        var an = aname || "(No name)";
+        $('.measurement_name', $(thediv)).text(an);
+      };
+      $('.set_measurement_name').on("change", function(ev) {
+        set_measurement_name($(ev.currentTarget).val());
+      });
       //*****************************************************
 
       //*****************************************************
@@ -628,7 +644,8 @@
             var adoc = {
               type : "measurement",
               log : cmt.data('editor').getSession().getValue(),
-              protocol : protocol_list
+              protocol : protocol_list,
+              measurement_name : $('.set_measurement_name', $(thediv)).val()
             };
 
             if ($(thediv).data('current_doc') &&
@@ -686,6 +703,9 @@
                  href : nedm.get_database().url+"/" + obj._id+"/"+k });
           }
         }
+        $('.set_measurement_name', $(thediv))
+                  .val(obj.measurement_name || "(No name)")
+                  .trigger('change');
         save_id(obj._id);
       };
       var load_with_docid = function(doc_id) {
