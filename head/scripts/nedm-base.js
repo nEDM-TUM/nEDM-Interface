@@ -476,12 +476,14 @@ nedm.update_db_interface = function(db) {
              d.reject(err);
            } else {
              // We first need to check if the revision is only the first
-             var c = o.results[0].changes;
              var new_rev = false;
-             for (var i=0;i<c.length;i++) {
-               if (c[i].rev.slice(0,2) !== "1-") {
-                 new_rev = true;
-                 break;
+             if (o.results.length > 0) {
+               var c = o.results[0].changes;
+               for (var i=0;i<c.length;i++) {
+                 if (c[i].rev.slice(0,2) !== "1-") {
+                   new_rev = true;
+                   break;
+                 }
                }
              }
              if (!new_rev) { 
