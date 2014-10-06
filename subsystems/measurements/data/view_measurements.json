@@ -97,7 +97,8 @@
       var tmp  = {  opts : {
                          reduce : false,
                          endkey : ['measurement'],
-                         startkey : ['measurement']
+                       startkey : ['measurement'],
+                   include_docs : true
                               }
                  };
       Array.prototype.push.apply(tmp.opts.endkey, nedm.keyFromDate(end));
@@ -111,8 +112,10 @@
            } else {
              proc = $.map( obj.rows, function(o) {
                  var d = nedm.dateFromKey(o.key);
+                 var nm = o.doc.measurement_name || "(Unnamed)";
                  return {
-                   summary : o.id,
+                   summary : nm + " : " + o.id,
+                   doc_id  : o.id,
                    begin : d,
                    end : d
                  };
@@ -134,7 +137,7 @@
       var text = ts.split('-')[0] + " " + sum;
       $('<a></a>').text( text )
                   .attr( 'href', '#')
-                  .data( { docid : sum })
+                  .data( { docid : ev.doc_id })
                   .on('click', onDateClick)
                   .appendTo($li);
     };
