@@ -170,7 +170,7 @@ nedm.cancel_changes_feed = function(db, tag) {
 nedm.update_db_interface = function(db) {
     db.old_request = db.request;
     db.get_most_recent_value = function(var_name, callback) {
-      this.getView('slow_control_time', 'slow_control_time',
+      return this.getView('slow_control_time', 'slow_control_time',
       { opts : {
           endkey : [var_name],
         startkey : [var_name, {}],
@@ -239,9 +239,9 @@ nedm.update_db_interface = function(db) {
         tthis.request(req, callback);
       };
       if (doc._rev) {
-        exec_rem(doc._rev);
+        return exec_rem(doc._rev);
       } else {
-        tthis.getDoc(doc._id, function(err, obj) {
+        return tthis.getDoc(doc._id, function(err, obj) {
           if (err) return;
           exec_rem(obj._rev);
         });
@@ -265,9 +265,9 @@ nedm.update_db_interface = function(db) {
         tthis.request(req, callback);
       };
       if (doc._rev) {
-        exec_upload(doc._rev);
+        return exec_upload(doc._rev);
       } else {
-        tthis.getDoc(doc._id, function(err, obj) {
+        return tthis.getDoc(doc._id, function(err, obj) {
           if (err) return;
           exec_upload(obj._rev);
         });
@@ -286,7 +286,7 @@ nedm.update_db_interface = function(db) {
             expect_json: true
         };
 
-        this.request(req, callback);
+        return this.request(req, callback);
     };
 
     db._called_views = {};
@@ -374,7 +374,7 @@ nedm.update_db_interface = function(db) {
             cur_view.cancel();
             callback(e,o);
         };
-        this.request(req, callback_wrapper);
+        return this.request(req, callback_wrapper);
     };
 
     db.getViewInfo = function(view, callback) {
@@ -382,12 +382,12 @@ nedm.update_db_interface = function(db) {
             url: this.url + "/_design/" + view + "/_info",
             expect_json: true,
         };
-        this.request(req, callback);
+        return this.request(req, callback);
     };
 
     db.checkViewStatus = function(view, callback) {
         var obj = this;
-        this.info( function(e, o) {
+        return this.info( function(e, o) {
             if (e) callback({ error: e });
             else {
                 var cur_seq = o.update_seq;
