@@ -394,6 +394,7 @@
          abort_step = null;
          var run_step = function(astep) {
              var as = $(astep);
+             as.collapsible("expand");
              var cl = $('.protocol_type', as).find(":selected").val();
              var func = command_obj[cl].script;
              $(".current_status", as).addClass("nedm-status-button-loading");
