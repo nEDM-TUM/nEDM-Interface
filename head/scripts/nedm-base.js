@@ -428,58 +428,107 @@ nedm.update_db_interface = function(db) {
       if (timeout < 0) timeout = 0;
       if ('callback' in o) callback = o.callback;
       if ('quiet' in o) quiet = o.quiet;
+      var abort_requested = false;
+      var current_req = null;
       var ret_function = function(err, resp) {
-          if (err) {
-            if (callback) callback(err);
-            if (!quiet) nedm.show_error_window(err.error, err.reason);
-          } else {
-            if (callback) callback(null, resp);
-            if (!quiet) toastr.success(resp.toastr.msg, resp.toastr.title);
-          }
+        if (err) {
+          if (callback) callback(err);
+          if (!quiet) nedm.show_error_window(err.error, err.reason);
+        } else {
+          if (callback) callback(null, resp);
+          if (!quiet) toastr.success(resp.toastr.msg, resp.toastr.title);
+        }
       };
-      that.updateDoc(adoc,
-          'nedm_default', 'insert_with_timestamp', function(err, obj) {
-             if (err !== null) {
-                 return ret_function(err);
+      function SubmitUpdateDoc() {
+        var d = $.Deferred();
+        current_req = that.updateDoc(adoc,
+            'nedm_default', 'insert_with_timestamp', function(err, obj) {
+               if (err) {
+                 d.reject(err);
+               } else {
+                 d.resolve(obj);
+               }
+             });
+        d.fail(ret_function);
+        return d.promise();
+      }
+      function ResolveUpdateSubmission(obj) {
+        var cmd_str = "Command submitted: " + o.cmd_name;
+        var id = obj.id;
+        if ('arguments' in adoc) {
+            cmd_str += ", with args: " + JSON.stringify(adoc['arguments']);
+        }
+        if (!quiet) toastr.info(cmd_str, "");
+        // Check for the return of the function...
+        var total_timeout = timeout;
+        var changes_opts = { doc_ids : [ id ], 
+                              filter : "_doc_ids",
+                                feed : "longpoll" };
+        if (timeout === 0) {
+            changes_opts.heartbeat = 5000;
+        } else {
+            changes_opts.timeout = timeout;
+        }
+        var d = $.Deferred();
+        var has_cycled = false;
+        function HandleChanges(err, o) {
+           if (err) {
+             d.reject(err);
+           } else {
+             // We first need to check if the revision is only the first
+             var c = o.results[0].changes;
+             var new_rev = false;
+             for (var i=0;i<c.length;i++) {
+               if (c[i].rev.slice(0,2) !== "1-") {
+                 new_rev = true;
+                 break;
+               }
              }
-             var cmd_str = "Command submitted: " + o.cmd_name;
-             if ('arguments' in adoc) {
-                 cmd_str += ", with args: " + JSON.stringify(adoc['arguments']);
+             if (!new_rev) { 
+               if (!has_cycled) {
+                 // Try cyclying again
+                 has_cycled = true;
+                 changes_opts.filter = '_view';
+                 changes_opts.view = 'execute_commands/complete_commands';
+                 changes_opts.since = o.last_seq; 
+                 current_req = that.changes( changes_opts, HandleChanges );
+               } else {
+                 d.reject({ error  : "Timeout on reaction for command: " + adoc.execute,
+                            reason :"Timeout" });
+               }
+             } else {
+               d.resolve(id);
              }
-             if (!quiet) toastr.info(cmd_str, "");
-             // Check for the return of the function...
-             var total_timeout = timeout;
-             var check_cmd_return = function() {
-                 that.getView("execute_commands", "complete_commands",
-                   { opts: { reduce : false, key : [o.cmd_name, obj.id], include_docs : true } },
-                   function(err, objs) {
-                       if (err !== null) return;
-                       if (objs.rows.length != 1 || objs.rows[0].doc.response === undefined) {
-                           // call again
-                           if (timeout > 0) {
-                               total_timeout -= 1000;
-                               if (total_timeout <= 0) {
-                                   return ret_function(
-                                      { error  : "Timeout on reaction for command: " + o.cmd_name,
-                                        reason :"Timeout" });
-                               }
-                           }
-                           setTimeout(check_cmd_return, 1000);
-                       } else {
-                           var resp = objs.rows[0].doc.response;
-                           var resp_str = "Response for (" + o.cmd_name + "): " + resp.content + "\n" +
-                                          "    return value: " + JSON.stringify(resp['return']);
-                           if (!("ok" in resp)) {
-                               return ret_function( { error : resp_str, reason : "Error" } );
-                           } else {
-                               resp.toastr = { msg : resp_str, title : "Success" };
-                               return ret_function(null, resp);
-                           }
-                       }
-                   });
-             };
-             check_cmd_return();
-      });
+           }
+        }
+
+        d.fail(ret_function);
+        current_req = that.changes( changes_opts, HandleChanges ); 
+        return d.promise();
+      }
+
+      function GetResults(anid) {
+        current_req = that.getDoc(anid, function (err, obj) {
+          current_req = null;
+          if (err) return ret_function(err);
+          var resp = obj.response;
+          var resp_str = "Response for (" + o.cmd_name + "): " + resp.content + "\n" +
+                         "    return value: " + JSON.stringify(resp['return']);
+          if (!("ok" in resp)) {
+              ret_function( { error : resp_str, reason : "Error" } );
+          } else {
+              resp.toastr = { msg : resp_str, title : "Success" };
+              ret_function(null, resp);
+          }
+        });
+      }
+      return { 
+         promise : SubmitUpdateDoc().then(ResolveUpdateSubmission).then(GetResults),
+           abort : function() {
+             if (current_req) current_req.abort();
+             abort_requested = true;
+         }
+      };
     };
 };
 
