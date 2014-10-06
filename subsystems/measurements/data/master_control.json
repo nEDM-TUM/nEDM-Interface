@@ -181,6 +181,9 @@
                       </button>
                   </div>
                   <div class='protocol_settings'></div>
+                  <div>
+                    <p><span class="bolded_font">Status: </span><pre class="status_output"></pre></p>
+                  </div>
               </div>
             </div>
             <div data-role='controlgroup' data-type='horizontal'>
@@ -335,6 +338,7 @@
              $('.step_name', $(nc)).val(o.name).trigger('change');
              check_protocol(nc, o);
              command_obj[k].set(nc, o);
+             if (o.status) $('.status_output', $(nc)).text(o.status);
            }
          }
       };
@@ -387,9 +391,14 @@
              abort_step = func( as, function(err, obj) {
                var nxt = $(as).next(".protocol_clone_act");
                $(".current_status", as).removeClass("nedm-status-button-loading");
+               var msg;
                if (!err) {
                  $(".current_status", as).addClass("nedm-status-button-g");
+                 msg = obj.return;
+               } else {
+                 msg = "Error: " + err.error + ", reason: " + err.reason;
                }
+               $('.status_output', as).text(msg);
                if (nxt.length > 0 && !should_stop && !err) {
                  run_step(nxt);
                } else {
@@ -609,6 +618,7 @@
           var obj = {};
           obj[cl] = command_obj[cl].save(as);
           obj[cl].name = $('.step_name', as).val();
+          obj[cl].status = $('.status_output', as).text();
           protocol_list[protocol_list.length] = obj;
           var nxt = $(as).next(".protocol_clone_act");
           if (nxt.length > 0) {
