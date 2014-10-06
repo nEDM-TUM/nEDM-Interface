@@ -75,7 +75,7 @@
               args = null;
             }
             if (!Array.isArray(args)) args = [args];
-            nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
+            return nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
               arguments : args,
               callback : cbck,
               quiet : true
@@ -139,7 +139,7 @@
                var var_name = obj.var_name;
                var var_min = obj.var_min;
                var var_max = obj.var_max;
-               nedm.get_database(db_name).get_most_recent_value(var_name,
+               return nedm.get_database(db_name).get_most_recent_value(var_name,
                  function(e, o) {
                    if (e) {
                      return callback(e);
@@ -153,7 +153,8 @@
                                         var_min.toString() + " -> " + var_max.toString() + ")",
                                 reason: "Out of range" });
                    } else {
-                     callback();
+                     callback(null, { "return" : "value (" + aval.toString() + ") in range (" +
+                                        var_min.toString() + " -> " + var_max.toString() + ")" });
                    }
                });
              };
@@ -370,18 +371,20 @@
       });
 
       var should_stop = false;
+      var abort_step;
       var run_process = function(e) {
          should_stop = false;
          var process_list = $('.protocol_table');
          var disable_list = [ $(e.currentTarget), process_list, $('.add_protocol_line', $(thediv))];
          disable_list.forEach( function(o) { o.addClass("ui-disabled"); });
          $(".stop_process", $(thediv)).removeClass("ui-disabled");
+         abort_step = null;
          var run_step = function(astep) {
              var as = $(astep);
              var cl = $('.protocol_type', as).find(":selected").val();
              var func = command_obj[cl].script;
              $(".current_status", as).addClass("nedm-status-button-loading");
-             func( as, function(err, obj) {
+             abort_step = func( as, function(err, obj) {
                var nxt = $(as).next(".protocol_clone_act");
                $(".current_status", as).removeClass("nedm-status-button-loading");
                if (!err) {
@@ -408,6 +411,7 @@
       $('.stop_process', $(thediv)).on("click", function(e) {
          $(e.currentTarget).addClass("ui-disabled");
          should_stop = true;
+         if (abort_step) abort_step.abort();
       });
 
       //*****************************************************
