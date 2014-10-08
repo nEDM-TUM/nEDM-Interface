@@ -107,8 +107,9 @@ nedm.build_url = function(options) {
 
 nedm.available_database = {};
 
-nedm.get_current_db_name = function() {
-    var temp = document.location.pathname.split("/");
+nedm.get_current_db_name = function(pathname) {
+    var pth = pathname || document.location.pathname;
+    var temp = pth.split("/");
 	// Following gets rid of nedm%2F for those browsers that don't
 	// automatically convert to /
 	temp = temp[temp.length-1].split("%2F");
