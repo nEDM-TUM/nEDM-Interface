@@ -43,7 +43,7 @@
       };
       if (since_rev) opts.since = since_rev;
       nedm.get_database().changes(opts, function(err, obj) {
-        if (err) nedm.show_err_window(JSON.stringify(err), "Error");
+        if (err) nedm.show_error_window(JSON.stringify(err), "Error");
         else {
           since_rev = obj.last_seq;
           if (obj.results.length > 0) {
