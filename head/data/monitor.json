@@ -116,11 +116,8 @@
         var getAvailableItems = function (ev, ui) {
 			// We can have stale = update_after since the data types will not
 			// change all that often.
-            var durl = $(ev.target).attr('data-url');
-            var adb = durl.split('/');
-            adb = adb[adb.length-1];
             var ev = ev;
-            nedm.get_database(adb).getView('slow_control_time', 'slow_control_time',
+            nedm.get_database(nedm.get_current_db_name($(ev.target).attr('data-url'))).getView('slow_control_time', 'slow_control_time',
                 { opts : {stale : 'ok', group_level : 1} }, function (e, o) {
                         if (e !== null ) return;
                         var ssc = $('.selectSlowControl', $(ev.target)).filter(':input');

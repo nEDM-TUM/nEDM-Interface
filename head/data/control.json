@@ -26,9 +26,8 @@
     </div>
     <script>
         function loadControls(ev, ui) {
-            var adb = $(ev.target).attr('data-url').split('/');
-            adb = adb[adb.length-1];
-            nedm.get_database(adb).getView('document_type', 'document_type',
+            nedm.get_database(nedm.get_current_db_name($(ev.target).attr('data-url')))
+              .getView('document_type', 'document_type',
             { opts : { stale : 'update_after',
                       reduce : false,
                       endkey : ['control', {}],
