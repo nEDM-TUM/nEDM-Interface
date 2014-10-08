@@ -53,10 +53,20 @@
             });
           };
           tthis.save = function(adiv) {
+            var args = $('.all_args', $(adiv)).val().trim();
+            if (args.length !== 0) {
+              try {
+                args = JSON.parse(args);
+              } catch (err) {
+                args = null;
+              }
+            } else {
+              args = [];
+            }
             return {
               db_name : $('.all_dbs', $(adiv)).find(':selected').val(),
               cmd_name : $('.cmd_name', $(adiv)).find(':selected').val(),
-              args : $('.all_args', $(adiv)).val()
+              args : args
             };
           };
           tthis.set = function(adiv, obj) {
@@ -69,11 +79,6 @@
             var db_name = obj.db_name;
             var cmd_name = obj.cmd_name;
             var args = obj.args;
-            try {
-              args = JSON.parse(args);
-            } catch (err) {
-              args = null;
-            }
             if (!Array.isArray(args)) args = [args];
             return nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
               arguments : args,
