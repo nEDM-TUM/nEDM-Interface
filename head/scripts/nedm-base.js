@@ -819,11 +819,38 @@ nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
           });
 
     this.isSyncing = false;
+    this.isListening = false;
+    this.wasLive = false;
     this.name = data_name;
     this.uuid = Math.random().toString(36).substr(2,9);
     this.setGroupLevel(9);
 
     this.changeTimeRange(since_time_in_secs, 0);
+    var tthis = this;
+    var myBaseURL = $('.ui-page-active').data('url');
+    function ShowContainer(ev, ui) {
+        if ($(ui.toPage).data("url") !== myBaseURL) return;
+        if (tthis.wasLive) {
+          tthis.beginListening();
+        }
+    }
+    function HideContainer(ev, ui) {
+        if ($(ui.prevPage).data("url") !== myBaseURL) return;
+        if (tthis.isListening) {
+          tthis.endListening();
+          tthis.wasLive = true;
+        } else {
+          tthis.wasLive = false;
+        }
+    }
+    $(document).on( { pagecontainershow : ShowContainer,
+                      pagecontainerhide : HideContainer });
+    this.destroy = function() {
+      tthis.endListening();
+      $(document).off( { pagecontainershow : ShowContainer,
+                         pagecontainerhide : HideContainer });
+    };
+
 };
 
 nedm.MonitoringGraph.prototype.setGroupLevel = function(gl) {
@@ -1086,15 +1113,17 @@ nedm.MonitoringGraph.prototype.syncFunction = function () {
 };
 
 nedm.MonitoringGraph.prototype.beginListening = function () {
-  this.endListening(); 
-  this.db.listen_to_changes_feed(this.uuid, 
-          function(o) { return function(err, obj) { o.syncFunction(err,obj); }; } (this), 
+  this.endListening();
+  this.isListening = true;
+  this.db.listen_to_changes_feed(this.uuid,
+          function(o) { return function(err, obj) { o.syncFunction(err,obj); }; } (this),
           {since : 'now', filter : 'nedm_default/doc_type', type : "data"});
 };
 
 nedm.MonitoringGraph.prototype.endListening = function () {
   this.db.cancel_changes_feed(this.uuid);
   this.isSyncing = false;
+  this.isListening = false;
 };
 
 $(document).on('mobileinit', function() {
