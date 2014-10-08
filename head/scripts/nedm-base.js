@@ -1044,7 +1044,7 @@ nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
 };
 
 nedm.send_command = function(o) {
-      nedm.get_database().send_command(o);
+    return nedm.get_database().send_command(o);
 };
 
 nedm.MonitoringGraph.prototype.syncFunction = function () {
