@@ -34,6 +34,7 @@
     var load_function = null;
     var the_cal = $(".past_measurements", $(thediv));
     var day_importance = null;
+    var changes_listener;
     var changes_since_rev = function() {
       var opts = {
         feed   : "longpoll",
@@ -42,18 +43,22 @@
         heartbeat : 5000
       };
       if (since_rev) opts.since = since_rev;
-      nedm.get_database().changes(opts, function(err, obj) {
+      return nedm.get_database().changes(opts, function(err, obj) {
+        // Handle aborts (normal)
+        if (err && err.status === 0) return; 
+        // Handle other errors
         if (err) nedm.show_error_window(JSON.stringify(err), "Error");
         else {
+          // Normal refreshes
           since_rev = obj.last_seq;
           if (obj.results.length > 0) {
             the_cal.trigger('refresh');
           }
-          changes_since_rev();
+          changes_listener = changes_since_rev();
         }
       });
     };
-    changes_since_rev();
+    changes_listener = changes_since_rev();
 
     var is_calling_view = false;
     var list_of_callbacks = {};
@@ -148,6 +153,26 @@
         getEventsOnDay : get_events_on_day
       },
       listItemFormatter : listItemFormat
+    });
+
+    // Now ensure that the listener loads and unloads when arriving at the page.
+    var check_for_type = "measurements";
+
+    // Handle away transitions
+    $(document).on("pagecontainerhide", function (ev, ui) {
+       var o = $(ui.prevPage).data("url").split("/");
+       if (o[o.length-1] === check_for_type) {
+         if (changes_listener) changes_listener.abort();
+         changes_listener = null;
+       }
+    });
+    // Handle away transitions
+    $(document).on("pagecontainershow", function (ev, ui) {
+       var o = $(ui.toPage).data("url").split("/");
+       if (o[o.length-1] === check_for_type) {
+         if (changes_listener) changes_listener.abort();
+         changes_listener = changes_since_rev();
+       }
     });
   }
 """
