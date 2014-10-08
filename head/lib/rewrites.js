@@ -14,19 +14,19 @@ module.exports = [
   , "to"  : "../../../*"
   },
   { "description": "Access to pages"
-  , "from": "_rewrite/page/monitor/:db_name"
+  , "from": "_rewrite/page/monitor/*"
   , "to"  : "_show/page/monitor"
   },
   { "description": "Access to pages"
-  , "from": "_rewrite/page/control/:db_name"
+  , "from": "_rewrite/page/control/*"
   , "to"  : "_show/page/control"
   },
   { "description": "Access to pages"
-  , "from": "page/monitor/:db_name"
+  , "from": "page/monitor/*"
   , "to"  : "_show/page/monitor"
   },
   { "description": "Access to pages"
-  , "from": "page/control/:db_name"
+  , "from": "page/control/*"
   , "to"  : "_show/page/control"
   },
   { "description": "Access to pages"
