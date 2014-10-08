@@ -688,8 +688,9 @@ nedm.database_status = function( ) {
            var o = all_dbs[adb];
            var new_line = $('<tr/>').addClass(adb)
                                     .append($('<th/>').addClass("db_name").text(o.prettyname))
-                                    .append($('<th/>').addClass("write_status").text("?"))
-                                    .append($('<th/>').addClass("control_status").text("?"));
+                                    .append($('<th/>').append(
+                                      $('<div/>').addClass("nedm-status-y write_status")))
+                                    .append($('<th/>').append($('<div/>').addClass("nedm-status-y control_status")));
            tbody.append(new_line);
            nedm.database_listener( adb );
        }
