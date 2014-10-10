@@ -733,6 +733,7 @@ nedm.get_database_info = function( callback ) {
             for(var i=0;i<arguments.length;i++) {
                 var obj = arguments[i];
                 if (obj[2] != "found") continue;
+                if (obj[1].hide) continue;
                 current_database_info[obj[0]] = obj[1];
             }
             callback( current_database_info );

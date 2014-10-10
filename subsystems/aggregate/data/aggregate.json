@@ -1,0 +1,42 @@
+{
+  "_id" : "_design/aggregate",
+  "language" : "javascript",
+  "updates" : {
+    "aggregate" : """function(doc, req) {
+        // If it doesn't exist, we are making a new one
+        if (!doc) {
+          doc = {};
+          if (req.id) {
+            doc._id = req.id;
+          } else {
+            return [null, JSON.stringify({msg : 'No id given', error : true})];
+          }
+        }
+        
+        var _ref = JSON.parse(req.body);
+
+        var should_update = false;
+        if (!doc.refid || doc.refid != _ref.refid) {
+          doc.refid = _ref.refid;
+          should_update = true;
+        } else {
+          // The ref ids are the same, is it possible the timestamps have changed? 
+          if (doc.timestamp != _ref.timestamp) {
+            doc.timestamp = _ref.timestamp;
+            should_update = true;
+          }
+        }
+        doc.type = "aggregate";
+
+        // Always update the created_by
+        if (!doc.created_by) {
+          doc.created_by = req.userCtx.name;
+        }
+        if (should_update) {
+          return [doc, JSON.stringify({msg : "Updated", id : doc._id, ok : true})];
+        } else {
+          return [null, JSON.stringify({msg : "Not new", id : doc._id, ok : true})];
+        }
+      }"""
+    }
+}
