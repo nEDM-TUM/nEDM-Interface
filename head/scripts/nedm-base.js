@@ -596,9 +596,31 @@ nedm.update_buttons = function() {
     $("a[id*=homebtn]").attr("href", nedm.using_prefix);
 };
 
+
+function AddDBButtonToHeader( $header_left, adb, prettyname ) {
+  if (!prettyname) {
+    prettyname = adb;
+    adb = $header_left;
+    $header_left = $('.left_header');
+  }
+  if ($header_left.find('.' + adb + '-status').length !== 0) return;
+  var txt = "";
+  var re = /[A-Z]/g;
+  var m;
+  while ((m = re.exec(prettyname))) {
+    txt += m[0];
+  }
+  var new_b = $('<button/>')
+              .addClass("ui-btn ui-shadow ui-corner-all ui-btn-icon-left " +
+                        "ui-icon-nedm-status-button-g " + adb + "-status")
+              .text(txt).css('visibility', 'hidden');
+  $header_left.append(new_b);
+}
+
 nedm.update_header = function(ev, ui) {
 
-  $(ev.target).find(".headerChild").load("/nedm_head/_design/nedm_head/header.html", function() {
+  var hC = $(ev.target).find(".headerChild");
+  hC.load("/nedm_head/_design/nedm_head/header.html", function() {
       $(this).find("[data-role=header]").trigger("create").toolbar();
       var hn = $(this).find('#nedm_header_name');
       var callback = function(dbs) {
@@ -606,6 +628,9 @@ nedm.update_header = function(ev, ui) {
         var db = /nedm%2F(.*)/.exec(nedm.get_current_db_name())[1];
         if (db in dbs) {
           hn.text("nEDM Interface: " + dbs[db].prettyname);
+        }
+        for (db in dbs) {
+          AddDBButtonToHeader( $(hC).find('.left_header'), db, dbs[db].prettyname );
         }
       };
       nedm.get_database_info(callback);
@@ -691,21 +716,6 @@ nedm.database_status = function( ) {
    }
 
    nedm.listen_to_database_updates( UpdateFunction );
-   
-   function AddDBButtonToHeader( adb, prettyname ) {
-     var $header_left = $('.left_header');
-     var txt = "";
-     var re = /[A-Z]/g;
-     var m;
-     while ((m = re.exec(prettyname))) {
-       txt += m[0];
-     }
-     var new_b = $('<button/>')
-                 .addClass("ui-btn ui-shadow ui-corner-all ui-btn-icon-left " + 
-                           "ui-icon-nedm-status-button-g " + adb + "-status")
-                 .text(txt).css('visibility', 'hidden');
-     $header_left.append(new_b);
-   }
 
    function db_stat( all_dbs ) {
        var tbody = $(".status_db_class tbody");
