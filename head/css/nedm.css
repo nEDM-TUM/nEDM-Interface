@@ -38,7 +38,9 @@ th.db_name {
 .nedm-status-button-g {
     background: url(images/GreenLight-small.png);
 }
-
+.ui-icon-nedm-status-button-g:after {
+    background-image: url(images/GreenLight-small.png);
+}
 .nedm-status-r, .nedm-status-y, .nedm-status-g {
     font-family:Lucida Console;
     width: 50px;
