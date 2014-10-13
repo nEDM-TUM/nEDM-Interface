@@ -1,16 +1,33 @@
-var session = require("session");
 var db = require("db");
-var handlebars = require("handlebars");
 var dygraphs = require("dygraph-combined");
 $ = require("jquery");
 require("jquery-cookie");
 $.cookie.json = true;
 var ace = require("ace");
 var jqm_cal = require("jqm-calendar");
-var events = require("events");
 
 ace.config.set("basePath", "/nedm_head/_design/nedm_head/ace/");
-bs = function(haystack, needle, comparator, alow, ahigh) {
+
+var nedm = nedm || {};
+
+(function() {
+
+var handlebars = require("handlebars");
+var events = require("events");
+
+/**
+ * binary search function to find an index in an array
+ *
+ * @param {Array} haystack
+ * @param {Object,Number} needle, key being searched for
+ * @param {Function} comparator
+ * @param {Number} alow - low guess (index) where the needle is
+ * @param {Number} ahigh - high guess (index) where the needle is
+ * @returs {Number} index when found, otherwise ~low
+ * @api private
+ */
+
+function bs(haystack, needle, comparator, alow, ahigh) {
   if(!Array.isArray(haystack))
     throw new TypeError("first argument to binary search is not an array");
 
@@ -43,55 +60,34 @@ bs = function(haystack, needle, comparator, alow, ahigh) {
 
   /* Key not found. */
   return ~low;
-};
+}
 
-var nedm = nedm || {};
-nedm.logged_in_as = null;
-
-
-session.on('change', function(userCtx) {
-  nedm.set_user_name(userCtx);
-  nedm.update_buttons();
-  nedm.buildDBList();
-});
+/**
+ * Returns mantissa, exponent from a float
+ *
+ * @param {Float} x
+ * @return {Object} mantissa, exponent
+ * @api private
+ */
 
 
-
-
-// Fix db guessCurrent
-require("db").guessCurrent = function (loc1) {
-    var loc = loc1 || window.location;
-
-    /**
-     * A database must be named with all lowercase letters (a-z), digits (0-9),
-     * or any of the _$()+-/ characters and must end with a slash in the URL.
-     * The name has to start with a lowercase letter (a-z).
-     *
-     * http://wiki.apache.org/couchdb/HTTP_database_API
-     */
-
-    var re = /\/([a-z][a-z0-9_(%2F)\$\(\)\+-\/]*)\/_design\/([^\/]+)\//;
-    var match = re.exec(loc.pathname);
-
-    if (match) {
-        return {
-            db: match[1],
-            design_doc: match[2],
-            root: '/nedm_head/_design/nedm_head/_rewrite/_couchdb/'
-        };
-    }
-    return null;
-};
-
-nedm.getNumberParts = function (x) {
+function GetNumberParts(x) {
     var sig = x > 0 ? 1 : -1;
     x = Math.abs(x);
     var exp = Math.floor(Math.log(x)/Math.LN10);
     var man = x/Math.pow(10, exp);
     return {mantissa: sig*man, exponent: exp};
-};
+}
 
-nedm.build_url = function(options) {
+/**
+ * Builds parameter string for URL out of options
+ *
+ * @param {Object} options
+ * @return {String} parameter string
+ * @api private
+ */
+
+function BuildURL(options) {
     var url = "";
 
     var first = true;
@@ -104,72 +100,19 @@ nedm.build_url = function(options) {
         else url += JSON.stringify(options[key]);
     }
     return encodeURI(url);
-};
+}
 
-nedm.available_database = {};
+/**
+ * Adds/updates several functions to the DB object
+ *
+ * Note, the DB object is private which is why we can't necessarily inherit
+ * from it.
+ *
+ * @param {Object} db, DB object
+ * @api private
+ */
 
-nedm.get_current_db_name = function(pathname) {
-    var pth = pathname || document.location.pathname;
-    var temp = pth.split("/");
-	// Following gets rid of nedm%2F for those browsers that don't
-	// automatically convert to /
-	temp = temp[temp.length-1].split("%2F");
-    return "nedm%2F" + temp[temp.length-1];
-};
-
-nedm.get_database = function(name) {
-    if (name === undefined) {
-      name = nedm.get_current_db_name();
-    }
-    if (!(name in nedm.available_database)) {
-        nedm.available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
-    }
-    return nedm.available_database[name];
-};
-
-nedm.set_database = function(name) {
-};
-
-nedm.open_changes_feeds = { taglist: {}, urllist: {}};
-
-nedm.listen_to_changes_feed = function(db, tag, callback, options) {
-    options.feed = "eventsource";
-    var url = db.url + "/_changes" + nedm.build_url(options);
-
-    if (!(url in nedm.open_changes_feeds.urllist)) {
-        // start a new listener
-        var listener = new EventSource(url);
-        nedm.open_changes_feeds.urllist[url] = {src: listener, taglist: {}};
-
-    }
-    if (tag in nedm.open_changes_feeds.taglist) {
-        console.log("Warning: removing tag '" + tag +"'");
-        nedm.cancel_changes_feed(db, tag);
-    }
-    nedm.open_changes_feeds.taglist[tag] = {callb: callback, url: url};
-    nedm.open_changes_feeds.urllist[url].src.addEventListener("message", callback, false);
-    nedm.open_changes_feeds.urllist[url].taglist[tag] = {};
-};
-
-nedm.cancel_changes_feed = function(db, tag) {
-
-    if (!(tag in nedm.open_changes_feeds.taglist)) return;
-
-    var obj = nedm.open_changes_feeds.taglist[tag];
-    var src = nedm.open_changes_feeds.urllist[obj.url].src;
-
-    src.removeEventListener("message", obj.callb, false);
-
-    delete nedm.open_changes_feeds.urllist[obj.url].taglist[tag];
-    if ( Object.keys( nedm.open_changes_feeds.urllist[obj.url].taglist ).length === 0 ) {
-        src.close();
-        delete nedm.open_changes_feeds.urllist[obj.url];
-    }
-    delete nedm.open_changes_feeds.taglist[tag];
-};
-
-
-nedm.update_db_interface = function(db) {
+function UpdateDBInterface(db) {
     db.old_request = db.request;
     db.get_most_recent_value = function(var_name, callback) {
       return this.getView('slow_control_time', 'slow_control_time',
@@ -180,6 +123,31 @@ nedm.update_db_interface = function(db) {
           reduce : false,
            limit : 1}}, callback);
     };
+    // Fix db guessCurrent
+    db.guessCurrent = function (loc1) {
+        var loc = loc1 || window.location;
+
+        /**
+         * A database must be named with all lowercase letters (a-z), digits (0-9),
+         * or any of the _$()+-/ characters and must end with a slash in the URL.
+         * The name has to start with a lowercase letter (a-z).
+         *
+         * http://wiki.apache.org/couchdb/HTTP_database_API
+         */
+
+        var re = /\/([a-z][a-z0-9_(%2F)\$\(\)\+-\/]*)\/_design\/([^\/]+)\//;
+        var match = re.exec(loc.pathname);
+
+        if (match) {
+            return {
+                db: match[1],
+                design_doc: match[2],
+                root: '/nedm_head/_design/nedm_head/_rewrite/_couchdb/'
+            };
+        }
+        return null;
+    };
+
     // Add updateDoc to the API
     db.updateDoc = function (doc, designname, updatename, callback) {
         var method, url = this.url;
@@ -208,6 +176,7 @@ nedm.update_db_interface = function(db) {
         };
         this.request(req, callback);
     };
+
 	// update the request to handle the possibility that callback has
 	// progress/success requests
     db.request = function(req, callback) {
@@ -283,7 +252,7 @@ nedm.update_db_interface = function(db) {
         }
         var req = {
             url: this.url +
-                '/_changes' + nedm.build_url(options),
+                '/_changes' + BuildURL(options),
             type: "GET",
             expect_json: true
         };
@@ -315,7 +284,7 @@ nedm.update_db_interface = function(db) {
         var req = {
             url: this.url +
                 '/_design/' + this.encode(name) +
-                '/_view/' + viewname + nedm.build_url(options.opts),
+                '/_view/' + viewname + BuildURL(options.opts),
             data: data,
             type: theType,
             expect_json: true
@@ -534,11 +503,11 @@ nedm.update_db_interface = function(db) {
          }
       };
     };
-};
+}
 
 
 // Fix db function use
-nedm.old_use = require("db").use;
+var old_use = require("db").use;
 // overwrite faulty db functions
 require("db").use = function (url) {
     /* Force leading slash; make absolute path. */
@@ -557,45 +526,48 @@ require("db").use = function (url) {
 
     // Make absolute path
     url = parse.href;
-    var db = nedm.old_use(url);
+    var db = old_use(url);
 
     // hack to fix version 0.13 of db
     if (db.url[0] =='/') db.url = db.url.substr(1);
 
-    nedm.update_db_interface(db);
+    UpdateDBInterface(db);
 
     return db;
 };
 
+/**
+ * Updates the login/logout buttons and user status.  Called during session
+ * changes
+ *
+ * @api private
+ */
 
-nedm.namespace = function(namespaceString) {
-    var parts = namespaceString.split('.'),
-    parent = window,
-    currentPart = '';
-    for(var i = 0, length = parts.length; i < length; i++) {
-        currentPart = parts[i];
-        parent[currentPart] = parent[currentPart] || {};
-        parent = parent[currentPart];
-    }
-    return parent;
-};
+function UpdateButtons() {
+    CheckUserStatus( function(user_status) {
+      var loginbtn = $("a[id*=loginbtn]");
+      var logoutbtn = $("a[id*=logoutbtn]");
+      if (user_status === null) {
+          loginbtn.show();
+          logoutbtn.hide();
+      } else {
+          logoutbtn.text("Logout (" + user_status + ")");
+          logoutbtn.show();
+          loginbtn.hide();
+      }
+      $("a[id*=homebtn]").attr("href", using_prefix);
+    });
+}
 
-
-nedm.update_buttons = function() {
-    var user_status = nedm.check_user_status();
-    var loginbtn = $("a[id*=loginbtn]");
-    var logoutbtn = $("a[id*=logoutbtn]");
-    if (user_status === null) {
-        loginbtn.show();
-        logoutbtn.hide();
-    } else {
-        logoutbtn.text("Logout (" + user_status + ")");
-        logoutbtn.show();
-        loginbtn.hide();
-    }
-    $("a[id*=homebtn]").attr("href", nedm.using_prefix);
-};
-
+/**
+ * Adds DB "flash" button to the header toolbar.  This can be blinked to
+ * indicate DB activity.
+ *
+ * @param {DOM Object} $header_left - header portion on the left side
+ * @return {String} adb - db name
+ * @return {String} prettyname - db name, pretty version
+ * @api private
+ */
 
 function AddDBButtonToHeader( $header_left, adb, prettyname ) {
   if (!prettyname) {
@@ -617,7 +589,16 @@ function AddDBButtonToHeader( $header_left, adb, prettyname ) {
   $header_left.append(new_b);
 }
 
-nedm.update_header = function(ev, ui) {
+/**
+ * Updates header toolbar to show correct DB name.
+ * Also calls through to UpdateButtons
+ *
+ * @param {Object} ev, jQuery event
+ * @param {Object} ui, jQuery info
+ * @api private
+ */
+
+function UpdateHeader(ev, ui) {
 
   var hC = $(ev.target).find(".headerChild");
   hC.load("/nedm_head/_design/nedm_head/header.html", function() {
@@ -635,25 +616,151 @@ nedm.update_header = function(ev, ui) {
       };
       nedm.get_database_info(callback);
 
-      nedm.update_buttons();
+      UpdateButtons();
   });
 
+}
+
+/**
+ * Builds database list (subsystems)
+ *
+ * @param {Object} ev, jQuery event
+ * @param {Object} ui, jQuery info
+ * @api private
+ */
+
+function BuildDBList(ev, id) {
+   nedm.get_database_info( function( x, y ) { return function( dbs ) {
+       nedm.get_database("nedm_head").getDoc("sidebar", function(e, o ) {
+           if (e) return;
+           var listDBs = (x) ? $(x.target).find('.listofdbs') : $('.listofdbs');
+           listDBs.empty();
+           listDBs.append(o.body);
+           var db_list = $('.all_dbs_list_class', $(listDBs));
+           for(var key in dbs) {
+               var esc_name = "nedm%2F" + key;
+               var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
+                          .append($("<h3/>").append(dbs[key].prettyname));
+               var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
+               if ("pages" in dbs[key]) {
+                   for(var pg in dbs[key].pages) {
+                       var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
+                       ul.append($('<li/>').append($('<a/>').attr( { href : using_prefix + 'page/' + pg_name + '/' + esc_name } )
+                                                            .append(pg)));
+                   }
+               }
+               html.append(ul);
+               db_list.append(html);
+           }
+
+           listDBs.trigger("create");
+       });
+   };}(ev,id));
+}
+
+//////////////////////////
+// Event handling for nedm
+//////////////////////////
+
+// Internal EventEmitter object
+var _emitter = new events.EventEmitter();
+
+/**
+ * Handles aggregate database messages (changes feed)
+ * emits "db_update" events, which can be listened to (see nedm.on_db_updates)
+ *
+ * @param {Object} msg, Message from EventSource
+ * @api private
+ */
+
+function HandleDatabaseChanges(msg) {
+    var dat = JSON.parse(msg.data);
+    var id = dat.id.split(':');
+    _emitter.emit("db_update", { db  : id[0].split('/')[1],
+                                type : id[1] });
+}
+
+/**
+ * Turns on listening to aggregate DB changes.
+ * Called by a session change.
+ *
+ * @api private
+ */
+
+function ListenToDBChanges() {
+    var aggr = nedm.get_database('nedm%2Faggregate');
+    aggr.cancel_changes_feed('db_status');
+    aggr.listen_to_changes_feed("db_status",
+      HandleDatabaseChanges, { since : "now" });
+}
+
+/**
+ * Listen for changes from aggregate database
+ *
+ * @param {Function} callback(obj) - obj is { db : "db_name", type : "atype" }
+ *   'type' can be "data" or "heartbeat".
+ *   'db' is the database name *without* the preceding 'nedm%2F'.
+ * @api public
+ */
+
+nedm.on_db_updates = function(callback) {
+  _emitter.on("db_update", callback);
 };
 
-nedm.set_user_name = function(userCtx) {
-       nedm.logged_in_as = userCtx.name;
+/**
+ * Remove changes callback
+ *
+ * @param {Function} callback(obj) - see nedm.on_db_updates
+ * @api public
+ */
+
+nedm.remove_db_updates = function(callback) {
+  _emitter.removeListener("db_update", callback);
 };
 
-nedm.check_user_status = function() {
+var logged_in_as = null;
+function SetUserName(userCtx) {
+    logged_in_as = userCtx.name;
+}
+
+//////////////////////////
+// Session handling
+//////////////////////////
+
+var session = require("session");
+
+/**
+ * Check current user status
+ *
+ * @param {Function} callback(login_name)
+ * @api private
+ */
+
+function CheckUserStatus(callback) {
     session.info(function(err, info) {
-       if (info) nedm.set_user_name(info.userCtx);
+       if (info) SetUserName(info.userCtx);
+       callback(logged_in_as);
     });
-    return nedm.logged_in_as;
 };
+
+/**
+ * Logout from server
+ *
+ * @api public
+ */
 
 nedm.logout = function() {
     session.logout();
 };
+
+/**
+ * Login to server
+ *
+ * @param {String} un - username
+ * @param {String} pw - password
+ * @param {Function} callback(Boolean) - called with status of login.
+ * @api public
+ */
 
 nedm.validate = function(un, pw, callback) {
     session.login(un, pw,
@@ -664,26 +771,132 @@ nedm.validate = function(un, pw, callback) {
             });
 };
 
+// Register handling changes in the session
+session.on('change', function(userCtx) {
+    SetUserName(userCtx);
+    ListenToDBChanges();
+    UpdateButtons();
+    BuildDBList();
+});
+
+/**
+ * Get current db name, guessed from either the path of the page, or the passed
+ * in path
+ *
+ * @param {String} pathname (Optional)
+ * @return {String} name of db (e.g. "nedm%2Fraspberries")
+ * @api public
+ */
+
+nedm.get_current_db_name = function(pathname) {
+    var pth = pathname || document.location.pathname;
+    var temp = pth.split("/");
+	// Following gets rid of nedm%2F for those browsers that don't
+	// automatically convert to /
+	temp = temp[temp.length-1].split("%2F");
+    return "nedm%2F" + temp[temp.length-1];
+};
+
+var available_database = {};
+
+/**
+ * Get database by name
+ *
+ * @param {String} name (Optional) - name of database *or* return from nedm.get_current_db_name
+ * @return {DB} database object (with updated interface)
+ * @api public
+ */
+
+nedm.get_database = function(name) {
+    if (name === undefined) {
+      name = nedm.get_current_db_name();
+    }
+    if (!(name in available_database)) {
+        available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
+    }
+    return available_database[name];
+};
+
+open_changes_feeds = { taglist: {}, urllist: {}};
+
+/**
+ * Listen to changes feed of a particular database.  If feed is already open,
+ * then add a listener to that feed.  *This should be used sparingly!*  Chances
+ * are, the same functionality can be gained by listening to aggregate changes
+ * (see nedm.on_db_updates).
+ *
+ * @param {DB} db - database object
+ * @param {String} tag - unique tag
+ * @param {Function} callback(EventSource) - gets message from EventSource object
+ * @options {Object} options - Options to pass to changes feed
+ * @api public
+ */
+
+nedm.listen_to_changes_feed = function(db, tag, callback, options) {
+    options.feed = "eventsource";
+    var url = db.url + "/_changes" + BuildURL(options);
+
+    if (!(url in open_changes_feeds.urllist)) {
+        // start a new listener
+        var listener = new EventSource(url);
+        open_changes_feeds.urllist[url] = {src: listener, taglist: {}};
+
+    }
+    if (tag in open_changes_feeds.taglist) {
+        console.log("Warning: removing tag '" + tag +"'");
+        nedm.cancel_changes_feed(db, tag);
+    }
+    open_changes_feeds.taglist[tag] = {callb: callback, url: url};
+    open_changes_feeds.urllist[url].src.addEventListener("message", callback, false);
+    open_changes_feeds.urllist[url].taglist[tag] = {};
+};
+
+/**
+ * Cancel previous changes feed opened by nedm.listen_to_changes_feed
+ *
+ * @param {DB} db - database object
+ * @param {String} tag - unique tag
+ * @api public
+ */
+
+nedm.cancel_changes_feed = function(db, tag) {
+
+    if (!(tag in open_changes_feeds.taglist)) return;
+
+    var obj = open_changes_feeds.taglist[tag];
+    var src = open_changes_feeds.urllist[obj.url].src;
+
+    src.removeEventListener("message", obj.callb, false);
+
+    delete open_changes_feeds.urllist[obj.url].taglist[tag];
+    if ( Object.keys( open_changes_feeds.urllist[obj.url].taglist ).length === 0 ) {
+        src.close();
+        delete open_changes_feeds.urllist[obj.url];
+    }
+    delete open_changes_feeds.taglist[tag];
+};
+
+/**
+ * Wrapper for handlebars.compile
+ *
+ * @param {String} astr - string to be compiled
+ * @return {Object} handlebars compiled object
+ * @api public
+ */
+
 nedm.compile = function(astr) {
     return handlebars.compile(astr);
 };
 
+var all_db_listeners = {};
 
-nedm.all_db_listeners = {};
-
-nedm._emitter = new events.EventEmitter();
-
-nedm.listen_to_database_updates = function(callback) {
-  nedm._emitter.on("db_update", callback);
-};
+/**
+ * Called to begin status check of databases
+ *
+ * @api public
+ */
 
 nedm.database_status = function( ) {
-   function HandleDatabaseChanges(msg) {
-     var dat = JSON.parse(msg.data);
-     var id = dat.id.split(':');
-     nedm._emitter.emit("db_update", { db  : id[0].split('/')[1],
-                                      type : id[1] });
-   }
    var track_dbs = {};
    var map = { data : 'write_status', heartbeat : 'control_status' };
    function ResetToRed( $the_dom ) {
@@ -695,6 +908,9 @@ nedm.database_status = function( ) {
    }
 
    function UpdateFunction( obj ) {
+     function RemButton() {
+       but.css('visibility', 'hidden');
+     }
      var $adom = $('.' + obj.db + ' .' + map[obj.type]);
      if (!track_dbs[obj.db]) track_dbs[obj.db] = {};
      if (track_dbs[obj.db][obj.type]) {
@@ -707,21 +923,18 @@ nedm.database_status = function( ) {
      track_dbs[obj.db][obj.type] = setTimeout(ResetToRed($adom), 30000);
      if (obj.type === 'data') {
        var but = $('.left_header .' + obj.db + '-status');
-       function RemButton() {
-         but.css('visibility', 'hidden');
-       }
        but.css('visibility', 'visible');
        setTimeout(RemButton, 1000);
      }
    }
 
-   nedm.listen_to_database_updates( UpdateFunction );
+   nedm.on_db_updates( UpdateFunction );
 
    function db_stat( all_dbs ) {
        var tbody = $(".status_db_class tbody");
        tbody.empty();
        for (var adb in all_dbs) {
-           if (adb in nedm.all_db_listeners) continue;
+           if (adb in all_db_listeners) continue;
            var o = all_dbs[adb];
            var new_line = $('<tr/>').addClass(adb)
                                     .append($('<th/>').addClass("db_name").text(o.prettyname))
@@ -735,13 +948,23 @@ nedm.database_status = function( ) {
            };
            AddDBButtonToHeader(adb, o.prettyname);
        }
-       nedm.get_database("nedm%2Faggregate").listen_to_changes_feed("db_status",
-         HandleDatabaseChanges, { since : "now" });
    }
    nedm.get_database_info( db_stat );
 };
 
-// Returns all the most recent database info
+/**
+ * Gets database information.
+ *
+ * @param {Function} callback(dbs) - dbs is an object with
+ *   {
+ *     db_name : { prettyname : "Pretty Name" ... }
+ *   }
+ *
+ *   which is information stored in the subsystem_information document
+ *
+ * @api public
+ */
+
 nedm.get_database_info = function( callback ) {
 
     // First define a function to grab all the information
@@ -786,43 +1009,54 @@ nedm.get_database_info = function( callback ) {
 
 };
 
+/**
+ * Helper function, gets most recent value of a variable
+ *
+ * @param {String} var_name - name of variable
+ * @param {Function} callback(err, obj) - Typical callback from view, see
+ *   DB.getView
+ *
+ * @api public
+ */
+
 nedm.get_most_recent_value = function(var_name, callback) {
     nedm.get_database().get_most_recent_value(var_name, callback);
 };
+
+/**
+ * Helper function, sends command to current database
+ *
+ * @param {Object} o - command, see DB.send_command
+ * @return {jqXHR Object}
+ * @api public
+ */
+
+nedm.send_command = function(o) {
+    return nedm.get_database().send_command(o);
+};
+
+
+/**
+ * Show toastr error window
+ *
+ * @param {String} error - Error type
+ * @param {String} msg - More detailed message
+ *
+ * @api public
+ */
 
 nedm.show_error_window = function(error, msg) {
     toastr.error(msg, error);
 };
 
-// We build the list of DBs to point to.  This is simply subsystems
-nedm.buildDBList = function(ev, id) {
-   nedm.get_database_info( function( x, y ) { return function( dbs ) {
-       nedm.get_database("nedm_head").getDoc("sidebar", function(e, o ) {
-           if (e) return;
-           var listDBs = (x) ? $(x.target).find('.listofdbs') : $('.listofdbs');
-           listDBs.empty();
-           listDBs.append(o.body);
-           var db_list = $('.all_dbs_list_class', $(listDBs));
-           for(var key in dbs) {
-               var esc_name = "nedm%2F" + key;
-               var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
-                          .append($("<h3/>").append(dbs[key].prettyname));
-               var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
-               if ("pages" in dbs[key]) {
-                   for(var pg in dbs[key].pages) {
-                       var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
-                       ul.append($('<li/>').append($('<a/>').attr( { href : nedm.using_prefix + 'page/' + pg_name + '/' + esc_name } )
-                                                            .append(pg)));
-                   }
-               }
-               html.append(ul);
-               db_list.append(html);
-           }
-
-           listDBs.trigger("create");
-       });
-   };}(ev,id));
-};
+/**
+ * Get Date object from array
+ *
+ * @param {Array} arr - Array like ["name", YY, MM, DD, H, M, S] or [YY, MM, DD, H, M, S, "name"]
+ * @return {Date Object}
+ *
+ * @api public
+ */
 
 nedm.dateFromKey = function(arr) {
   var start = 0;
@@ -834,11 +1068,27 @@ nedm.dateFromKey = function(arr) {
   return new Date(Date.UTC.apply(this, arr.slice(start, arr.length-end)));
 };
 
+/**
+ * Get Array from Date Object, assumes Date is UTC
+ *
+ * @param {Date Object} date
+ * @return {Array} arr - [YY, MM, DD, H, M, S]
+ * @api public
+ */
+
 nedm.keyFromUTCDate = function(date) {
   return [date.getUTCFullYear(), date.getUTCMonth(),
           date.getUTCDate(),     date.getUTCHours(),
           date.getUTCMinutes(),  date.getUTCSeconds()];
 };
+
+/**
+ * Get Array from Date Object, not UTC
+ *
+ * @param {Date Object} date
+ * @return {Array} arr - [YY, MM, DD, H, M, S]
+ * @api public
+ */
 
 nedm.keyFromDate = function(date) {
   return [date.getFullYear(), date.getMonth(),
@@ -909,8 +1159,8 @@ nedm.MonitoringGraph.prototype.prependData = function(r) {
 
 nedm.MonitoringGraph.prototype.recalc_axis_labels = function() {
      var range = this.graph.yAxisRange();
-     var one_side = nedm.getNumberParts(range[1]);
-     var subtract = nedm.getNumberParts(range[1] - range[0]);
+     var one_side = GetNumberParts(range[1]);
+     var subtract = GetNumberParts(range[1] - range[0]);
      var sfs = one_side.exponent - subtract.exponent + 2;
      this.graph.updateOptions({ axes : { y : { sigFigs : sfs } } });
 };
@@ -1114,10 +1364,6 @@ nedm.MonitoringGraph.prototype.mergeData = function(new_data) {
    this.prependData(new_data);
 };
 
-nedm.send_command = function(o) {
-    return nedm.get_database().send_command(o);
-};
-
 nedm.MonitoringGraph.prototype.syncFunction = function () {
     // don't sync too often...
     if (this.isSyncing) return;
@@ -1170,16 +1416,16 @@ nedm.MonitoringGraph.prototype.endListening = function () {
   this.isListening = false;
 };
 
+var using_prefix = "/";
 $(document).on('mobileinit', function() {
 
-  nedm.using_prefix = "/";
   if (document.location.pathname != '/' &&
       document.location.pathname.substring(0,5) != '/page') {
-      nedm.using_prefix = "/nedm_head/_design/nedm_head/_rewrite/";
+      using_prefix = "/nedm_head/_design/nedm_head/_rewrite/";
   }
   $(document).on('pageinit', function(x, y) {
-      nedm.update_header(x, y);
-      nedm.buildDBList(x, y);
+      UpdateHeader(x, y);
+      BuildDBList(x, y);
   });
 
   // Handle page load fails from couchDB, forward to error handling.
@@ -1222,3 +1468,4 @@ toastr.options = {
   positionClass: "toast-top-right",
     closeButton: true
 };
+}());
