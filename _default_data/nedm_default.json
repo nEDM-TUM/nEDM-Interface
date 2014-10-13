@@ -63,9 +63,7 @@
         if (!doc.created_by) {
           doc.created_by = user;
         }
-        if (!doc.timestamp) {
-          doc.timestamp  = ts;
-        }
+        doc.timestamp  = ts;
         return [doc, JSON.stringify({msg : message, id : doc._id, ok : true})];
       }""",
     "update_with_log" : """function(doc, req) {
