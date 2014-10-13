@@ -464,7 +464,7 @@ nedm.update_db_interface = function(db) {
         if (!quiet) toastr.info(cmd_str, "");
         // Check for the return of the function...
         var total_timeout = timeout;
-        var changes_opts = { doc_ids : [ id ], 
+        var changes_opts = { doc_ids : [ id ],
                               filter : "_doc_ids",
                                 feed : "longpoll" };
         if (timeout === 0) {
@@ -489,13 +489,13 @@ nedm.update_db_interface = function(db) {
                  }
                }
              }
-             if (!new_rev) { 
+             if (!new_rev) {
                if (!has_cycled) {
                  // Try cyclying again
                  has_cycled = true;
                  changes_opts.filter = '_view';
                  changes_opts.view = 'execute_commands/complete_commands';
-                 changes_opts.since = o.last_seq; 
+                 changes_opts.since = o.last_seq;
                  current_req = that.changes( changes_opts, HandleChanges );
                } else {
                  d.reject({ error  : "Timeout on reaction for command: " + adoc.execute,
@@ -508,7 +508,7 @@ nedm.update_db_interface = function(db) {
         }
 
         d.fail(ret_function);
-        current_req = that.changes( changes_opts, HandleChanges ); 
+        current_req = that.changes( changes_opts, HandleChanges );
         return d.promise();
       }
 
@@ -527,7 +527,7 @@ nedm.update_db_interface = function(db) {
           }
         });
       }
-      return { 
+      return {
          promise : SubmitUpdateDoc().then(ResolveUpdateSubmission).then(GetResults),
            abort : function() {
              if (current_req) current_req.abort();
