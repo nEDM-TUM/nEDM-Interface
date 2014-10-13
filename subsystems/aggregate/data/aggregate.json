@@ -18,6 +18,7 @@
         var should_update = false;
         if (!doc.refid || doc.refid != _ref.refid) {
           doc.refid = _ref.refid;
+          doc.timestamp = _ref.timestamp;
           should_update = true;
         } else {
           // The ref ids are the same, is it possible the timestamps have changed? 
@@ -38,5 +39,40 @@
           return [null, JSON.stringify({msg : "Not new", id : doc._id, ok : true})];
         }
       }"""
-    }
+    },
+  "validate_doc_update" : """function(newDoc, oldDoc, userCtx, secObj) {
+
+      secObj.admins  = secObj.admins || {};
+      secObj.admins.names = secObj.admins.names || [];
+      secObj.admins.roles = secObj.admins.roles || [];
+
+      // If the oldDoc exists, we do the checks based upon it.
+      // Otherwise upon the newDoc
+      var theDoc = oldDoc || newDoc;
+
+      var IS_SERVER_ADMIN = false;
+      var IS_DB_WRITER = false;
+      var IS_ALARM_WRITER = false;
+
+      if(~ userCtx.roles.indexOf('_admin')) {
+        IS_SERVER_ADMIN = true;
+      }
+      if(~ secObj.admins.names.indexOf(userCtx.name)) {
+        IS_DB_WRITER = true;
+      }
+      for(var i = 0; i < userCtx.roles.length; i++) {
+        if(~ secObj.admins.roles.indexOf(userCtx.roles[i])) {
+          IS_DB_WRITER = true;
+        }
+      }
+
+      if (!IS_SERVER_ADMIN && !IS_DB_WRITER) {
+        throw { 'forbidden' : 'Must be a server admin or DB writer' };
+      }
+      var check_name = (theDoc._id.slice(0,5) === 'nedm/'); 
+      if (IS_DB_WRITER && !IS_SERVER_ADMIN && !check_name) {
+        throw { 'forbidden' : "DB writers can only write 'nedm/' docs" };
+      }
+    }"""
+
 }
