@@ -52,7 +52,6 @@ nedm.logged_in_as = null;
 session.on('change', function(userCtx) {
   nedm.set_user_name(userCtx);
   nedm.update_buttons();
-  //nedm.update_header();
   nedm.buildDBList();
 });
 
@@ -681,10 +680,34 @@ nedm.database_status = function( ) {
           .removeClass('nedm-status-r')
           .addClass('nedm-status-g');
      track_dbs[obj.db][obj.type] = setTimeout(ResetToRed($adom), 30000);
+     if (obj.type === 'data') {
+       var but = $('.left_header .' + obj.db + '-status');
+       function RemButton() {
+         but.css('visibility', 'hidden');
+       }
+       but.css('visibility', 'visible');
+       setTimeout(RemButton, 1000);
+     }
    }
 
    nedm.listen_to_database_updates( UpdateFunction );
-   var db_stat = function( all_dbs ) {
+   
+   function AddDBButtonToHeader( adb, prettyname ) {
+     var $header_left = $('.left_header');
+     var txt = "";
+     var re = /[A-Z]/g;
+     var m;
+     while ((m = re.exec(prettyname))) {
+       txt += m[0];
+     }
+     var new_b = $('<button/>')
+                 .addClass("ui-btn ui-shadow ui-corner-all ui-btn-icon-left " + 
+                           "ui-icon-nedm-status-button-g " + adb + "-status")
+                 .text(txt).css('visibility', 'hidden');
+     $header_left.append(new_b);
+   }
+
+   function db_stat( all_dbs ) {
        var tbody = $(".status_db_class tbody");
        tbody.empty();
        for (var adb in all_dbs) {
@@ -700,10 +723,11 @@ nedm.database_status = function( ) {
              data : setTimeout(ResetToRed($('.' + adb + ' .write_status')), 10000),
              heartbeat : setTimeout(ResetToRed($('.' + adb + ' .control_status')), 10000)
            };
+           AddDBButtonToHeader(adb, o.prettyname);
        }
        nedm.get_database("nedm%2Faggregate").listen_to_changes_feed("db_status",
          HandleDatabaseChanges, { since : "now" });
-   };
+   }
    nedm.get_database_info( db_stat );
 };
 
