@@ -7,6 +7,8 @@ require("jquery-cookie");
 $.cookie.json = true;
 var ace = require("ace");
 var jqm_cal = require("jqm-calendar");
+var events = require("events");
+
 ace.config.set("basePath", "/nedm_head/_design/nedm_head/ace/");
 bs = function(haystack, needle, comparator, alow, ahigh) {
   if(!Array.isArray(haystack))
@@ -644,42 +646,44 @@ nedm.compile = function(astr) {
 
 
 nedm.all_db_listeners = {};
-nedm.database_listener = function( adb ) {
-    var adb = adb;
-    if (adb in nedm.all_db_listeners) return;
-    nedm.all_db_listeners[adb] = {};
-    var update_function = function( atype ) {
-        var adom = $('.' + adb + ' .' + atype);
-        return function(e, o) {
-               var text = "nedm-status-r";
-               if (!e && o.rows.length == 1) {
-                   var now = new Date();
-                   var last_data = nedm.dateFromKey(o.rows[0].key);
-                   if ( last_data > now || (now - last_data < 20000)) {
-                       text = "nedm-status-g";
-                   }
-               }
-               adom.removeClass('nedm-status-y').addClass(text);
-               delete nedm.all_db_listeners[adb][atype];
-               if (Object.keys(nedm.all_db_listeners[adb]).length === 0) {
-                   delete nedm.all_db_listeners[adb];
-                   setTimeout(function() { nedm.database_listener( adb ); }, 10000);
-               }
-               // Throttle, wait until we check again...
-        };
-    };
-    var send = { heartbeat : 'control_status', data : 'write_status' };
-    var thedb = nedm.get_database( "nedm%2F" + adb );
-    for (var k in send) {
-        thedb.getView("document_type", "document_type",
-              { opts: { descending : true, reduce : false, limit : 1,
-                        endkey : [k], startkey : [k, {}] } },
-            update_function(send[k]));
-            nedm.all_db_listeners[adb][send[k]] = true;
-    }
+
+nedm._emitter = new events.EventEmitter();
+
+nedm.listen_to_database_updates = function(callback) {
+  nedm._emitter.on("db_update", callback);
 };
 
 nedm.database_status = function( ) {
+   function HandleDatabaseChanges(msg) {
+     var dat = JSON.parse(msg.data);
+     var id = dat.id.split(':');
+     nedm._emitter.emit("db_update", { db  : id[0].split('/')[1],
+                                      type : id[1] });
+   }
+   var track_dbs = {};
+   var map = { data : 'write_status', heartbeat : 'control_status' };
+   function ResetToRed( $the_dom ) {
+     return function() {
+       $the_dom.removeClass('nedm-status-y')
+               .removeClass('nedm-status-g')
+               .addClass('nedm-status-r');
+     };
+   }
+
+   function UpdateFunction( obj ) {
+     var $adom = $('.' + obj.db + ' .' + map[obj.type]);
+     if (!track_dbs[obj.db]) track_dbs[obj.db] = {};
+     if (track_dbs[obj.db][obj.type]) {
+       // reset timeout
+       clearTimeout(track_dbs[obj.db][obj.type]);
+     }
+     $adom.removeClass('nedm-status-y')
+          .removeClass('nedm-status-r')
+          .addClass('nedm-status-g');
+     track_dbs[obj.db][obj.type] = setTimeout(ResetToRed($adom), 30000);
+   }
+
+   nedm.listen_to_database_updates( UpdateFunction );
    var db_stat = function( all_dbs ) {
        var tbody = $(".status_db_class tbody");
        tbody.empty();
@@ -692,8 +696,13 @@ nedm.database_status = function( ) {
                                       $('<div/>').addClass("nedm-status-y write_status")))
                                     .append($('<th/>').append($('<div/>').addClass("nedm-status-y control_status")));
            tbody.append(new_line);
-           nedm.database_listener( adb );
+           track_dbs[adb] = {
+             data : setTimeout(ResetToRed($('.' + adb + ' .write_status')), 10000),
+             heartbeat : setTimeout(ResetToRed($('.' + adb + ' .control_status')), 10000)
+           };
        }
+       nedm.get_database("nedm%2Faggregate").listen_to_changes_feed("db_status",
+         HandleDatabaseChanges, { since : "now" });
    };
    nedm.get_database_info( db_stat );
 };
