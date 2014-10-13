@@ -17,6 +17,7 @@
     "session" : null,
     "handlebars" : null,
     "db" : null,
+    "events" : null,
     "jquery" : "1.10.1-kanso", 
     "jquery-mobile" : null, 
     "jquery-mobile-datebox" : null, 
