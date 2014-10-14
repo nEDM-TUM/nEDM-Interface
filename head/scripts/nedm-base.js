@@ -503,6 +503,44 @@ function UpdateDBInterface(db) {
          }
       };
     };
+
+    db.db_name = function() {
+      var arr = this.url.split('/');
+      return arr[arr.length-1].split('%2F')[1];
+    };
+
+    function GenerateCallback(db_obj, cbck, type) {
+      var db_name = db_obj.db_name();
+      if (type) {
+        return function(msg) {
+          if (db_name !== msg.db || type != msg.type) return;
+          cbck(msg);
+        };
+      } else {
+        return function(msg) {
+          if (db_name !== msg.db) return;
+          cbck(msg);
+        };
+      }
+    }
+
+    db.on = function(type, callback) {
+      if (!callback) {
+        callback = type;
+        type = undefined;
+      }
+      var cbck = GenerateCallback(this, callback, type);
+      nedm.on_db_updates(cbck);
+    };
+
+    db.off = function(type, callback) {
+      if (!callback) {
+        callback = type;
+        type = undefined;
+      }
+      var cbck = GenerateCallback(this, callback, type);
+      nedm.remove_db_updates(cbck);
+    };
 }
 
 
@@ -1113,42 +1151,57 @@ nedm.MonitoringGraph = function (adiv, data_name, since_time_in_secs, adb) {
           });
 
     this.isSyncing = false;
-    this.isListening = false;
-    this.wasLive = false;
     this.name = data_name;
-    this.uuid = Math.random().toString(36).substr(2,9);
-    this.setGroupLevel(9);
+    this.group_level = function() { return 9; };
 
-    this.changeTimeRange(since_time_in_secs, 0);
+
+    // Private variables
     var tthis = this;
     var myBaseURL = $('.ui-page-active').data('url');
+    var wasLive = false;
+    var isListening = false;
     function ShowContainer(ev, ui) {
         if ($(ui.toPage).data("url") !== myBaseURL) return;
-        if (tthis.wasLive) {
+        if (wasLive) {
           tthis.beginListening();
         }
     }
     function HideContainer(ev, ui) {
         if ($(ui.prevPage).data("url") !== myBaseURL) return;
-        if (tthis.isListening) {
+        if (isListening) {
           tthis.endListening();
-          tthis.wasLive = true;
+          wasLive = true;
         } else {
-          tthis.wasLive = false;
+          wasLive = false;
         }
     }
+
+    function HandleListening(msg) {
+      tthis.syncFunction();
+    }
+
+    this.beginListening = function () {
+      this.endListening();
+      isListening = true;
+      this.db.on("data", HandleListening);
+    };
+
+    this.endListening = function () {
+      this.db.off("data", HandleListening);
+      this.isSyncing = false;
+      isListening = false;
+    };
+
+    this.changeTimeRange(since_time_in_secs, 0);
+
     $(document).on( { pagecontainershow : ShowContainer,
                       pagecontainerhide : HideContainer });
-    this.destroy = function() {
+    tthis.destroy = function() {
       tthis.endListening();
       $(document).off( { pagecontainershow : ShowContainer,
                          pagecontainerhide : HideContainer });
     };
 
-};
-
-nedm.MonitoringGraph.prototype.setGroupLevel = function(gl) {
-    this.group_level = gl;
 };
 
 nedm.MonitoringGraph.prototype.prependData = function(r) {
@@ -1232,7 +1285,6 @@ nedm.MonitoringGraph.prototype.removeBeforeDate = function(adate) {
     while (j < data.length && data[j][0].getTime() < adate.getTime()) j++;
     return data.splice(0, j);
 };
-
 
 nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time, callback) {
 
@@ -1326,7 +1378,7 @@ nedm.MonitoringGraph.prototype.changeTimeRange = function (prev_time, until_time
                       startkey : new_last_key,
                         endkey : new_first_key,
                         reduce : true,
-                        group_level : this.group_level,
+                        group_level : this.group_level(),
                         limit  : limit};
         this.db.getView("slow_control_time", "slow_control_time",
               { opts : opts }, view_clbck(this, 0, curr_name, opts));
@@ -1394,7 +1446,7 @@ nedm.MonitoringGraph.prototype.syncFunction = function () {
     for (var i=0;i<this.name.length;i++) {
         this.db.getView('slow_control_time', 'slow_control_time',
           { opts : { descending : true,
-                    group_level : this.group_level,
+                    group_level : this.group_level(),
                          reduce : true,
                          limit  : 1,
                        startkey : [ this.name[i], {} ] } },
