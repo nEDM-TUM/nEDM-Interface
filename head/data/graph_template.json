@@ -113,7 +113,7 @@
                      thisdiv : new_div,
                      graph : obj,
                      remove : function() {
-                       this.graph.endListening();
+                       this.graph.destroy();
                        this.thisdiv.remove();
                      },
                      add_plot : function(aname) {
@@ -134,7 +134,6 @@
                        $('.remove_plotted', this.thisdiv).removeClass('ui-disabled');
                      }
                    });
-    obj.beginListening();
 
     avg_select.on('change', function() {
       obj.setGroupLevel($(this).val());
@@ -205,8 +204,9 @@
         var until_now = ensure_until_now_state();
         if (until_now) end_date = 0;
         var current_progress = $('.variable_progress', new_div);
-        for (var j=0;j<obj.name.length;j++) {
-            current_progress.append(get_new_progress(obj.name[j]));
+        var name = obj.name();
+        for (var j=0;j<name.length;j++) {
+            current_progress.append(get_new_progress(name[j]));
         }
         current_progress.trigger('create');
         var update_function = function (objs) {
