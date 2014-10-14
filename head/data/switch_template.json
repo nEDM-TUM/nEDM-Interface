@@ -1,4 +1,4 @@
-# Switch template.   
+# Switch template.
 #
 # A template for a simple switch that stores and retrieves status from the
 # database.
@@ -14,7 +14,6 @@
   "type" : "control_template",
   "title" : "{{title}}",
   "description" : "{{description}}",
-
   "html" : """
 <!--  Here we input html that should be added to the page for this control -->
 <select data-role='slider' class='switch_class'>
@@ -24,40 +23,39 @@
 <p style='color:blue;' class='switch_text_class'></p>
 """,
   "script" : """
-
     function( avar, anobj ) {
        // We define a synchronization function which synchronizes the web-site with
        // the database
        var sync = function() {
-         nedm.get_database().getView('slow_control_time', 'slow_control_time', 
-           { opts : {reduce : false, 
-                    endkey : [anobj.switch_name], 
-                  startkey : [anobj.switch_name, {}], 
+         nedm.get_database().getView('slow_control_time', 'slow_control_time',
+           { opts : {reduce : false,
+                    endkey : [anobj.switch_name],
+                  startkey : [anobj.switch_name, {}],
                 descending : true,
-                     limit : 1}}, 
-           function(err, objs) {  
+                     limit : 1}},
+           function(err, objs) {
               if (err) return;
-              if (objs.rows.length != 1) return; 
+              if (objs.rows.length != 1) return;
               var arr = objs.rows[0];
               var a = arr.key;
-              var t = new Date(Date.UTC.apply(this, a.splice(1))); 
+              var t = new Date(Date.UTC.apply(this, a.splice(1)));
               $('.switch_class', $(avar)).val(arr.value);
               $('.switch_class', $(avar)).slider('refresh');
               $('.switch_text_class', $(avar)).text('Last updated: ' + t.toUTCString());
          });
        };
-       
+
        // On a change in the button, upload a document into the database
-       $('.switch_class', $(avar)).on( 'change' , function (event, ui) { 
+       $('.switch_class', $(avar)).on( 'change' , function (event, ui) {
          var update_doc = { type: 'data', value : {} };
-         update_doc.value[anobj.switch_name] = this.value; 
+         update_doc.value[anobj.switch_name] = this.value;
          nedm.get_database().updateDoc(update_doc,
-             'nedm_default', 'insert_with_timestamp', function(err, obj) { 
+             'nedm_default', 'insert_with_timestamp', function(err, obj) {
                 if (err) {
                     nedm.show_error_window(err.error, err.reason);
                     sync();
                 }
-         } ); 
+         } );
        });
        sync();
        nedm.get_database().listen_to_changes_feed(anobj.switch_name, sync, {since : 'now'});
