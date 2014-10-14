@@ -557,37 +557,32 @@ function UpdateDBInterface(db) {
       return arr[arr.length-1].split('%2F')[1];
     };
 
-    function GenerateCallback(db_obj, cbck, type) {
-      var db_name = db_obj.db_name();
-      if (type) {
-        return function(msg) {
-          if (db_name !== msg.db || type != msg.type) return;
-          cbck(msg);
-        };
-      } else {
-        return function(msg) {
-          if (db_name !== msg.db) return;
-          cbck(msg);
-        };
-      }
+    var _callback_emitters = new events.EventEmitter();
+    var db_name = db.db_name();
+
+    function GenerateCallback(msg) {
+      if (db_name !== msg.db) return;
+      _callback_emitters.emit(msg.type, msg);
+      _callback_emitters.emit("both", msg);
     }
 
     db.on = function(type, callback) {
       if (!callback) {
         callback = type;
-        type = undefined;
+        type = "both";
       }
-      var cbck = GenerateCallback(this, callback, type);
-      nedm.on_db_updates(cbck);
+      _callback_emitters.removeListener(type, callback);
+      _callback_emitters.addListener(type, callback);
+      nedm.on_db_updates(GenerateCallback);
     };
 
     db.off = function(type, callback) {
       if (!callback) {
         callback = type;
-        type = undefined;
+        type = "both";
       }
-      var cbck = GenerateCallback(this, callback, type);
-      nedm.remove_db_updates(cbck);
+      _callback_emitters.removeListener(type, callback);
+      if (_callback_emitters._events && Object.keys(_callback_emitters._events).length === 0) nedm.remove_db_updates(GenerateCallback);
     };
 }
 
@@ -796,6 +791,7 @@ function ListenToDBChanges() {
  */
 
 nedm.on_db_updates = function(callback) {
+  nedm.remove_db_updates(callback);
   _emitter.on("db_update", callback);
 };
 
