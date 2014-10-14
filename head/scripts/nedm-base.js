@@ -833,7 +833,7 @@ function CheckUserStatus(callback) {
        if (info) SetUserName(info.userCtx);
        callback(logged_in_as);
     });
-};
+}
 
 /**
  * Logout from server
