@@ -14,16 +14,16 @@
     function( avar, anobj ) {
       var sync = function() {
         var but = $('.start_stop_class', $(avar));
-        nedm.get_database().getView('slow_control_time', 'slow_control_time', 
+        nedm.get_database().getView('slow_control_time', 'slow_control_time',
           { opts : {
               endkey : [anobj.process_bool_variable],
             startkey : [anobj.process_bool_variable, {}],
           descending : true,
               reduce : false,
                limit : 1}},
-          function(err, objs) {   
+          function(err, objs) {
              if (err) return;
-             if (objs.rows.length != 1) return; 
+             if (objs.rows.length != 1) return;
              var arr = objs.rows[0];
              if (but.data('isRunning') && (arr.value == but.data('isRunning'))) return;
              if (arr.value) {
@@ -36,8 +36,8 @@
                but.text('Start');
              }
              but.removeClass('ui-disabled');
-        }); 
-      };  
+        });
+      };
 
       $('.start_stop_class', $(avar)).on('click', function () {
         var but = $('.start_stop_class', $(avar));
@@ -45,7 +45,7 @@
         var cmd = anobj.stop_process_cmd;
         if (!but.data('isRunning')) {
             cmd = anobj.start_process_cmd;
-        } 
+        }
         nedm.send_command( { cmd_name : cmd, timeout: 10000 } );
       });
       sync();
