@@ -920,12 +920,13 @@ nedm.compile = function(astr) {
 var all_db_listeners = {};
 
 /**
- * Called to begin status check of databases
+ * DatabaseStatus object.  "Global" object designed to handle updating the
+ * interface according to updates to DBs.
  *
- * @api public
+ * @api private
  */
 
-nedm.database_status = function( ) {
+function DatabaseStatus() {
    var track_dbs = {};
    var map = { data : 'write_status', heartbeat : 'control_status' };
    function ResetToRed( $the_dom ) {
@@ -975,11 +976,29 @@ nedm.database_status = function( ) {
              data : setTimeout(ResetToRed($('.' + adb + ' .write_status')), 10000),
              heartbeat : setTimeout(ResetToRed($('.' + adb + ' .control_status')), 10000)
            };
-           AddDBButtonToHeader(adb, o.prettyname);
        }
    }
-   nedm.get_database_info( db_stat );
+   var _table_built = false;
+   this.build_table = function() {
+     if (_table_built) return;
+     nedm.get_database_info( db_stat );
+     _table_built = true;
+   };
+}
+
+var _db_status = new DatabaseStatus();
+
+/**
+ * Build database status table.  This is called on index.html
+ *
+ * @api public
+ */
+
+nedm.database_status = function( ) {
+    _db_status.build_table();
 };
+
+
 
 /**
  * Gets database information.
@@ -1379,7 +1398,7 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     // Public interface
 
     /**
-	 * Return name (variables) 
+	 * Return name (variables)
      *
      * @return {Number} group level
      * @api public
