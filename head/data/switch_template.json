@@ -26,7 +26,10 @@
     function( avar, anobj ) {
        // We define a synchronization function which synchronizes the web-site with
        // the database
+       var is_syncing = false;
        var sync = function() {
+         if (is_syncing) return;
+         is_syncing = true;
          nedm.get_database().getView('slow_control_time', 'slow_control_time',
            { opts : {reduce : false,
                     endkey : [anobj.switch_name],
@@ -34,6 +37,7 @@
                 descending : true,
                      limit : 1}},
            function(err, objs) {
+              is_syncing = false;
               if (err) return;
               if (objs.rows.length != 1) return;
               var arr = objs.rows[0];
@@ -58,7 +62,7 @@
          } );
        });
        sync();
-       nedm.get_database().listen_to_changes_feed(anobj.switch_name, sync, {since : 'now'});
+       nedm.get_database().on("data", sync);
    }
 """
 }
