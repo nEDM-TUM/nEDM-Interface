@@ -1,5 +1,4 @@
-var db = require("db");
-var dygraphs = require("dygraph-combined");
+// Global variables, to be exported and used by user code
 $ = require("jquery");
 require("jquery-cookie");
 $.cookie.json = true;
@@ -14,6 +13,8 @@ var nedm = nedm || {};
 
 var handlebars = require("handlebars");
 var events = require("events");
+var db = require("db");
+var dygraphs = require("dygraph-combined");
 
 /**
  * binary search function to find an index in an array
@@ -69,7 +70,6 @@ function bs(haystack, needle, comparator, alow, ahigh) {
  * @return {Object} mantissa, exponent
  * @api private
  */
-
 
 function GetNumberParts(x) {
     var sig = x > 0 ? 1 : -1;
@@ -260,7 +260,7 @@ function UpdateDBInterface(db) {
         return this.request(req, callback);
     };
 
-    db._called_views = {};
+    var _called_views = {};
     db.getView = function(name, view, options, callback) {
         if (!callback) {
             callback = options;
@@ -292,8 +292,8 @@ function UpdateDBInterface(db) {
 
         var thisdb = this;
         // Inform the user if the view takes a while to load
-        if (!(name in this._called_views)) {
-            this._called_views[name] = {
+        if (!(name in _called_views)) {
+            _called_views[name] = {
                 timer_notify : function() {
                                    var base_text = "View (design doc " + name + ") is currently building: ";
                                    var tthis = this;
@@ -338,7 +338,7 @@ function UpdateDBInterface(db) {
                 mytoastr : undefined
             };
         }
-        var cur_view = this._called_views[name];
+        var cur_view = _called_views[name];
         cur_view.timeout();
         var callback_wrapper = function(e, o) {
             // Clear the informational notice.
@@ -380,14 +380,62 @@ function UpdateDBInterface(db) {
         });
     };
 
+    var open_changes_feeds = { taglist: {}, urllist: {}};
+
+    /**
+     * Listen to changes feed of a particular database.  If feed is already open,
+     * then add a listener to that feed.  *This should be used sparingly!*  Chances
+     * are, the same functionality can be gained by listening to aggregate changes
+     * (see nedm.on_db_updates).
+     *
+     * @param {String} tag - unique tag
+     * @param {Function} callback(EventSource) - gets message from EventSource object
+     * @options {Object} options - Options to pass to changes feed
+     * @api public
+     */
 
     db.listen_to_changes_feed = function(tag, callback, options) {
-        return nedm.listen_to_changes_feed(this, tag, callback, options);
+        options.feed = "eventsource";
+        var url = this.url + "/_changes" + BuildURL(options);
+
+        if (!(url in open_changes_feeds.urllist)) {
+            // start a new listener
+            var listener = new EventSource(url);
+            open_changes_feeds.urllist[url] = {src: listener, taglist: {}};
+
+        }
+        if (tag in open_changes_feeds.taglist) {
+            console.log("Warning: removing tag '" + tag +"'");
+            this.cancel_changes_feed(tag);
+        }
+        open_changes_feeds.taglist[tag] = {callb: callback, url: url};
+        open_changes_feeds.urllist[url].src.addEventListener("message", callback, false);
+        open_changes_feeds.urllist[url].taglist[tag] = {};
     };
 
+    /**
+     * Cancel previous changes feed opened by nedm.listen_to_changes_feed
+     *
+     * @param {String} tag - unique tag
+     * @api public
+     */
+
     db.cancel_changes_feed = function(tag) {
-        return nedm.cancel_changes_feed(this, tag);
+        if (!(tag in open_changes_feeds.taglist)) return;
+
+        var obj = open_changes_feeds.taglist[tag];
+        var src = open_changes_feeds.urllist[obj.url].src;
+
+        src.removeEventListener("message", obj.callb, false);
+
+        delete open_changes_feeds.urllist[obj.url].taglist[tag];
+        if ( Object.keys( open_changes_feeds.urllist[obj.url].taglist ).length === 0 ) {
+            src.close();
+            delete open_changes_feeds.urllist[obj.url];
+        }
+        delete open_changes_feeds.taglist[tag];
     };
+
     db.send_command = function(o) {
       var adoc = { type : 'command', execute : o.cmd_name };
       if ('arguments' in o) { adoc['arguments'] = o['arguments']; }
@@ -544,10 +592,15 @@ function UpdateDBInterface(db) {
 }
 
 
-// Fix db function use
-var old_use = require("db").use;
-// overwrite faulty db functions
-require("db").use = function (url) {
+var old_use = db.use;
+/**
+ * UseDB internal function (fixes db.use and updates the DB interface with additional functions)
+ *
+ * @param {String} url - url to database
+ * @api private
+ */
+
+function UseDB(url) {
     /* Force leading slash; make absolute path. */
 
     // From https://gist.github.com/jlong/2428561
@@ -564,15 +617,16 @@ require("db").use = function (url) {
 
     // Make absolute path
     url = parse.href;
-    var db = old_use(url);
+    var myDB = old_use(url);
 
     // hack to fix version 0.13 of db
-    if (db.url[0] =='/') db.url = db.url.substr(1);
+    if (myDB.url[0] =='/') myDB.url = myDB.url.substr(1);
 
-    UpdateDBInterface(db);
+    UpdateDBInterface(myDB);
 
-    return db;
-};
+    return myDB;
+}
+db.use = UseDB;
 
 /**
  * Updates the login/logout buttons and user status.  Called during session
@@ -850,68 +904,9 @@ nedm.get_database = function(name) {
       name = nedm.get_current_db_name();
     }
     if (!(name in available_database)) {
-        available_database[name] = db.use('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
+        available_database[name] = UseDB('nedm_head/_design/nedm_head/_rewrite/_couchdb/' + name);
     }
     return available_database[name];
-};
-
-open_changes_feeds = { taglist: {}, urllist: {}};
-
-/**
- * Listen to changes feed of a particular database.  If feed is already open,
- * then add a listener to that feed.  *This should be used sparingly!*  Chances
- * are, the same functionality can be gained by listening to aggregate changes
- * (see nedm.on_db_updates).
- *
- * @param {DB} db - database object
- * @param {String} tag - unique tag
- * @param {Function} callback(EventSource) - gets message from EventSource object
- * @options {Object} options - Options to pass to changes feed
- * @api public
- */
-
-nedm.listen_to_changes_feed = function(db, tag, callback, options) {
-    options.feed = "eventsource";
-    var url = db.url + "/_changes" + BuildURL(options);
-
-    if (!(url in open_changes_feeds.urllist)) {
-        // start a new listener
-        var listener = new EventSource(url);
-        open_changes_feeds.urllist[url] = {src: listener, taglist: {}};
-
-    }
-    if (tag in open_changes_feeds.taglist) {
-        console.log("Warning: removing tag '" + tag +"'");
-        nedm.cancel_changes_feed(db, tag);
-    }
-    open_changes_feeds.taglist[tag] = {callb: callback, url: url};
-    open_changes_feeds.urllist[url].src.addEventListener("message", callback, false);
-    open_changes_feeds.urllist[url].taglist[tag] = {};
-};
-
-/**
- * Cancel previous changes feed opened by nedm.listen_to_changes_feed
- *
- * @param {DB} db - database object
- * @param {String} tag - unique tag
- * @api public
- */
-
-nedm.cancel_changes_feed = function(db, tag) {
-
-    if (!(tag in open_changes_feeds.taglist)) return;
-
-    var obj = open_changes_feeds.taglist[tag];
-    var src = open_changes_feeds.urllist[obj.url].src;
-
-    src.removeEventListener("message", obj.callb, false);
-
-    delete open_changes_feeds.urllist[obj.url].taglist[tag];
-    if ( Object.keys( open_changes_feeds.urllist[obj.url].taglist ).length === 0 ) {
-        src.close();
-        delete open_changes_feeds.urllist[obj.url];
-    }
-    delete open_changes_feeds.taglist[tag];
 };
 
 /**
