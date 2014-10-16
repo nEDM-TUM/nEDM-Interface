@@ -670,11 +670,56 @@ function AddDBButtonToHeader( $header_left, adb, prettyname ) {
     txt += m[0];
   }
   var new_b = $('<button/>')
-              .addClass("ui-btn ui-shadow ui-corner-all ui-btn-icon-left " +
+              .addClass("ui-btn ui-btn-icon-left " +
                         "ui-icon-nedm-status-button-g " + adb + "-status")
-              .text(txt).css('visibility', 'hidden');
+              .text(txt).addClass('ui-disabled');
   $header_left.append(new_b);
 }
+
+
+var shown_toastr_status;
+/**
+ * Updates showing the DB status as a toastr status
+ *
+ * @param {Object} ev, jQuery event
+ * @param {Object} ui, jQuery info
+ * @api private
+ */
+
+function UpdateDBStatus(ev, ui) {
+  if (!shown_toastr_status) {
+    // temp set to avoid anything else setting
+    shown_toastr_status = true;
+    var my_but = $(ev.currentTarget);
+    my_but.addClass('ui-disabled');
+    // Populate with DB info
+    function getDBInfo(dbs) {
+      var $new_div = $('<div/>').attr( { 'data-role' : 'controlgroup',
+                                         'data-type' : 'horizontal',
+                                         'data-mini' : 'true' } )
+                                .addClass('nedm-db-status');
+      for (db in dbs) {
+        AddDBButtonToHeader( $new_div, db, dbs[db].prettyname );
+      }
+      shown_toastr_status = toastr.info($new_div, "Control Center",
+      {
+             iconClass : " ",
+          tapToDismiss : false,
+          hideDuration : 300,
+               timeOut : 0,
+       extendedTimeOut : 0,
+             closeHtml : '<button>_</button>',
+         positionClass : "toast-bottom-left",
+              onHidden : function() { my_but.show().removeClass('ui-disabled');
+                                      shown_toastr_status = null; }
+      });
+      $new_div.controlgroup();
+      my_but.hide();
+    }
+    nedm.get_database_info(getDBInfo);
+  }
+};
+
 
 /**
  * Updates header toolbar to show correct DB name.
@@ -697,13 +742,13 @@ function UpdateHeader(ev, ui) {
         if (db in dbs) {
           hn.text("nEDM Interface: " + dbs[db].prettyname);
         }
-        for (db in dbs) {
-          AddDBButtonToHeader( $(hC).find('.left_header'), db, dbs[db].prettyname );
-        }
       };
       nedm.get_database_info(callback);
 
       UpdateButtons();
+      var stat = $(this).find('.db-status-button');
+      stat.on('click', UpdateDBStatus);
+      if (shown_toastr_status) stat.hide();
   });
 
 }
@@ -939,7 +984,7 @@ function DatabaseStatus() {
 
    function UpdateFunction( obj ) {
      function RemButton() {
-       but.css('visibility', 'hidden');
+       but.addClass('ui-disabled');
      }
      var $adom = $('.' + obj.db + ' .' + map[obj.type]);
      if (!track_dbs[obj.db]) track_dbs[obj.db] = {};
@@ -952,8 +997,9 @@ function DatabaseStatus() {
           .addClass('nedm-status-g');
      track_dbs[obj.db][obj.type] = setTimeout(ResetToRed($adom), 30000);
      if (obj.type === 'data') {
-       var but = $('.left_header .' + obj.db + '-status');
-       but.css('visibility', 'visible');
+       // broadcast to all buttons
+       var but = $('.' + obj.db + '-status');
+       but.removeClass('ui-disabled');
        setTimeout(RemButton, 1000);
      }
    }
