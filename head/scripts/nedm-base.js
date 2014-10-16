@@ -677,7 +677,10 @@ function AddDBButtonToHeader( $header_left, adb, prettyname ) {
 }
 
 
-var shown_toastr_status;
+var db_status = {
+  shown_toastr_status : undefined,
+      $toastr_content : undefined
+};
 /**
  * Updates showing the DB status as a toastr status
  *
@@ -687,21 +690,14 @@ var shown_toastr_status;
  */
 
 function UpdateDBStatus(ev, ui) {
-  if (!shown_toastr_status) {
+  if (!db_status.shown_toastr_status) {
     // temp set to avoid anything else setting
-    shown_toastr_status = true;
+    db_status.shown_toastr_status = true;
     var my_but = $(ev.currentTarget);
     my_but.addClass('ui-disabled');
-    // Populate with DB info
-    function getDBInfo(dbs) {
-      var $new_div = $('<div/>').attr( { 'data-role' : 'controlgroup',
-                                         'data-type' : 'horizontal',
-                                         'data-mini' : 'true' } )
-                                .addClass('nedm-db-status');
-      for (db in dbs) {
-        AddDBButtonToHeader( $new_div, db, dbs[db].prettyname );
-      }
-      shown_toastr_status = toastr.info($new_div, "Control Center",
+
+    function defineToasterStatus ($new_div) {
+      db_status.shown_toastr_status = toastr.info($new_div, "Control Center",
       {
              iconClass : " ",
           tapToDismiss : false,
@@ -711,12 +707,29 @@ function UpdateDBStatus(ev, ui) {
              closeHtml : '<button>_</button>',
          positionClass : "toast-bottom-left",
               onHidden : function() { my_but.show().removeClass('ui-disabled');
-                                      shown_toastr_status = null; }
+                                      db_status.shown_toastr_status = null; }
       });
       $new_div.controlgroup();
       my_but.hide();
     }
-    nedm.get_database_info(getDBInfo);
+
+    // Populate with DB info
+    function getDBInfo(dbs) {
+      db_status.$toastr_content = 
+                     $('<div/>').attr( { 'data-role' : 'controlgroup',
+                                         'data-type' : 'horizontal',
+                                         'data-mini' : 'true' } )
+                                .addClass('nedm-db-status');
+      for (db in dbs) {
+        AddDBButtonToHeader( db_status.$toastr_content, db, dbs[db].prettyname );
+      }
+      defineToasterStatus(db_status.$toastr_content);
+    }
+    if (db_status.$toastr_content) {
+      defineToasterStatus(db_status.$toastr_content);
+    } else {
+      nedm.get_database_info(getDBInfo);
+    }
   }
 };
 
@@ -748,7 +761,7 @@ function UpdateHeader(ev, ui) {
       UpdateButtons();
       var stat = $(this).find('.db-status-button');
       stat.on('click', UpdateDBStatus);
-      if (shown_toastr_status) stat.hide();
+      if (db_status.shown_toastr_status) stat.hide();
   });
 
 }
