@@ -4,6 +4,10 @@
 @import url("jquery-mobile-datebox.css");
 @import url("jw-jqm-cal.css");
 
+input, button {
+    -webkit-appearance: none;
+}
+
 .ui-icon-nedm-loading:after {
         background: url(images/light-loader.gif) no-repeat rgba(0, 0, 0, 0.0);
         background-position: 0 50%;
@@ -82,4 +86,8 @@ th.db_name {
 
 .bolded_font {
     font-weight: bold;
+}
+
+.db-status-blink {
+    background-color: rgb(192,192,192);
 }
