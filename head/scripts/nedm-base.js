@@ -1576,7 +1576,7 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
                               return;
                           }
                       }
-                      myDB.db.getView("slow_control_time", "slow_control_time",
+                      myDB.getView("slow_control_time", "slow_control_time",
                           { opts: local_opts }, view_clbck(tl_entries, cr_name, local_opts));
                   }
               } else if (callback) callback();
@@ -1602,6 +1602,7 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     };
 
     this.addDataName = function(aname) {
+        if (!aname) return false;
         if (!Array.isArray(aname)) aname = [ aname ];
         var retVal = false;
         var arr = name;
