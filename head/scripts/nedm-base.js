@@ -380,7 +380,47 @@ function UpdateDBInterface(db) {
         });
     };
 
-    var open_changes_feeds = { taglist: {}, urllist: {}};
+    function OpenChangesFeed(url) {
+      var hasOpened = false;
+      var hasSeenError = false;
+      var myURL = url;
+      var myToastr;
+      var listener = new EventSource(url);
+      listener.onerror = function(e) {
+        if (hasSeenError) return;
+        var msg = "";
+        if (hasOpened) {
+          msg = "Connection lost to: " + myURL;
+        } else {
+          msg = "Error making connection to: " + myURL;
+        }
+        hasSeenError = true;
+        myToastr = toastr.error(msg, "Changes Feed Error", { timeOut : 0, extendedTimeOut : 0 });
+      };
+      listener.onopen = function(e) {
+        hasOpened = true;
+        if (hasSeenError) {
+          toastr.success("Connection reestablished to: " + myURL, "Connection established");
+          myToastr.remove();
+        }
+        hasSeenError = false;
+      };
+      this.addListener = function(callback) {
+        this.removeListener(callback);
+        listener.addEventListener("message", callback, false);
+      };
+
+      this.removeListener = function(callback) {
+        listener.removeEventListener("message", callback, false);
+      };
+
+      this.close = function() {
+        listener.close();
+      };
+    }
+
+    var open_changes_feeds = { };
+    var callback_functions = { urls : [], callbacks : []};
 
     /**
      * Listen to changes feed of a particular database.  If feed is already open,
@@ -394,23 +434,20 @@ function UpdateDBInterface(db) {
      * @api public
      */
 
-    db.listen_to_changes_feed = function(tag, callback, options) {
+    db.listen_to_changes_feed = function(callback, options) {
         options.feed = "eventsource";
+        if (!options.heartbeat) {
+            options.heartbeat = 7000;
+        }
         var url = this.url + "/_changes" + BuildURL(options);
 
-        if (!(url in open_changes_feeds.urllist)) {
+        if (!(url in open_changes_feeds)) {
             // start a new listener
-            var listener = new EventSource(url);
-            open_changes_feeds.urllist[url] = {src: listener, taglist: {}};
-
+            open_changes_feeds[url] = new OpenChangesFeed(url);
         }
-        if (tag in open_changes_feeds.taglist) {
-            console.log("Warning: removing tag '" + tag +"'");
-            this.cancel_changes_feed(tag);
-        }
-        open_changes_feeds.taglist[tag] = {callb: callback, url: url};
-        open_changes_feeds.urllist[url].src.addEventListener("message", callback, false);
-        open_changes_feeds.urllist[url].taglist[tag] = {};
+        open_changes_feeds[url].addListener(callback);
+        callback_functions.urls.push(url);
+        callback_functions.callbacks.push(callback);
     };
 
     /**
@@ -420,20 +457,14 @@ function UpdateDBInterface(db) {
      * @api public
      */
 
-    db.cancel_changes_feed = function(tag) {
-        if (!(tag in open_changes_feeds.taglist)) return;
+    db.cancel_changes_feed = function(callback) {
+        var index = callback_functions.callbacks.indexOf(callback);
+        if ( index === -1 ) return;
 
-        var obj = open_changes_feeds.taglist[tag];
-        var src = open_changes_feeds.urllist[obj.url].src;
-
-        src.removeEventListener("message", obj.callb, false);
-
-        delete open_changes_feeds.urllist[obj.url].taglist[tag];
-        if ( Object.keys( open_changes_feeds.urllist[obj.url].taglist ).length === 0 ) {
-            src.close();
-            delete open_changes_feeds.urllist[obj.url];
-        }
-        delete open_changes_feeds.taglist[tag];
+        var url = callback_functions.urls[index];
+        open_changes_feeds[url].removeListener(callback);
+        callback_functions.callbacks.splice(index, 1);
+        callback_functions.urls.splice(index, 1);
     };
 
     db.send_command = function(o) {
@@ -837,9 +868,8 @@ function HandleDatabaseChanges(msg) {
 
 function ListenToDBChanges() {
     var aggr = nedm.get_database('nedm%2Faggregate');
-    aggr.cancel_changes_feed('db_status');
-    aggr.listen_to_changes_feed("db_status",
-      HandleDatabaseChanges, { since : "now" });
+    aggr.cancel_changes_feed( HandleDatabaseChanges );
+    aggr.listen_to_changes_feed(HandleDatabaseChanges, { since : "now" });
 }
 
 /**
