@@ -690,48 +690,51 @@ var db_status = {
  */
 
 function UpdateDBStatus(ev, ui) {
+  function defineToasterStatus ($new_div) {
+    db_status.shown_toastr_status = toastr.info($new_div, "Control Center",
+    {
+           iconClass : " ",
+        tapToDismiss : false,
+        hideDuration : 300,
+             timeOut : 0,
+     extendedTimeOut : 0,
+           closeHtml : '<button>_</button>',
+       positionClass : "toast-bottom-left",
+            onHidden : function() { my_but.show().removeClass('ui-disabled');
+                                    db_status.shown_toastr_status = null; }
+    });
+    $new_div.controlgroup();
+    my_but.hide();
+  }
+  // Populate with DB info
+  function getDBInfo(dbs) {
+    db_status.$toastr_content =
+                   $('<div/>').addClass('ui-grid-b nedm-db-status');
+    var tmp = [ "ui-block-a", "ui-block-b", "ui-block-c" ];
+    var i = 0;
+    for (var db in dbs) {
+      var $n = $('<div/>').addClass(tmp[i % tmp.length]);
+      AddDBButtonToHeader( $n, db, dbs[db].prettyname );
+      db_status.$toastr_content.append($n);
+      i += 1;
+    }
+    defineToasterStatus(db_status.$toastr_content);
+  }
+
+
   if (!db_status.shown_toastr_status) {
     // temp set to avoid anything else setting
     db_status.shown_toastr_status = true;
     var my_but = $(ev.currentTarget);
     my_but.addClass('ui-disabled');
 
-    function defineToasterStatus ($new_div) {
-      db_status.shown_toastr_status = toastr.info($new_div, "Control Center",
-      {
-             iconClass : " ",
-          tapToDismiss : false,
-          hideDuration : 300,
-               timeOut : 0,
-       extendedTimeOut : 0,
-             closeHtml : '<button>_</button>',
-         positionClass : "toast-bottom-left",
-              onHidden : function() { my_but.show().removeClass('ui-disabled');
-                                      db_status.shown_toastr_status = null; }
-      });
-      $new_div.controlgroup();
-      my_but.hide();
-    }
-
-    // Populate with DB info
-    function getDBInfo(dbs) {
-      db_status.$toastr_content = 
-                     $('<div/>').attr( { 'data-role' : 'controlgroup',
-                                         'data-type' : 'horizontal',
-                                         'data-mini' : 'true' } )
-                                .addClass('nedm-db-status');
-      for (db in dbs) {
-        AddDBButtonToHeader( db_status.$toastr_content, db, dbs[db].prettyname );
-      }
-      defineToasterStatus(db_status.$toastr_content);
-    }
     if (db_status.$toastr_content) {
       defineToasterStatus(db_status.$toastr_content);
     } else {
       nedm.get_database_info(getDBInfo);
     }
   }
-};
+}
 
 
 /**
