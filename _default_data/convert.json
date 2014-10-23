@@ -1,0 +1,66 @@
+{
+  "_id" : "_design/convert",
+  "language" : "javascript",
+  "lists" : {
+     "convert" : """
+  function(head, req) {
+       var first = true;
+       var start = 0;
+       var end = 1;
+       var pos_of_key = 0;
+       function ConvertDateTime(arr) {
+         if (first) {
+           first = false;
+           if (typeof arr[0] === "string") {
+             start = 1;
+             end = 0;
+           } else {
+             pos_of_key = arr.length-1;
+           }
+         }
+         return [(new Date(Date.UTC.apply(this, arr.slice(start, arr.length-end)))).getTime()/1000,
+                   arr[pos_of_key]];
+       }
+
+       var first_value = true;
+       var isInteger;
+       var listOfKeys;
+       var el = '\\n';
+       function HandleValue(val) {
+         if (first_value) {
+           if (typeof val === "number") {
+             isInteger = true;
+           } else {
+             isInteger = false;
+             listOfKeys = Object.keys(val);
+           }
+           first_value = false;
+         }
+         if (isInteger) {
+           return [["value", val]];
+         } else {
+           return listOfKeys.map( function(o) { return [o, val[o]];} );
+         }
+       }
+       provides("csv", function() {
+         var first_row = true;
+         var row;
+         var t, vals;
+         function mapIt(x) {
+           return function(o) { return o[x]; };
+         }
+         while((row = getRow())) {
+           t = ConvertDateTime(row.key);
+           vals = HandleValue(row.value);
+           if (first_row) {
+             // Output labels
+             send((["Epoch time", "Variable"].concat(vals.map(mapIt(0)))).join(','));
+             first_row = false;
+           }
+           send(el + ([t].concat(vals.map(mapIt(1)))).join(','));
+         }
+       });
+     }
+"""
+  }
+}
