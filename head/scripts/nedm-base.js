@@ -187,6 +187,7 @@ function UpdateDBInterface(db) {
           var xhr = new XMLHttpRequest();
           if (cbck.progress) {
             xhr.upload.addEventListener("progress", cbck.progress, false);
+            xhr.addEventListener("progress", cbck.progress, false);
           }
           cbck.xhr = xhr;
           return xhr;
@@ -340,12 +341,21 @@ function UpdateDBInterface(db) {
         }
         var cur_view = _called_views[name];
         cur_view.timeout();
-        var callback_wrapper = function(e, o) {
+        var callback_wrapper = function(cbck) {
+          return function(e, o) {
             // Clear the informational notice.
             cur_view.cancel();
-            callback(e,o);
+            if (cbck) cbck(e,o);
+          };
         };
-        return this.request(req, callback_wrapper);
+
+        if (typeof callback === 'object') {
+          var old_success = callback.success;
+          callback.success = callback_wrapper(old_success);
+        } else {
+          callback = callback_wrapper(callback);
+        }
+        return this.request(req, callback);
     };
 
     db.getViewInfo = function(view, callback) {
@@ -1541,12 +1551,17 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     };
 
     /**
-	 * Destroy the plot (like destructor).  Stops listening, removes event handlers
+	 * change the displayed time range.  This reloads all the data, assuming
+	 * that none of it is 'good'.
      *
      * @param {Date object} prev_time - previous time
      * @param {Date object} until_t - go until time.
      * @param {Function} callback() - called once everything is completed
-     * @api public
+     *    The function will be called without an argument if something went wrong.
+	 *    Otherwise it will be called with the object :
+	 *      { loaded : # entries, done : true/false, variable : variable name }
+     * @return {Object} returns an object with the
+	 * @api public
      */
 
     this.changeTimeRange = function (prev_time, until_t, callback) {
@@ -1583,52 +1598,40 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 
         if (name.length === 0 && callback) callback();
         var warning_shown = false;
-        var limit = 3000;
         var names_to_check = name.length;
-        function view_clbck(tl_entries, cr_name, local_opts) {
+        function view_clbck(cr_name) {
             return function(e, o) {
-              if (e !== null) return;
-              var all_data = o.rows.map(DateFromKeyVal, tthis).filter( function(o) {
-                  if (o !== null) return true;
-                  return false;
-              });
-              if (!warning_shown && tl_entries > 50000) {
-                  toastr.warning("Data length is > 50000 entries, suggest setting averaging or selecting a smaller visualization range", "");
-                  warning_shown = true;
+              names_to_check -= 1;
+              var ret_obj = { variable : cr_name, done : true };
+              if (e === null) {
+                var all_data = o.rows.map(DateFromKeyVal, tthis).filter( function(o) {
+                    if (o !== null) return true;
+                    return false;
+                });
+                var recv_length = all_data.length;
+                if (recv_length !== 0) {
+                    MergeData(all_data);
+                }
+              } else {
+                ret_obj.abort = true;
               }
-              var recv_length = all_data.length;
-              if (recv_length !== 0) {
-                  MergeData(all_data);
-                  tl_entries += recv_length;
-                  if (recv_length < limit) {
-                      if (callback) {
-                          // The callback can request that we stop loading
-                          callback({ loaded : tl_entries,
-                                   variable : cr_name,
-                                       done : true });
-                      }
-                      names_to_check -= 1;
-                      if (names_to_check <= 0) tthis.update();
-                  } else {
-                      local_opts.startkey = o.rows[o.rows.length-1].key;
-                      local_opts.skip = 1;
-                      if (callback) {
-                          // The callback can request that we stop loading
-                          if (!callback({ loaded : tl_entries,
-                                        variable : cr_name,
-                                            done : false })) {
-                              names_to_check -= 1;
-                              if (names_to_check <= 0) tthis.update();
-                              return;
-                          }
-                      }
-                      myDB.getView("slow_control_time", "slow_control_time",
-                          { opts: local_opts }, view_clbck(tl_entries, cr_name, local_opts));
-                  }
-              } else if (callback) callback();
+              if (callback) {
+                  callback({ variable : cr_name,
+                                 done : true });
+              }
+              if (names_to_check <= 0) tthis.update();
             };
         }
 
+        function UpdateProgress(var_name) {
+          return function(evt) {
+            callback( {
+              variable : var_name,
+              progress : evt
+            });
+          }
+        }
+        var ret_obj = {};
         for (var i=0;i<name.length;i++) {
             var new_first_key = first_key.slice();
             var new_last_key = last_key.slice();
@@ -1639,12 +1642,12 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
                           startkey : new_last_key,
                             endkey : new_first_key,
                             reduce : true,
-                            group_level : tthis.groupLevel(),
-                            limit  : limit};
-            myDB.getView("slow_control_time", "slow_control_time",
-                  { opts : opts }, view_clbck(0, curr_name, opts));
+                            group_level : tthis.groupLevel()
+                            };
+            ret_obj[curr_name] = myDB.getView("slow_control_time", "slow_control_time",
+                  { opts : opts }, { success: view_clbck(curr_name), progress: UpdateProgress(curr_name) });
         }
-
+        return ret_obj;
     };
 
     this.addDataName = function(aname) {

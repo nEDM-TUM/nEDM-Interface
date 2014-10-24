@@ -150,7 +150,7 @@
         return until_now;
     };
 
-    var get_new_progress = function (aname) {
+    var get_new_progress = function (aname, xhr) {
         var retDiv = $('<div/>')
             .attr('data-role', 'fieldcontain')
             .append(
@@ -177,15 +177,12 @@
         }));
         retDiv.data({
             varname: aname,
-            should_cancel: false
         });
         $('.cancel_button', retDiv).on('click',
 
         function () {
             $(this).addClass('ui-disabled');
-            retDiv.data({
-                should_cancel: true
-            });
+            xhr.abort();
         });
         return retDiv;
     };
@@ -205,33 +202,31 @@
         if (until_now) end_date = 0;
         var current_progress = $('.variable_progress', new_div);
         var name = obj.name();
-        for (var j=0;j<name.length;j++) {
-            current_progress.append(get_new_progress(name[j]));
-        }
-        current_progress.trigger('create');
         var update_function = function (objs) {
-            var retVal = true;
             current_progress.find('[data-role=fieldcontain]').each(function () {
                 var o = $(this).data();
-                var isDone = (!objs || objs.done);
-                if (isDone || o.should_cancel) {
-                    retVal = false;
-                    $(this).remove();
-                    return true;
-                }
                 if (o.varname != objs.variable) return;
+                if (!objs || objs.done) {
+                    $(this).remove();
+                    return;
+                }
+                var loaded = objs.progress.position;
+                if (objs.progress.lengthComputable) {
+                  loaded /= objs.progress.totalSize;
+                }
                 $(this).find('.loading_view')
                 .text(o.varname + ' loaded: ' +
-                      objs.loaded.toString());
-                return false;
+                      loaded.toString());
             });
-            if (!retVal) {
+            if (current_progress.find('[data-role=fieldcontain]').length === 0) {
                 $('.adv_options,.plot_legend', new_div).removeClass('ui-disabled');
             }
-            return retVal;
         };
-        obj.changeTimeRange(start_date, end_date, update_function);
-
+        var ret_obj = obj.changeTimeRange(start_date, end_date, update_function);
+        for (var k in ret_obj) {
+            current_progress.append(get_new_progress(k, ret_obj[k]));
+        }
+        current_progress.trigger('create');
     };
 
 
