@@ -99,6 +99,7 @@
 </div>""",
 "script" : """
     function(thediv, docobj) {
+      var toastr = require("toastr");
       var to_clone = $('.arduino_edit_template', $(thediv)).clone();
       var ac = $('.all_avail_code', $(thediv));
       var ard_select = $('.arduino_select', $(thediv)).filter(':input');
