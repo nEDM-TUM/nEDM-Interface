@@ -152,9 +152,23 @@
 
       //require_field('created_by');
 
-      if (oldDoc && oldDoc.created_by != newDoc.created_by &&
-            newDoc.created_by != userCtx.name && !IS_SERVER_ADMIN) {
-        throw { 'forbidden' : 'User may not save as another user' };
+      if (!IS_SERVER_ADMIN) {
+        if (oldDoc) {
+          // We are updating an old document...
+          if (oldDoc.created_by !== userCtx.name) {
+            // First ensure that the user is correct, since we're changing
+            throw { 'forbidden' : 'User may not update document from another user' };
+          }
+          if (!newDoc._deleted && newDoc.created_by !== oldDoc.created_by) {
+            // If we're not deleting a document, ensure that the names are not changing
+            throw { 'forbidden' : 'User may not change the name of user' };
+          }
+        } else {
+          // This is a new doc
+          if (newDoc.created_by !== userCtx.name) {
+            throw { 'forbidden' : 'User may not save as another user' };
+          }
+        }
       }
 
       function require_field(field) {
