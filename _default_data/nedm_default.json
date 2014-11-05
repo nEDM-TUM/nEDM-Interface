@@ -149,17 +149,19 @@
         }
       }
 
+      var isCommand = (newDoc.type && (newDoc.type === 'command' ||
+                                       newDoc.type.toString().slice(-3) === 'cmd'));
 
       //require_field('created_by');
 
       if (!IS_SERVER_ADMIN) {
         if (oldDoc) {
           // We are updating an old document...
-          if (oldDoc.created_by !== userCtx.name) {
+          if (oldDoc.created_by !== userCtx.name && !isCommand) {
             // First ensure that the user is correct, since we're changing
             throw { 'forbidden' : 'User may not update document from another user' };
           }
-          if (!newDoc._deleted && newDoc.created_by !== oldDoc.created_by) {
+          if (!newDoc._deleted && !isCommand && newDoc.created_by !== oldDoc.created_by) {
             // If we're not deleting a document, ensure that the names are not changing
             throw { 'forbidden' : 'User may not change the name of user' };
           }
