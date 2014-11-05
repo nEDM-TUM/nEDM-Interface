@@ -711,8 +711,8 @@ function AddDBButtonToHeader( $header_left, adb, prettyname ) {
     txt += m[0];
   }
   var new_b = $('<button/>')
-              .addClass("ui-btn ui-btn-icon-left " +
-                        "ui-icon-nedm-status-button-g " + adb + "-status db-status-blink")
+              .addClass("ui-btn ui-btn-icon-left ui-shadow ui-mini ui-corner-all" +
+                        " ui-icon-nedm-status-button-g " + adb + "-status db-status-blink")
               .text(txt).addClass('ui-disabled');
   $header_left.append(new_b);
 }
