@@ -72,10 +72,8 @@
         <div data-role='fieldcontain'>
             <div data-role='controlgroup' data-type='horizontal' class='advanced_ramp_function'>
                 <button class='send_ramp_data'>Set parameters</button>
-                <button class='read_ramp_data'>Read settings</button>
+                <button class='read_ramp_data'>Readback settings</button>
                 <button class='add_ramp_channel'>Add ramp channel</button>
-                <button class='run_ramp'>Run</button>
-                <button class='stop_ramp'>Stop</button>
             </div>
         </div>
         <div data-role='popup' class='show_ramp_results ui-corner-all'>
@@ -84,8 +82,8 @@
            </div>
            <div role='main' class='ui-corner-bottom ui-content'>
              <h3 class='ui-title'>Readback from device:</h3>
-             <div class='text_results' > 
-             </div> 
+             <div class='text_results' >
+             </div>
              <a href='#' data-role='button' data-rel='back'>Ok</a>
            </div>
         </div>
@@ -98,27 +96,35 @@
           </div>
         </div>
 
-        <div data-role='collapsible' class='ramp_channel_ctrl_collapse' data-mini='true'>
-            <h4>Ramp channel</h4>
-            <div class='ui-grid-c'>
-              <div class='ui-block-a'>
-                <h4>Start (V or A):</h4>
-                <h4>Stop (V or A):</h4>
-              </div>
-              <div class='ui-block-b'>
-                 <input type='text' class='min_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
-                 <input type='text' class='max_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
-              </div>
-            </div>
-            <div data-role='fieldcontain'>
-                <div data-role='controlgroup' data-type='horizontal'>
-                    <select class='ramp_type'>
-                       <option value='curr'>Current</option>
-                       <option value='volt'>Voltage</option>
-                    </select>
-                    <select class='channel_spinner3'/>
-		            <button class='delete_btn ui-disabled'>Remove</button>
+        <div class='ramper_channels'>
+          <div data-role='collapsible' class='ramp_channel_ctrl_collapse' data-mini='true'>
+              <h4>Ramp channel</h4>
+              <div class='ui-grid-c'>
+                <div class='ui-block-a'>
+                  <h4>Start (V or A):</h4>
+                  <h4>Stop (V or A):</h4>
                 </div>
+                <div class='ui-block-b'>
+                   <input type='text' class='min_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
+                   <input type='text' class='max_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
+                </div>
+              </div>
+              <div data-role='fieldcontain'>
+                  <div data-role='controlgroup' data-type='horizontal'>
+                      <select class='ramp_type'>
+                         <option value='curr'>Current</option>
+                         <option value='volt'>Voltage</option>
+                      </select>
+                      <select class='channel_spinner3'/>
+		              <button class='delete_btn ui-disabled'>Remove</button>
+                  </div>
+              </div>
+          </div>
+        </div>
+        <div data-role='fieldcontain'>
+            <div data-role='controlgroup' data-type='horizontal' class='advanced_ramp_function'>
+                <button class='run_ramp'>Run</button>
+                <button class='stop_ramp'>Stop</button>
             </div>
         </div>
     </div>
@@ -126,29 +132,29 @@
 
  """,
  "script" : """
-    function( avar, anobj ) {
-        
+    function( $theDiv, anobj ) {
+
         var disable_all = function() {
-            $(':button,[type=text]', $(avar)).addClass('ui-disabled'); 
+            $(':button,[type=text]', $($theDiv)).addClass('ui-disabled');
         };
         var enable_all = function() {
-            $(':button,[type=text]', $(avar)).removeClass('ui-disabled'); 
+            $(':button,[type=text]', $($theDiv)).removeClass('ui-disabled');
         };
-        var sel = $('.read_functions', $(avar));
+        var sel = $('.read_functions', $($theDiv));
         $.each(anobj.read_functions, function(val, text) {
           sel.append($('<option/>').val(val).text(text));
         });
-        sel = $('.write_functions', $(avar));
+        sel = $('.write_functions', $($theDiv));
         $.each(anobj.write_functions, function(val, text) {
           sel.append($('<option/>').val(val).text(text[0]).data('should_enable', (text[1] == 1)));
         });
-        var sync_func = function(e) { 
-          var o = $(':selected', $(e.target)); 
+        var sync_func = function(e) {
+          var o = $(':selected', $(e.target));
           if (o.data('should_enable')) {
-            $('.input_text', $(avar)).removeClass('ui-disabled');
+            $('.input_text', $($theDiv)).removeClass('ui-disabled');
           } else {
-            $('.input_text', $(avar)).addClass('ui-disabled');
-          } 
+            $('.input_text', $($theDiv)).addClass('ui-disabled');
+          }
         };
         sync_func({ target : sel });
         sel.change(sync_func);
@@ -161,46 +167,46 @@
           chan2.append($('<option/>').val(i).text('Ch ' + i.toString()));
           chan3.append($('<option/>').val(i).text('Ch ' + i.toString()));
         }
-        var channel_clone = $('.ramp_channel_ctrl_collapse', $(avar)).clone();
-        $(avar).trigger('refresh');
+        var channel_clone = $('.ramp_channel_ctrl_collapse', $($theDiv)).clone();
+        $($theDiv).trigger('refresh');
 
-        $( '.get_value_class', $(avar) ).on('click', function () {
-          var cmd = $('.read_functions :selected', $(avar)).val(); 
-          var chan = $('.channel_spinner1 :selected', $(avar)).val(); 
-          nedm.send_command( { cmd_name : cmd, 
+        $( '.get_value_class', $($theDiv) ).on('click', function () {
+          var cmd = $('.read_functions :selected', $($theDiv)).val();
+          var chan = $('.channel_spinner1 :selected', $($theDiv)).val();
+          nedm.send_command( { cmd_name : cmd,
                                arguments : [ parseFloat(chan) ],
                                timeout : 5000,
                                callback: function(e, o) {
                                  if (o && o.ok) {
-                                     $('.output_text', $(avar)).val(o.return);
-                                 } 
-                                 enable_all(); 
-                               } 
+                                     $('.output_text', $($theDiv)).val(o.return);
+                                 }
+                                 enable_all();
+                               }
                              });
         });
-        $( '.set_value_class', $(avar) ).on('click', function () {
-          var o = $('.write_functions :selected', $(avar));
+        $( '.set_value_class', $($theDiv) ).on('click', function () {
+          var o = $('.write_functions :selected', $($theDiv));
           var cmd = o.val();
-          var chan = $('.channel_spinner2 :selected', $(avar)).val(); 
+          var chan = $('.channel_spinner2 :selected', $($theDiv)).val();
           var args = [ parseFloat(chan) ];
           if (o.data('should_enable')) {
-            args[1] = $('.input_text', $(avar)).val();
+            args[1] = $('.input_text', $($theDiv)).val();
           }
-          nedm.send_command( { cmd_name : cmd, 
-                               arguments : args, 
+          nedm.send_command( { cmd_name : cmd,
+                               arguments : args,
                                timeout : 5000,
                                callback: function(e, o) {
-                                 enable_all(); 
+                                 enable_all();
                                  sync_func({ target : sel });
-                               } 
+                               }
                              });
         });
 
         var disable_ramp_ctr = function() {
-          $('.ramper_div', $(avar)).addClass('ui-disabled');
+          $('.ramper_div', $($theDiv)).addClass('ui-disabled');
         };
         var enable_ramp_ctr = function() {
-          $('.ramper_div', $(avar)).removeClass('ui-disabled');
+          $('.ramper_div', $($theDiv)).removeClass('ui-disabled');
         };
         var disable_all_ctr = function() {
           $(':not(div,.stop_ramp)', $('.advanced_ramp_function')).each( function() {
@@ -222,73 +228,80 @@
           $('.show_ramp_results').popup('open');
         };
 
-        $( '.send_ramp_data', $(avar)).on('click', function() {
+        $( '.send_ramp_data', $($theDiv)).on('click', function() {
           disable_ramp_ctr();
           var adoc = {
-            'time_length' : $('.ramp_time', $(avar)).val(),
-            'channels' : [] 
+            'time_length' : $('.ramp_time', $($theDiv)).val(),
+            'channels' : []
           };
           var i = 0;
-          $('.ramp_channel_ctrl_collapse', $(avar)).each( function() {
-              adoc.channels[i] = {};
-              adoc.channels[i].type = $('.ramp_type :selected', $(this)).val();
-              adoc.channels[i].nr = $('.channel_spinner3 :selected', $(this)).val();
-              adoc.channels[i].min = $('.min_ramp_value', $(this)).val();
-              adoc.channels[i].max = $('.max_ramp_value', $(this)).val();
+          $('.ramp_channel_ctrl_collapse', $($theDiv)).each( function() {
+              adoc.channels[i] = {
+                type : $('.ramp_type :selected', $(this)).val(),
+                nr   : $('.channel_spinner3 :selected', $(this)).val(),
+                min  : $('.min_ramp_value', $(this)).val(),
+                max  : $('.max_ramp_value', $(this)).val()
+              };
               i += 1;
-          });         
+          });
           nedm.send_command( { cmd_name : 'setup_ramp',
                                arguments: [adoc],
                                timeout  : 10000,
                                callback : enable_ramp_ctr} );
         });
-        $( '.run_ramp', $(avar)).on('click', function() {
-          disable_all_ctr(); 
+        $( '.run_ramp', $($theDiv)).on('click', function() {
+          disable_all_ctr();
           var run_ramp_sync = function() {
             nedm.get_most_recent_value('ramp_running', function(err, obj) {
               if (!err && obj.rows.length == 1) {
-                if (obj.rows[0].value !== 0) { 
+                if (obj.rows[0].value !== 0) {
                   setTimeout(run_ramp_sync, 1500);
                   return;
                 }
               }
               enable_all_ctr();
-            }); 
+            });
           };
           nedm.send_command( { cmd_name : 'run_ramp',
                                timeout  : 10000,
                                callback : run_ramp_sync} );
         });
-        $( '.stop_ramp', $(avar)).on('click', function() {
+        $( '.stop_ramp', $($theDiv)).on('click', function() {
           nedm.send_command( { cmd_name : 'stop_macro',
                                timeout  : 10000} );
         });
 
-        $( '.read_ramp_data', $(avar)).on('click', function() {
+        $( '.read_ramp_data', $($theDiv)).on('click', function() {
           nedm.send_command( { cmd_name : 'read_macro_data',
                                timeout  : 10000,
                                callback : function(o) {
-                                   if ((!o || !o.ok)) return; 
+                                   if ((!o || !o.ok)) return;
                                    popup_return(o.return);
                                }} );
         });
-        $( '.read_and_clear', $(avar)).on('click', function() {
+        $( '.read_and_clear', $($theDiv)).on('click', function() {
           nedm.send_command( { cmd_name : 'readallerrors',
                                timeout  : 10000,
                                callback : function(o) {
-                                   if ((!o || !o.ok)) return; 
+                                   if ((!o || !o.ok)) return;
                                    popup_return(o.return);
                                }} );
         });
 
+        function removeChannel(ev, ui) {
+          $(ev.currentTarget).closest('.ramp_channel_ctrl_collapse').remove();
+          var all_channels = $('.ramp_channel_ctrl_collapse', $($theDiv));
+          if ( all_channels.length === 1) {
+            $('.delete_btn', $(all_channels[0])).addClass('ui-disabled');
+          }
+        }
 
-        $( '.advanced_ramp_function .add_ramp_channel', $(avar)).on('click', function() {
+
+        $( '.advanced_ramp_function .add_ramp_channel', $($theDiv)).on('click', function() {
           var t = channel_clone.clone();
-          $('.ramper_div', $(avar)).append(t).trigger('create');
-          var del_btn = $('.delete_btn', $(t));
-          del_btn.removeClass('ui-disabled');
-          del_btn.on('click', function() { t.remove(); });
-          
+          $('.ramper_channels', $($theDiv)).append(t).trigger('create');
+          $('.ramper_channels .delete_btn').removeClass('ui-disabled');
+          $('.delete_btn', $($theDiv)).off().on('click', removeChannel);
         });
 
     }
