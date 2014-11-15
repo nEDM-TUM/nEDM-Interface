@@ -1679,7 +1679,7 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
               variable : var_name,
               progress : evt
             });
-          }
+          };
         }
         var ret_obj = {};
         for (var i=0;i<name.length;i++) {
