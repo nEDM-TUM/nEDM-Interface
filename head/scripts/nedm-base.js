@@ -1699,11 +1699,17 @@ nedm.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 };
 
 var using_prefix = "/";
+var on_cloudant = false;
 $(document).on('mobileinit', function() {
 
   if (document.location.pathname != '/' &&
       document.location.pathname.substring(0,5) != '/page') {
       using_prefix = "/nedm_head/_design/nedm_head/_rewrite/";
+  }
+
+  // We sometimes need to specially handle cloudant
+  if (document.location.origin === 'https://nedmtum.cloudant.com') {
+    on_cloudant = true;
   }
   $(document).on('pageinit', function(x, y) {
       UpdateHeader(x, y);
