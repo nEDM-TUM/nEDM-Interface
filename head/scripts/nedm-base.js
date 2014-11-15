@@ -113,6 +113,7 @@ function BuildURL(options) {
  */
 
 function UpdateDBInterface(db) {
+    var tthis = db;
     db.old_request = db.request;
     db.get_most_recent_value = function(var_name, callback) {
       return this.getView('slow_control_time', 'slow_control_time',
@@ -395,38 +396,83 @@ function UpdateDBInterface(db) {
       var hasSeenError = false;
       var myURL = url;
       var myToastr;
-      var listener = new EventSource(url);
-      listener.onerror = function(e) {
-        if (hasSeenError) return;
-        var msg = "";
-        if (hasOpened) {
-          msg = "Connection lost to: " + myURL;
-        } else {
-          msg = "Error making connection to: " + myURL;
-        }
-        hasSeenError = true;
-        myToastr = toastr.error(msg, "Changes Feed Error", { timeOut : 0, extendedTimeOut : 0 });
-      };
-      listener.onopen = function(e) {
-        hasOpened = true;
-        if (hasSeenError) {
-          toastr.success("Connection reestablished to: " + myURL, "Connection established");
-          myToastr.remove();
-        }
-        hasSeenError = false;
-      };
-      this.addListener = function(callback) {
-        this.removeListener(callback);
-        listener.addEventListener("message", callback, false);
-      };
+      var use_event_source = !on_cloudant;
+      function OnOpen(e) {
+          hasOpened = true;
+          if (hasSeenError) {
+            toastr.success("Connection reestablished to: " + myURL, "Connection established");
+            myToastr.remove();
+          }
+          hasSeenError = false;
+      }
+      function OnError(e) {
+          if (hasSeenError) return;
+          var msg = "";
+          if (hasOpened) {
+            msg = "Connection lost to: " + myURL;
+          } else {
+            msg = "Error making connection to: " + myURL;
+          }
+          hasSeenError = true;
+          myToastr = toastr.error(msg, "Changes Feed Error", { timeOut : 0, extendedTimeOut : 0 });
+      }
+      var myEvents = new events.EventEmitter();
 
-      this.removeListener = function(callback) {
-        listener.removeEventListener("message", callback, false);
-      };
+      var processed_length = 0;
+      function EmitChangesFeedEvents(ev) {
+        var rT = ev.currentTarget.responseText.slice(processed_length);
+        if (rT.length === 0) return;
+        var last_index = rT.lastIndexOf('\n');
+        if (last_index === -1) return;
+        var reqs = rT.split('\n');
+        var goto_length = reqs.length;
+        if (last_index !== rT.length - 1) {
+          goto_length -= 1;
+        }
+        for (var i = 0;i<goto_length;i++) {
+          if (reqs[i] === '') continue;
+          myEvents.emit("message", { data : reqs[i] });
+        }
+        processed_length += last_index;
+      }
 
-      this.close = function() {
-        listener.close();
-      };
+      if (use_event_source) {
+        var listener = new EventSource(url);
+        listener.onerror = OnError;
+        listener.onopen = OnOpen;
+        this.addListener = function(callback) {
+          this.removeListener(callback);
+          listener.addEventListener("message", callback, false);
+        };
+
+        this.removeListener = function(callback) {
+          listener.removeEventListener("message", callback, false);
+        };
+        this.close = function() {
+          listener.close();
+        };
+
+      } else {
+        // Much more limited interface!
+        // here we can't use EventSource
+        var req = {
+            type: 'GET',
+            url: url
+        };
+        var re = tthis.request(req, {
+          progress : EmitChangesFeedEvents
+        });
+        this.removeListener = function(callback) {
+          myEvents.removeListener("message", callback);
+        };
+        this.addListener = function(callback) {
+          myEvents.addListener("message", callback);
+        };
+        this.close = function() {
+          re.close();
+        };
+      }
+
     }
 
     var open_changes_feeds = { };
@@ -445,7 +491,11 @@ function UpdateDBInterface(db) {
      */
 
     db.listen_to_changes_feed = function(callback, options) {
-        options.feed = "eventsource";
+        if (on_cloudant) {
+          options.feed = "continuous";
+        } else {
+          options.feed = "eventsource";
+        }
         if (!options.heartbeat) {
             options.heartbeat = 7000;
         }
