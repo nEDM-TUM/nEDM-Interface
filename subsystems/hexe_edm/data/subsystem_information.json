@@ -1,0 +1,9 @@
+{
+  "_id" : "subsystem_information",
+  "prettyname" : "He-Xe EDM",
+  "pages" : {
+        "Control" : "control.html",
+        "Monitor" : "monitor.html"
+  }
+
+}
