@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["he_xe_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["he_xe_reader"]
+  }
+}
