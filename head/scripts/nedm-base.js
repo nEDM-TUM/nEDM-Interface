@@ -1010,12 +1010,41 @@ nedm.validate = function(un, pw, callback) {
             });
 };
 
+/**
+ * Signup on server
+ *
+ * @param {String} un - username
+ * @param {String} pw - password
+ * @param {Boolean} tryLogin - try Login when a successful signup
+ * @param {Function} callback(Boolean) - called with status of login.
+ * @api public
+ */
+
+nedm.registerUser = function(un, pw, tryLogin, callback) {
+    var adoc = {
+        _id  : "org.couchdb.user:" + un,
+        name : un,
+        password : pw,
+        type : "user",
+        roles : []
+    }
+    nedm.get_database("_users").saveDoc(adoc,
+      function (err, obj) {
+        if (err) return callback(false);
+        if (tryLogin) return nedm.validate(un, pw, callback);
+        callback(true);
+    });
+};
+
+
+
 // Register handling changes in the session
 session.on('change', function(userCtx) {
     SetUserName(userCtx);
     ListenToDBChanges();
     UpdateButtons();
     BuildDBList();
+    nedm.database_status();
 });
 
 /**
