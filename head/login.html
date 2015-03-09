@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html class="ui-mobile"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1"> 
-	<title>nEDM Base</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>nEDM Base</title>
 
     <link rel="stylesheet" href="/nedm_head/_design/nedm_head/css/nedm.css" />
 	<script src="/nedm_head/_design/nedm_head/modules.js"></script>
@@ -10,9 +10,9 @@
 
 	<style> .center { text-align: center; } </style>
 
-</head> 
+</head>
 
-<body class="ui-mobile-viewport ui-overlay-c"> 
+<body class="ui-mobile-viewport ui-overlay-c">
 
     <!--<div id="standardHeader">
         <div data-role="header" data-position="fixed" data-theme="b">
@@ -31,27 +31,48 @@
         <form id="HLogin">
             <div data-role="fieldcontain">
                 <label for="url">Username:*</label>
-                <input class="required" id="Lusername" name="uid_r" type="text" value="">          
+                <input class="required" id="Lusername" name="uid_r" type="text" value="">
             </div>
             <div data-role="fieldcontain">
                 <label for="url">Password:*</label>
-                <input id="Lpassword" name="pwd_r" type="password" value="">          
+                <input id="Lpassword" name="pwd_r" type="password" value="">
             </div>
-        </form> 
+            <div data-role="fieldcontain">
+              <label>
+                <input type="checkbox" class="setNewUser">New user
+              </label>
+            </div>
+        </form>
         <a data-role="button" data-rel="back" data-theme="c" data-inline="true">Cancel</a>
+        <a href="#" data-role="button" data-theme="b"  class="submitLogin" data-inline="true">Login</a>
+        <p id="warningText" style="color:red;"></p>
         <script type="text/javascript">
         function login_callback(success) {
             if (success) {
                 history.back();
             } else {
-                $('#warningText').text("Password or UN not correct");  
+                $('#warningText').text("Password or UN not correct");
             }
         }
-        </script> 
-        <a href="#" data-role="button" data-theme="b"  data-inline="true" 
-            onClick="nedm.validate($('#Lusername').val(), $('#Lpassword').val(),
-              login_callback)">Login</a>
-        <p id="warningText" style="color:red;"></p>
+        function login() {
+          nedm.validate($("#Lusername").val(), $("#Lpassword").val(), login_callback);
+        }
+        function registerUser() {
+          nedm.registerUser($("#Lusername").val(), $("#Lpassword").val(), true, login_callback);
+        }
+        var but = $('.submitLogin');
+        but.on("click", login);
+        $(".setNewUser").on("change", function(ev) {
+          if ($(ev.currentTarget).is(":checked")) {
+            but.text("Register");
+            but.off("click").on("click", registerUser);
+          } else {
+            but.text("Login");
+            but.off("click").on("click", login);
+          }
+        });
+        </script>
+
     </div>
 </div>
 
