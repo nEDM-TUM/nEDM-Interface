@@ -1,5 +1,9 @@
 import subprocess
 import re
+from distutils.spawn import find_executable
+
+if find_executable("jshint") is None:
+    raise Exception("jshint couldn't be found, please install!")
 
 class JSException(Exception):
     def __init__(self, msg):
