@@ -48,7 +48,7 @@ Notes for developers
 *Note:*  The best mechanism for testing your interface is setting up a local
 server and pushing to it.  You will also need to set your configuration to 
 allow "insecure" rewrites. At the
-configuration(http://127.0.0.1:5984/_utils/config.html), make sure that
+configuration site (http://127.0.0.1:5984/_utils/config.html), make sure that
 ```httpd : secure_rewrites``` is set to ```false```.  Once you do this and push
 to the local server, you will be able to reach the main page at:
 
