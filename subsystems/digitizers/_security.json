@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["digitizer_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["digitizer_reader"]
+  }
+}
