@@ -25,6 +25,7 @@
     "jquery-cookie" : null,
     "ace" : null,
     "jqm-calendar" : null,
-    "dygraph-combined" : null 
+    "dygraph-combined" : null,
+    "underscore" : null 
   } 
 }
