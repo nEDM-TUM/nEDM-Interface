@@ -1326,6 +1326,18 @@ nedm.keyFromDate = function(date) {
 };
 
 /**
+ * Light wrapper to return a dygraph
+ */
+
+nedm.Dygraph = function($adiv, data, opts) {
+    var o = opts || {};
+    if(!o.height) {
+      o.height = dygraphs.Dygraph.DEFAULT_HEIGHT;
+    }
+    return new dygraphs.Dygraph($adiv, data, o);
+}
+
+/**
  * MonitoringGraph provides an interface to the dygraph functionality
  *
  * @param {DOM Object} $adiv - where the graph should show up
