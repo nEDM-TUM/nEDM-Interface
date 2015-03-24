@@ -1,0 +1,231 @@
+{
+  "_id"  : "master_control",
+  "type" : "control",
+  "title" : "Digitizer Controls",
+  "description" : "Control the digitizers",
+  "html" : """
+<div data-role="controlgroup" data-type="horizontal">
+    <input type="button" value="Connect" class="connectBtn">
+</div>
+<div class="fullDigitizerPage" class="ui-disabled">
+    <div data-role="controlgroup" data-type="horizontal">
+        <select class='selectIPAddress' data-native-menu='false' class="ui-disabled">
+            <option>Select IP:</option>
+        </select>
+    </div>
+    <div class="digitizerControl ui-disabled">
+        <div class="show_plot"></div>
+        <div data-role="controlgroup" data-type="horizontal">
+            <input type="button" value="Stop" class="stopButton" disabled>
+            <input type="button" value="Start" class="startButton">
+            <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
+                <option>Select channels:</option>
+            </select>
+        </div>
+    </div>
+</div>
+""",
+"script" : """
+    function(thediv, docobj) {
+      var toastr = require("toastr");
+      var _ = require("underscore");
+      var data = [];
+      var labels = ["time", "ch0"];
+      var g = new nedm.Dygraph($(".show_plot", $(thediv))[0], data, {
+          drawPoints: false,
+          showRoller: false,
+          connectSeparatedPoints: true,
+          labels: ["time"]
+      });
+      var shouldStop = false;
+      var x = null;
+      
+      function showNewData(obj) {
+          var thedat = obj.data;
+          var offset = obj.offset;
+          var header = new DataView(thedat);
+          var numChannels = header.getInt32(offset, true);
+          var chs = [];
+          var headerSize = 4 + 4 * numChannels + offset;
+          labels = ["time"];
+          for (var i = 0; i < numChannels; i++) {
+              chs[chs.length] = header.getInt32(offset + 4 * i + 4, true);
+              labels[i + 1] = "ch" + chs[chs.length - 1].toString();
+          }
+          var length_per_ch = (thedat.byteLength - headerSize) / numChannels;
+          var arr = [_.range(length_per_ch / 2)];
+          for (i = 0; i < numChannels; i++) {
+              arr[arr.length] = new Int16Array(thedat, headerSize + i * length_per_ch, length_per_ch / 2);
+          }
+          appendData(_.zip.apply(this, arr));
+          sendAndReceive();
+      }
+      
+      function sendAndReceive() {
+          if (shouldStop) return;
+          var ssc = $.makeArray($('.selectSlowControl', $(thediv))
+              .find(':selected')
+              .map(function () {
+              return parseInt($(this).val(), 10);
+          }));
+          x.sendObj({
+              cmd: "readBuffer",
+              args: {
+                  channels: ssc
+              }
+          });
+      }
+      
+      // The following initializes the selection of IP address.
+      function initializeWebPage(obj) {
+          var urls = obj.header.result.urls;
+          var sel = $(".selectIPAddress", $(thediv)).filter(":input");
+          sel.empty();
+          sel.append($('<option/>').append("Select IP:"));
+          for (var i = 0; i < urls.length; i++) {
+              sel.append($('<option/>').attr({
+                  value: urls[i]
+              }).append(urls[i]));
+          }
+          sel.selectmenu("refresh");
+          sel.removeClass("ui-disabled");
+          $('.fullDigitizerPage', $(thediv)).removeClass('ui-disabled');
+          $('.digitizerControl', $(thediv)).addClass('ui-disabled');
+      }
+      
+      $('.selectIPAddress', $(thediv)).on("change", function (ev) {
+          var obj = $(ev.currentTarget).find(":selected");
+          var ch = obj.data("channels");
+          $(ev.currentTarget).addClass("ui-disabled");
+          x.sendObj({
+              cmd: "getChannels",
+              embed: true
+          });
+      });
+      
+      function appendData(dat) {
+          data = dat;
+          g.updateOptions({
+              'file': data,
+              labels: labels
+          });
+      }
+      
+      function startReadout(obj) {
+          toastr.info("Starting readout...");
+          sendAndReceive(obj);
+      }
+      
+      function stopReadout(obj) {
+          toastr.info("Stopping readout...");
+      }
+      
+      function getChannels(obj) {
+          var channels = obj.header.result;
+          enable_all(channels);
+          $('.selectIPAddress', $(thediv)).removeClass("ui-disabled");
+      }
+      
+      $('.startButton', $(thediv)).on("click", function () {
+          $('.stopButton', $(thediv)).button("option", "disabled", false);
+          $('.startButton', $(thediv)).button("option", "disabled", true);
+          $('.selectIPAddress', $(thediv)).addClass("ui-disabled");
+          shouldStop = false;
+          x.sendObj({
+              cmd: "startReadout"
+          });
+      });
+      
+      $('.stopButton', $(thediv)).on("click", function () {
+          x.sendObj({
+              cmd: "stopReadout"
+          });
+          shouldStop = true;
+          $('.startButton', $(thediv)).button("option", "disabled", false);
+          $('.stopButton', $(thediv)).button("option", "disabled", true);
+          $('.selectIPAddress', $(thediv)).removeClass("ui-disabled");
+      });
+      
+      function enable_all(num_channels) {
+          var sel = $(".selectSlowControl", $(thediv)).filter(":input");
+          sel.empty();
+          for (var i = 0; i < num_channels; i++) {
+              sel.append($('<option/>').attr({
+                  value: i
+              }).append("Ch " + i.toString()));
+          }
+          sel.selectmenu("refresh");
+          $(".digitizerControl", $(thediv)).removeClass("ui-disabled");
+      }
+      
+      var responseObj = {
+          readBuffer: showNewData,
+          startReadout: startReadout,
+          stopReadout: stopReadout,
+          getChannels: getChannels,
+          initializeWebPage: initializeWebPage
+      };
+      
+      function connect() {
+          $('.connectBtn', $(thediv)).attr("disabled", "disabled");
+          x = new WebSocket("ws://192.168.1.113:9000");
+          x.binaryType = "arraybuffer";
+          x.onmessage = function (mess) {
+              // Read/parse the header
+              var dv = new DataView(mess.data);
+              var header_length = dv.getInt32(0, true);
+      
+              var msg = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(mess.data, 4, header_length)));
+              if (!("ok" in msg)) {
+                  toastr.error(msg.error);
+                  return;
+              }
+      
+              // Now call the correct callback function
+              var cmd = msg.cmd;
+              if (cmd in responseObj) {
+                  responseObj[cmd]({
+                      header: msg,
+                      data: mess.data,
+                      offset: header_length + 4
+                  });
+              }
+          };
+      
+          function resetInterface() {
+              $('.connectBtn', $(thediv)).button("option", "disabled", false);
+              $('.fullDigitizerPage', $(thediv)).addClass('ui-disabled');
+              var sel = $(".selectIPAddress", $(thediv)).filter(":input");
+              sel.empty();
+              sel.selectmenu("refresh");
+          }
+      
+          x.onclose = function () {
+              toastr.info("Socket now closed");
+              resetInterface();
+          };
+      
+          x.onerror = function () {
+              toastr.error("Socket error");
+              resetInterface();
+          };
+          x.sendObj = function (obj) {
+              if (!("ip" in obj)) {
+                  obj.ip = $('.selectIPAddress', $(thediv)).find(':selected').val();
+              }
+              this.send(JSON.stringify(obj));
+          };
+      
+          x.onopen = function () {
+              toastr.info("Socket connected...");
+              x.send(JSON.stringify({
+                  cmd: "initializeWebPage",
+                  embed: true
+              }));
+          };
+      }
+      
+      $('.connectBtn', $(thediv)).on("click", connect);
+      connect();
+}"""
+}
