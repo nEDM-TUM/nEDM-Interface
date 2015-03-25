@@ -91,18 +91,47 @@
           sel.removeClass("ui-disabled");
           $('.fullDigitizerPage', $(thediv)).removeClass('ui-disabled');
           $('.digitizerControl', $(thediv)).addClass('ui-disabled');
+          enableIPSelection();
       }
-      
+      function enableIPSelection() {
+          $(".reqDigi", $(thediv)).button("option", "disabled", false);
+          $(".relDigi", $(thediv)).button("option", "disabled", true);
+          $('.selectIPAddress', $(thediv)).removeClass("ui-disabled");
+      }
+
+      function requestDigitizerControl(obj) {
+          if ("error" in obj.header) {
+              // re-enable interface
+              enableIPSelection();
+          } else {
+              $(".relDigi", $(thediv)).button("option", "disabled", false);
+              x.sendObj({
+                  cmd: "getChannels",
+                  embed: true
+              });
+          }
+      }
+      function releaseDigitizerControl() {
+          $('.digitizerControl', $(thediv)).addClass('ui-disabled');
+          enableIPSelection();
+      }
+     
       $('.selectIPAddress', $(thediv)).on("change", function (ev) {
-          var obj = $(ev.currentTarget).find(":selected");
-          var ch = obj.data("channels");
-          $(ev.currentTarget).addClass("ui-disabled");
-          x.sendObj({
-              cmd: "getChannels",
-              embed: true
-          });
+          $('.reqDigi', $(thediv)).button("option", "disabled", false);
       });
-      
+
+      $('.reqDigi', $(thediv)).on("click", function (ev) {
+          $(ev.currentTarget).button("option", "disabled", true);
+          var obj = $('.selectIPAddress', $(thediv)).filter(":input");
+          var ip = obj.find(':selected').val();
+          obj.addClass('ui-disabled');
+          x.sendObj({ cmd : 'requestDigitizerControl', args : { ip_addr : ip } }, true);
+      });
+       $('.relDigi', $(thediv)).on("click", function (ev) {
+          $(ev.currentTarget).button("option", "disabled", true);
+          x.sendObj({ cmd : 'releaseDigitizerControl' }, true);
+      });
+     
       function appendData(dat) {
           data = dat;
           g.updateOptions({
@@ -114,10 +143,15 @@
       function startReadout(obj) {
           toastr.info("Starting readout...");
           sendAndReceive(obj);
+          $('.stopButton', $(thediv)).button("option", "disabled", false);
+          $('.selectIPAddress', $(thediv)).addClass("ui-disabled");
       }
       
       function stopReadout(obj) {
           toastr.info("Stopping readout...");
+          $('.startButton', $(thediv)).button("option", "disabled", false);
+          $('.selectIPAddress', $(thediv)).removeClass("ui-disabled");
+          $('.relDigi', $(thediv)).button("option", "disabled", false);
       }
       
       function getChannels(obj) {
@@ -127,9 +161,8 @@
       }
       
       $('.startButton', $(thediv)).on("click", function () {
-          $('.stopButton', $(thediv)).button("option", "disabled", false);
           $('.startButton', $(thediv)).button("option", "disabled", true);
-          $('.selectIPAddress', $(thediv)).addClass("ui-disabled");
+          $('.relDigi', $(thediv)).button("option", "disabled", true);
           shouldStop = false;
           x.sendObj({
               cmd: "startReadout"
@@ -141,11 +174,14 @@
               cmd: "stopReadout"
           });
           shouldStop = true;
-          $('.startButton', $(thediv)).button("option", "disabled", false);
           $('.stopButton', $(thediv)).button("option", "disabled", true);
-          $('.selectIPAddress', $(thediv)).removeClass("ui-disabled");
       });
       
+
+      function announce(obj) {
+          toastr.info(obj.header.msg);
+      }
+
       function enable_all(num_channels) {
           var sel = $(".selectSlowControl", $(thediv)).filter(":input");
           sel.empty();
@@ -163,6 +199,9 @@
           startReadout: startReadout,
           stopReadout: stopReadout,
           getChannels: getChannels,
+          requestDigitizerControl: requestDigitizerControl,
+          releaseDigitizerControl: releaseDigitizerControl,
+          announce: announce,
           initializeWebPage: initializeWebPage
       };
       
@@ -178,7 +217,6 @@
               var msg = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(mess.data, 4, header_length)));
               if (!("ok" in msg)) {
                   toastr.error(msg.error);
-                  return;
               }
       
               // Now call the correct callback function
@@ -193,6 +231,7 @@
           };
       
           function resetInterface() {
+              releaseDigitizerControl();
               $('.connectBtn', $(thediv)).button("option", "disabled", false);
               $('.fullDigitizerPage', $(thediv)).addClass('ui-disabled');
               var sel = $(".selectIPAddress", $(thediv)).filter(":input");
@@ -209,9 +248,9 @@
               toastr.error("Socket error");
               resetInterface();
           };
-          x.sendObj = function (obj) {
-              if (!("ip" in obj)) {
-                  obj.ip = $('.selectIPAddress', $(thediv)).find(':selected').val();
+          x.sendObj = function (obj, no_digi) {
+              if (!no_digi) {
+                  obj.ip = true;
               }
               this.send(JSON.stringify(obj));
           };
