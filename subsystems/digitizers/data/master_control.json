@@ -12,6 +12,8 @@
         <select class='selectIPAddress' data-native-menu='false' class="ui-disabled">
             <option>Select IP:</option>
         </select>
+        <input type="button" value="Request digitizer" class="reqDigi" disabled>
+        <input type="button" value="Release digitizer" class="relDigi" disabled>
     </div>
     <div class="digitizerControl ui-disabled">
         <div class="show_plot"></div>
