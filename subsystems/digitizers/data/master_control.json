@@ -236,7 +236,7 @@
                   value: i
               }).append("Ch " + i.toString()));
           }
-          sel.selectmenu("refresh");
+          sel.selectmenu("refresh", true);
           $(".digitizerControl", $(thediv)).removeClass("ui-disabled");
       }
       
@@ -311,6 +311,9 @@
       }
       
       $('.connectBtn', $(thediv)).on("click", connect);
+      $('.adv_options', $(thediv)).on("collapsibleexpand", function() {
+        edtr.resize();
+      });
       connect();
 }"""
 }
