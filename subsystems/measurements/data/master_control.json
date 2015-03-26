@@ -532,6 +532,10 @@
       editor.setTheme('ace/theme/xcode');
       cmt.data({editor : editor});
       editor.getSession().setValue("");
+      $('.comment_code_collapsible', $(thediv)).on("collapsibleexpand", function() {
+        editor.resize();
+      });
+
 
       //*****************************************************
 
