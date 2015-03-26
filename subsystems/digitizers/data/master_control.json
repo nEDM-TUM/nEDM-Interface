@@ -2,7 +2,39 @@
   "_id"  : "master_control",
   "type" : "control",
   "title" : "Digitizer Controls",
-  "description" : "Control the digitizers",
+  "description" : """
+Digitizer control:
+<br><br>
+
+Connect button: Try to connect to the digitizer server if connection is lost 
+<br><br>
+
+Select IP: Select digitizer device 
+<br><br>
+
+Request/release digitizer: Request a digitizer or release one that is currently 'owned'.  Only one digitizer may be own by a browser.
+<br><br>
+
+Stop/start: Start or stop the readout of the digitizer.
+<br><br>
+
+Select channels: select which channels are viewed on the oscilloscope.  *This doesn't affect the saved channels!*
+<br><br>
+
+Measurement options:
+<br><br>
+
+Log allows the logging of a measurement
+<br><br>
+
+Upload to DB: when checked, will upload the measurement metadata following clicking "Stop"
+<br><br>
+
+Save raw data: when checked, will save the raw data of a measurement *and* upload to the database.  A link will appear after clicking "Stop"
+<br><br>
+
+Measurements are available on the <a href="/page/control/nedm/measurements">measurements</a> page.
+""",
   "html" : """
 <div data-role="controlgroup" data-type="horizontal">
     <input type="button" value="Connect" class="connectBtn">
