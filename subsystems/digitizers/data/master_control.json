@@ -93,6 +93,7 @@ Measurements are available on the <a href="/page/control/nedm/measurements">meas
           connectSeparatedPoints: true,
           labels: ["time"]
       });
+      $(".show_plot", $(thediv)).data({plot : g});
       var shouldStop = false;
       var x = null;
       
