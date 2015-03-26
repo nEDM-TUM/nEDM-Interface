@@ -24,11 +24,33 @@
                 <option>Select channels:</option>
             </select>
         </div>
+        <div data-role='collapsible' class='adv_options'>
+          <h4>Measurement (save) options</h4>
+          <div data-role='fieldcontain'>
+            <div align='left'>
+                <div class="comment code_editor"></div>
+            </div>
+            <fieldset data-role='controlgroup' data-type='horizontal'>
+              <label><input type='checkbox' class='upload_data'/>Upload to DB</label>
+              <label><input type='checkbox' class='save_data' disabled/>Save raw data</label>
+            </fieldset>
+          </div>
+        </div>
+    </div>
+    <div>
+        Last uploaded file: <span class="uploaded_file"></span>
     </div>
 </div>
 """,
 "script" : """
     function(thediv, docobj) {
+      // Add logging...
+      var cmt = $('.comment', $(thediv));
+      var edtr = ace.edit(cmt[0]);
+      edtr.setTheme('ace/theme/xcode');
+      cmt.data({editor : edtr});
+
+      // Do the reset
       var toastr = require("toastr");
       var _ = require("underscore");
       var data = [];
@@ -146,13 +168,13 @@
           toastr.info("Starting readout...");
           sendAndReceive(obj);
           $('.stopButton', $(thediv)).button("option", "disabled", false);
-          $('.selectIPAddress', $(thediv)).addClass("ui-disabled");
+          $('.selectIPAddress,.adv_options', $(thediv)).addClass("ui-disabled");
       }
       
       function stopReadout(obj) {
           toastr.info("Stopping readout...");
           $('.startButton', $(thediv)).button("option", "disabled", false);
-          $('.selectIPAddress', $(thediv)).removeClass("ui-disabled");
+          $('.selectIPAddress,.adv_options', $(thediv)).removeClass("ui-disabled");
           $('.relDigi', $(thediv)).button("option", "disabled", false);
       }
       
@@ -161,13 +183,24 @@
           enable_all(channels);
           $('.selectIPAddress', $(thediv)).removeClass("ui-disabled");
       }
+      $('.upload_data', $(thediv)).on("change", function (ev) {
+        var upload = $(ev.currentTarget).is(':checked');
+        $('.save_data').checkboxradio("option", "disabled", !upload);
+      });
       
       $('.startButton', $(thediv)).on("click", function () {
           $('.startButton', $(thediv)).button("option", "disabled", true);
           $('.relDigi', $(thediv)).button("option", "disabled", true);
+          var upload_data = $('.upload_data', $(thediv)).is(':checked');
+          var save_data = $('.save_data', $(thediv)).is(':checked');
+          if (!upload_data) {
+            save_data = false;
+          }
+          var com = cmt.data('editor').getSession().getValue();
           shouldStop = false;
           x.sendObj({
-              cmd: "startReadout"
+              cmd: "startReadout",
+              args: { should_upload : upload_data, should_save : save_data, log : com }
           });
       });
       
@@ -179,9 +212,20 @@
           $('.stopButton', $(thediv)).button("option", "disabled", true);
       });
       
-
       function announce(obj) {
-          toastr.info(obj.header.msg);
+          var msg = obj.header.msg;
+          if (typeof msg === 'object') {
+              if (msg.type) {
+                  if (msg.type == "FileUpload") {
+                      $('.uploaded_file', $(thediv)).empty().append($('<a/>').attr({"href": msg.url, "data-ajax" : false}).append(msg.file_name));   
+                      toastr.info("File: " + msg.file_name + " uploaded...");
+                  } else if(msg.type == "DocUpload") {
+                      toastr.info("Document upload: " + msg.id);
+                  }
+              }
+          } else {
+              toastr.info(msg);
+          }
       }
 
       function enable_all(num_channels) {
