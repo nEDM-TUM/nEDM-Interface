@@ -458,7 +458,7 @@
         var tgt = $(ev.currentTarget);
         if (!thefile) thefile = ev.target.files[0];
         tgt.closest('.add_one_file_class').find('.file_remove').removeClass('ui-disabled');
-        var new_obj = $('<a/>').addClass('file_name_class').text(thefile.name).data({file : thefile});
+        var new_obj = $('<a/>').attr('data-ajax', 'false').addClass('file_name_class').text(thefile.name).data({file : thefile});
         tgt.closest('.actual_file_list').append(file_cloner.clone(true)).trigger('create');
         tgt.closest('.ui-input-text').replaceWith(new_obj);
         tgt.remove();
