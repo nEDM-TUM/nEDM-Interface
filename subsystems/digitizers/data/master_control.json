@@ -118,13 +118,17 @@ Measurements are available on the <a href="/page/control/nedm/measurements">meas
           sendAndReceive();
       }
       
-      function sendAndReceive() {
-          if (shouldStop) return;
-          var ssc = $.makeArray($('.selectSlowControl', $(thediv))
+      function getSelectedChannels($anobj) {
+          return $.makeArray($anobj
               .find(':selected')
               .map(function () {
               return parseInt($(this).val(), 10);
           }));
+      }
+
+      function sendAndReceive() {
+          if (shouldStop) return;
+          var ssc = getSelectedChannels($('.selectSlowControl', $(thediv)));
           x.sendObj({
               cmd: "readBuffer",
               args: {
