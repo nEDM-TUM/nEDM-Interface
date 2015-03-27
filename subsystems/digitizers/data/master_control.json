@@ -34,6 +34,8 @@ Save raw data: when checked, will save the raw data of a measurement *and* uploa
 <br><br>
 
 Measurements are available on the <a href="/page/control/nedm/measurements">measurements</a> page.
+<br>
+Example scripts on how to readout: <a href="https://gist.github.com/6033a49c60771e7dd16f">python</a>, <a href="https://gist.github.com/de7b3621ed14ee559662">C/C++<a/>.
 """,
   "html" : """
 <div data-role="controlgroup" data-type="horizontal">
