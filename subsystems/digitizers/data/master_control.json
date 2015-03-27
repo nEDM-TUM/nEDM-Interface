@@ -65,6 +65,11 @@ Measurements are available on the <a href="/page/control/nedm/measurements">meas
             <fieldset data-role='controlgroup' data-type='horizontal'>
               <label><input type='checkbox' class='upload_data'/>Upload to DB</label>
               <label><input type='checkbox' class='save_data' disabled/>Save raw data</label>
+              <select class='selectSaveChannels saveClass ui-disabled' multiple='multiple' data-native-menu='false'>
+                  <option>Select channels:</option>
+              </select>
+              <input type="button" value="All" class="allChannels saveClass" disabled>
+              <input type="button" value="None" class="noChannels saveClass" disabled>
             </fieldset>
           </div>
         </div>
@@ -224,7 +229,27 @@ Measurements are available on the <a href="/page/control/nedm/measurements">meas
         var upload = $(ev.currentTarget).is(':checked');
         $('.save_data').checkboxradio("option", "disabled", !upload);
       });
-      
+      $('.save_data', $(thediv)).on("change", function (ev) {
+        var save = $(ev.currentTarget).is(':checked');
+        if (save) {
+          $('.saveClass', $(thediv)).removeClass("ui-disabled");
+        } else {
+          $('.saveClass', $(thediv)).addClass("ui-disabled");
+        }
+        $('.saveClass', $(thediv)).filter(':button').button("option", "disabled", !save);
+      });
+
+      $('.allChannels', $(thediv)).on('click', function() {
+        $('.selectSaveChannels', $(thediv)).filter(':input').children().attr("selected", true);
+        $('.selectSaveChannels', $(thediv)).filter(':input').selectmenu("refresh", true);
+      }); 
+
+      $('.noChannels', $(thediv)).on('click', function() {
+        $('.selectSaveChannels', $(thediv)).filter(':input').children().removeAttr("selected");
+        $('.selectSaveChannels', $(thediv)).filter(':input').selectmenu("refresh", true);
+      }); 
+
+
       $('.startButton', $(thediv)).on("click", function () {
           $('.startButton', $(thediv)).button("option", "disabled", true);
           $('.relDigi', $(thediv)).button("option", "disabled", true);
@@ -235,9 +260,10 @@ Measurements are available on the <a href="/page/control/nedm/measurements">meas
           }
           var com = cmt.data('editor').getSession().getValue();
           shouldStop = false;
+          var ssc = getSelectedChannels($('.selectSaveChannels', $(thediv)));
           x.sendObj({
               cmd: "startReadout",
-              args: { should_upload : upload_data, should_save : save_data, log : com }
+              args: { should_upload : upload_data, should_save : save_data, log : com, channel_list : ssc }
           });
       });
       
@@ -266,14 +292,16 @@ Measurements are available on the <a href="/page/control/nedm/measurements">meas
       }
 
       function enable_all(num_channels) {
-          var sel = $(".selectSlowControl", $(thediv)).filter(":input");
-          sel.empty();
-          for (var i = 0; i < num_channels; i++) {
-              sel.append($('<option/>').attr({
-                  value: i
-              }).append("Ch " + i.toString()));
-          }
-          sel.selectmenu("refresh", true);
+          ['.selectSlowControl', '.selectSaveChannels'].forEach(function(o) {
+              var sel = $(o, $(thediv)).filter(":input");
+              sel.empty();
+              for (var i = 0; i < num_channels; i++) {
+                  sel.append($('<option/>').attr({
+                      value: i
+                  }).append("Ch " + i.toString()));
+              }
+              sel.selectmenu("refresh", true);
+          });
           $(".digitizerControl", $(thediv)).removeClass("ui-disabled");
       }
       
