@@ -93,6 +93,7 @@ which is accessible with the normal TUM VPN.
   "continuous" : true
 }
 ```
+
 Swap out UN and PW (standard nEDM read-only values)
 1. Add continuous replication for your DB of choice (e.g. ```nedm/cs_laser```),
 by modifying the above as necessary and submitting a new document.
