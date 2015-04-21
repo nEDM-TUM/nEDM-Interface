@@ -18,7 +18,7 @@ commands.
 
 It is possible to save setting in a .nedmrc file, e.g.:
 
-``` 
+```
 % cat .nedmrc
 {
   local: {
@@ -35,7 +35,7 @@ It is possible to save setting in a .nedmrc file, e.g.:
   default : "local"
 }
 
-``` 
+```
 where the default indicates which will be used normally.  ```jshint``` is an additional dependency:
 
 ```
@@ -46,7 +46,7 @@ Notes for developers
 --------------------
 
 *Note:*  The best mechanism for testing your interface is setting up a local
-server and pushing to it.  You will also need to set your configuration to 
+server and pushing to it.  You will also need to set your configuration to
 allow "insecure" rewrites. At the
 configuration site (http://127.0.0.1:5984/_utils/config.html), make sure that
 ```httpd : secure_rewrites``` is set to ```false```.  Once you do this and push
@@ -60,9 +60,10 @@ subsystem (e.g. sub-folders in the subsystem directory) automatically receives
 the design document from the \_default directory.  This allows general
 interface changes or general views to be added to this directory and
 automatically propagated to the other databases.  Users requiring additional
-modules from kanso, or additional javascript dependencies should add these to  
+modules from kanso, or additional javascript dependencies should add these to
 the head/ directory.
 
+## Broken kanso workaround
 *NOTE*: The kanso on npm is currently broken, a workaround:
 ```
 cd head
@@ -72,6 +73,33 @@ cd packages/handlebars
 rm -rf node_modules/kanso-utils
 npm install git+https://github.com/kanso/kanso-utils.git
 ```
+
+## Setting up to read from DB
+Most of the time, you will want to be able to have "real" data on your system,
+as well as see real-time updates.  To do this, you need to set up replication
+with the database server, but *please* use the secondary server (10.155.59.15),
+which is accessible with the normal TUM VPN.
+
+1. Make an aggregate DB if not already on your system (after a push_to_db.py):
+```nedm/aggregate```
+1. Add continuous replication for ```nedm/aggregate```, add the document to the
+```_replicate``` database:
+
+```
+{
+  "owner" : "your_id",
+  "source" : "http://UN:PW@10.155.59.15:5984/nedm%2Faggregate",
+  "target" : "nedm/aggregate",
+  "continuous" : true
+}
+```
+Swap out UN and PW (standard nEDM read-only values)
+1. Add continuous replication for your DB of choice (e.g. ```nedm/cs_laser```),
+by modifying the above as necessary and submitting a new document.
+
+
+
+
 
 Dealing with Commands
 ---------------------
@@ -93,17 +121,17 @@ interface looks for documents of type "control", e.g.:
                                           # jquery-mobile framework.  Takes
                                           # javascript.
 
-            "pagehide" : " javascript"    
+            "pagehide" : " javascript"
         },
         "script" : "javascript script",   # Script that will be run during
                                           # loading of the controls on the
-                                          # webpage.   
-        
+                                          # webpage.
+
         ...
     }
 
 
-There are several templates that one can derive from by using 
+There are several templates that one can derive from by using
 
 ```
 doc = {
