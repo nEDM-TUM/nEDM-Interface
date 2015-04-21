@@ -63,6 +63,16 @@ automatically propagated to the other databases.  Users requiring additional
 modules from kanso, or additional javascript dependencies should add these to  
 the head/ directory.
 
+*NOTE*: The kanso on npm is currently broken, a workaround:
+```
+cd head
+kanso update
+
+cd packages/handlebars
+rm -rf node_modules/kanso-utils
+npm install git+https://github.com/kanso/kanso-utils.git
+```
+
 Dealing with Commands
 ---------------------
 
