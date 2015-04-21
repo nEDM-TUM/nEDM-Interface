@@ -81,10 +81,9 @@ with the database server, but *please* use the secondary server (10.155.59.15),
 which is accessible with the normal TUM VPN.
 
 1. Make an aggregate DB if not already on your system (after a push_to_db.py):
-```nedm/aggregate```
-1. Add continuous replication for ```nedm/aggregate```, add the document to the
-```_replicate``` database:
-
+`nedm/aggregate`
+1. Add continuous replication for `nedm/aggregate`, add the document to the
+`_replicate` database:
 ```
 {
   "owner" : "your_id",
@@ -93,9 +92,8 @@ which is accessible with the normal TUM VPN.
   "continuous" : true
 }
 ```
-
 Swap out UN and PW (standard nEDM read-only values)
-1. Add continuous replication for your DB of choice (e.g. ```nedm/cs_laser```),
+1. Add continuous replication for your DB of choice (e.g. `nedm/cs_laser`),
 by modifying the above as necessary and submitting a new document.
 
 
