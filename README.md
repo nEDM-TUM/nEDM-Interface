@@ -63,7 +63,7 @@ automatically propagated to the other databases.  Users requiring additional
 modules from kanso, or additional javascript dependencies should add these to
 the head/ directory.
 
-## Broken kanso workaround
+### Broken kanso workaround
 *NOTE*: The kanso on npm is currently broken, a workaround:
 ```
 cd head
@@ -74,7 +74,7 @@ rm -rf node_modules/kanso-utils
 npm install git+https://github.com/kanso/kanso-utils.git
 ```
 
-## Setting up to read from DB
+### Setting up to read from DB
 Most of the time, you will want to be able to have "real" data on your system,
 as well as see real-time updates.  To do this, you need to set up replication
 with the database server, but *please* use the secondary server (10.155.59.15),
