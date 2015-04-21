@@ -42,8 +42,8 @@ where the default indicates which will be used normally.  ```jshint``` is an add
 npm install -g jshint
 ```
 
-Notes for developers
---------------------
+## Notes for developers
+
 
 *Note:*  The best mechanism for testing your interface is setting up a local
 server and pushing to it.  You will also need to set your configuration to
@@ -101,8 +101,8 @@ by modifying the above as necessary and submitting a new document.
 
 
 
-Dealing with Commands
----------------------
+## Dealing with Commands
+
 
 Every interface will in principal have controls.  To facilitate this, the nEDM
 interface looks for documents of type "control", e.g.:
