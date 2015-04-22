@@ -37,12 +37,12 @@
                 var fillDiv = $('.controlDiv_class', $(ev.target));
                 if (fillDiv.children('div').size() != 0) fillDiv.empty();
                 if (err != null) return;
-                var success_func = function(adoc, fill_it_loc) {
+                var success_func = function(fill_it_loc) {
                                      return function(e) {
                                           fill_it_loc.append(e.html);
                                           if (e.doc && e.doc.script) {
                                               var afunc = eval('(' + e.doc.script + ')');
-                                              afunc(fill_it_loc, adoc);
+                                              afunc(fill_it_loc, e.doc);
                                           }
                                           fillDiv.trigger('create');
                                           controlMade = true;
@@ -59,7 +59,7 @@
                     $.ajax({ type: 'POST',
                              url: addr,
                              data: JSON.stringify(arr),
-                             success: success_func(arr, fill_it)  });
+                             success: success_func(fill_it)  });
                 }
             });
         }
