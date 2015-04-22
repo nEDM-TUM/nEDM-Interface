@@ -1,13 +1,6 @@
 {
  "_id" : "set_value_template",
  "type" : "control_template",
- "title" : "{{title}}",
- "description" : "{{description}}",
- "pageevents" : {
-      "pagehide" :  "function() {}",
-      "pageshow" :  "function() {}"
- },
-
  "html" : """
 <div data-role='fieldcontain'>
     <div data-role='controlgroup' data-type='horizontal'>
