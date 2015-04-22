@@ -3,6 +3,7 @@
   "type" : "control_template",
   "title" : "Digitizer Controls",
   "host_ip" : "192.168.1.113:9000",
+  "include_only_digitizers" : [],
   "description" : """
 Digitizer control:
 <br><br>
@@ -129,6 +130,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       edtr.setTheme('ace/theme/xcode');
       cmt.data({editor : edtr});
 
+      var setDefaults;
+      if (docobj.defaults) {
+        /* jshint ignore:start */
+        setDefaults = eval( '(' + docobj.defaults + ')' );
+        /* jshint ignore:end */
+      }
+
       // Do the reset
       var toastr = require("toastr");
       var _ = require("underscore");
@@ -239,8 +247,9 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           var urls = obj.header.result.urls;
           var sel = $(".selectIPAddress", $(thediv)).filter(":input");
           sel.empty();
-          sel.append($('<option/>').append("Select IP:"));
+          var io = docobj.include_only_digitizers;
           for (var i = 0; i < urls.length; i++) {
+              if (io.length > 0 && io.indexOf(urls[i]) == -1) continue;
               sel.append($('<option/>').attr({
                   value: urls[i]
               }).append(urls[i]));
@@ -326,6 +335,9 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           enable_all(channels.mods);
           setFrequency();
           BuildGains();
+          if (setDefaults) {
+            setDefaults(thediv, docobj);
+          }
       }
 
       $('.upload_data', $(thediv)).on("change", function (ev) {
