@@ -1,6 +1,6 @@
 {
   "_id" : "master_control",
   "type" : "control",
-  "title" : "HeXe EDM Digitizer",
+  "title" : "Digitizer control",
   "template" : "digitizer_control_template"
 }
