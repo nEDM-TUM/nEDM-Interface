@@ -1,0 +1,46 @@
+{
+  "_id" : "master_control",
+  "type" : "control",
+  "title" : "HeXe EDM Digitizer",
+  "template" : "digitizer_control_template",
+  "include_only_digitizers" : ["digitizer.2.nedm1"],
+  "channel_names" : {
+    "0" : "Squid Data 0",
+    "1" : "Squid Data 1",
+  },
+  "view_channels" : [0,1,2,3,4],
+  "save_channels" : [5,6,7],
+  "defaults" : """
+	function(thediv, docobj) {
+	  // Called when page loaded, we can modify the page, set defaults
+
+      // Select the module
+      $('.selectSaveModules',$(thediv)).filter(':input').val(1).change();
+      $( ".upload_data,.save_data" ).prop( "checked", true )
+                                    .change()
+                                    .checkboxradio( "refresh" );
+
+      // viewing channels
+      var view_chan = $('.selectSlowControl', $(thediv)).filter(':input');
+      // Saving channels
+      var save_chan = $('.selectSaveChannels', $(thediv)).filter(':input');
+
+      // Channel names
+      for (var k in docobj.channel_names) {
+        var n = docobj.channel_names[k];
+        view_chan.find('option[value="' + k + '"]').text(n);
+        save_chan.find('option[value="' + k + '"]').text(n);
+      }
+
+      for (var i=0;i<docobj.view_channels.length;i++) {
+        view_chan.find('option[value="' + docobj.view_channels[i] + '"]').attr('selected', 'selected');
+      }
+      for (var i=0;i<docobj.save_channels.length;i++) {
+        save_chan.find('option[value="' + docobj.save_channels[i] + '"]').attr('selected', 'selected');
+      }
+      view_chan.selectmenu("refresh", true);
+      save_chan.selectmenu("refresh", true);
+	}
+
+"""
+}
