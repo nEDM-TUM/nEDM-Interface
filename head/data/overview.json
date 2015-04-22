@@ -111,9 +111,10 @@
                var v = r[i].key[1];
                var id = r[i].id;
                if (! (k in dbs) ) {
+                 var dbn = /nedm%2F(.*)/.exec(k)[1];
+                 if (!(dbn in all_dbs)) continue;
                  dbs[k] = dbtoclone.clone();
                  dbs[k].show();
-                 var dbn = /nedm%2F(.*)/.exec(k)[1];
                  $('.db_name', $(dbs[k])).text(all_dbs[dbn].prettyname);
                  svs.append(dbs[k]);
                }
