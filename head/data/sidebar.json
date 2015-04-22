@@ -8,9 +8,9 @@
         </div>
         <div class='ui-body ui-body-a'>
             <ul data-role='listview' data-inset='true'>
-                <li><a href='/page/overview'>Overview</a>
+                <li><a href='/page/overview' class="overview">Overview</a>
                 </li>
-                <li><a href='/page/alarms'>Alarms</a>
+                <li><a href='/page/alarms' class="alarms">Alarms</a>
                 </li>
             </ul>
         </div>
