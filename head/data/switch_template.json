@@ -12,8 +12,6 @@
 {
   "_id" : "switch_template",
   "type" : "control_template",
-  "title" : "{{title}}",
-  "description" : "{{description}}",
   "html" : """
 <!--  Here we input html that should be added to the page for this control -->
 <select data-role='slider' class='switch_class'>

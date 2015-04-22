@@ -9,7 +9,7 @@ exports.page = function(doc, req) {
   html += "<body class='ui-mobile-viewport ui-overlay-c'>";
   html += handlebars.compile(doc.body)(new_query);
   html += "</body></html>";
-  return html; 
+  return html;
 };
 
 exports.define_control = function(doc, req) {
@@ -24,25 +24,20 @@ exports.define_control = function(doc, req) {
 
    var obj = JSON.parse(req.body);
    if (doc != null) {
-     // We have a template sent in
-     var arr = obj;
-     new_doc = {} 
+	 // We have a template sent in, and the doc object is the template
+	 var arr = obj;
+     var new_doc = {};
      for (var k in doc) {
          // Ignore special variables
-         if (k[0] == "_") continue; 
-         if (typeof doc[k] == 'object') {
-             new_doc[k] = {};
-             for (var j in doc[k]) {
-                 new_doc[k][j] = handlebars.compile(doc[k][j])(arr); 
-             }
-         } else {
-             new_doc[k] = handlebars.compile(doc[k])(arr); 
-         }
+         if (k[0] == "_") continue;
+         new_doc[k] = doc[k];
      }
-     new_doc._id = arr._id;
+     for (var k in arr) {
+         new_doc[k] = arr[k];
+     }
      return template_func(new_doc);
   } else {
-    return template_func(obj); 
+    return template_func(obj);
   }
 
 };

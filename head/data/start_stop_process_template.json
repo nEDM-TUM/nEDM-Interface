@@ -1,8 +1,6 @@
 {
  "_id" : "start_stop_process_template",
  "type" : "control_template",
- "title" : "{{title}}",
- "description" : "{{description}}",
  "html" : """
   <div data-role='fieldcontain'>
     <fieldset data-role='controlgroup' data-type='horizontal'>
