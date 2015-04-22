@@ -65,33 +65,53 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             </select>
             <span class="NoData" style="color:red;display:none;">No Data</span>
         </div>
-        <div data-role='collapsible' class='adv_options'>
-          <h4>Measurement (save) options</h4>
-          <div data-role='fieldcontain'>
-            <div align='left'>
-                <div class="comment code_editor"></div>
-            </div>
-            <fieldset data-role='controlgroup' data-type='horizontal'>
-              <label><input type='checkbox' class='upload_data'/>Upload to DB</label>
-              <label><input type='checkbox' class='save_data' disabled/>Save raw data</label>
-            </fieldset>
-            <fieldset data-role='controlgroup' data-type='horizontal'>
-              <select class='selectSaveModules' multiple='multiple' data-native-menu='false'>
-                  <option>Select modules:</option>
-              </select>
-              <select class='selectSaveChannels saveClass' multiple='multiple' data-native-menu='false' disabled>
-                  <option>Select channels:</option>
-              </select>
-              <input type="button" value="All" class="allChannels saveClass" disabled>
-              <input type="button" value="None" class="noChannels saveClass" disabled>
-            </fieldset>
-
-          </div>
-          <div data-role='fieldcontain'>
-              <div data-role='controlgroup' data-type='horizontal'>
-                  <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class="frequency_set">
-                  <button class='set_frequency'>Set Freq (kHz)</button>
+        <div class='adv_options'>
+          <div data-role='collapsible' class='measurement_options'>
+            <h4>Measurement (save) options</h4>
+            <div data-role='fieldcontain'>
+              <div align='left'>
+                  <div class="comment code_editor"></div>
               </div>
+              <fieldset data-role='controlgroup' data-type='horizontal'>
+                <label><input type='checkbox' class='upload_data'/>Upload to DB</label>
+                <label><input type='checkbox' class='save_data' disabled/>Save raw data</label>
+              </fieldset>
+              <fieldset data-role='controlgroup' data-type='horizontal'>
+                <select class='selectSaveModules' multiple='multiple' data-native-menu='false'>
+                    <option>Select modules:</option>
+                </select>
+                <select class='selectSaveChannels saveClass' multiple='multiple' data-native-menu='false' disabled>
+                    <option>Select channels:</option>
+                </select>
+                <input type="button" value="All" class="allChannels saveClass" disabled>
+                <input type="button" value="None" class="noChannels saveClass" disabled>
+              </fieldset>
+
+            </div>
+            <div data-role='fieldcontain'>
+                <div data-role='controlgroup' data-type='horizontal'>
+                    <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class="frequency_set">
+                    <button class='set_frequency'>Set Freq (kHz)</button>
+                </div>
+            </div>
+            <label><input type="range" value="50" min="0" max="100" class="timeWindow"/>Time window (ms)</label>
+          </div>
+          <div data-role='collapsible' class='gain_options'>
+            <h4>Gain options</h4>
+            <fieldset data-role='controlgroup' data-type='horizontal'>
+              <select class='setAllGains' data-native-menu='false'>
+                  <option>Select gains:</option>
+              </select>
+              <input type="button" value="Propagate to channels" class="propagateToChannelsBtn">
+              <input type="button" value="Send to card" class="sendGainsToCard">
+            </fieldset>
+            <div class="ui-grid-c allChannelsGain">
+                <div class="ui-block-a"></div>
+                <div class="ui-block-b"></div>
+                <div class="ui-block-c"></div>
+                <div class="ui-block-d"></div>
+            </div>
+
           </div>
         </div>
     </div>
@@ -124,15 +144,12 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       $(".show_plot", $(thediv)).data({plot : g});
       var shouldStop = false;
       var x = null;
-      var read_size;
 
-      var sys_freq;
-      var sys_divide;
-      var current_clk_div;
-      var current_frequency_khz;
+      var settings;
 
       function showNewData(obj) {
           if (obj.header.error) return;
+          var read_size = settings.readout_size;
           if (!read_size) return;
           var thedat = obj.data;
           var offset = obj.offset;
@@ -157,7 +174,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               setTimeout(sendAndReceive, 1000);
           } else {
               $('.NoData', $(thediv)).toggle(false);
-              var time_step_ms = 1.0/(current_frequency_khz);
+              var time_step_ms = 1.0/(settings.current_frequency_khz);
               var arr = [_.range(0, time_step_ms*(length_per_ch / read_size), time_step_ms)];
               arr[0].length = length_per_ch / read_size;
               for (i = 0; i < numChannels; i++) {
@@ -192,6 +209,30 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       }
 
+      function getTotalSelectedChannels()
+      {
+        return $('.selectSaveModules').filter(':input')
+                                      .find(':selected')
+                                      .map(function() { return $(this).data('chan_range'); }).length;
+      }
+
+      function updateTimeRange() {
+        var total_chans = getTotalSelectedChannels();
+        var tw = $('.timeWindow', $(thediv));
+        if (total_chans < 1) {
+          tw.slider('disable');
+        } else {
+		  tw.slider('enable');
+          var data_per_ms = total_chans*settings.current_frequency_khz;
+          var max_time_ms = settings.max_buffer/data_per_ms;
+          var time_step_ms = max_time_ms/100.0;
+          var new_setting = (parseFloat(tw.val())/parseFloat(tw.attr('max')))*max_time_ms;
+          tw.attr( { min : 0, max : max_time_ms, step : time_step_ms } );
+          tw.val(new_setting);
+        }
+        tw.slider('refresh');
+      }
+
       // The following initializes the selection of IP address.
       function initializeWebPage(obj) {
           var urls = obj.header.result.urls;
@@ -209,6 +250,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           $('.digitizerControl', $(thediv)).addClass('ui-disabled');
           enableIPSelection();
       }
+
       function enableIPSelection() {
           $(".reqDigi", $(thediv)).button("option", "disabled", false);
           $(".relDigi", $(thediv)).button("option", "disabled", true);
@@ -227,6 +269,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               });
           }
       }
+
       function releaseDigitizerControl() {
           $('.digitizerControl', $(thediv)).addClass('ui-disabled');
           enableIPSelection();
@@ -243,6 +286,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           obj.selectmenu('disable');
           x.sendObj({ cmd : 'requestDigitizerControl', args : { ip_addr : ip } }, true);
       });
+
        $('.relDigi', $(thediv)).on("click", function (ev) {
           $(ev.currentTarget).button("option", "disabled", true);
           x.sendObj({ cmd : 'releaseDigitizerControl' }, true);
@@ -277,17 +321,17 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       function getChannels(obj) {
           var channels = obj.header.result;
-          read_size = channels.readout_size;
+          settings = channels;
           enable_all(channels.mods);
-          sys_freq = channels.sysclk;
-          sys_divide = channels.divide;
-          current_clk_div = channels.current_clk_div;
           setFrequency();
+          BuildGains();
       }
+
       $('.upload_data', $(thediv)).on("change", function (ev) {
         var upload = $(ev.currentTarget).is(':checked');
         $('.save_data').checkboxradio("option", "disabled", !upload);
       });
+
       $('.save_data', $(thediv)).on("change", function (ev) {
         var save = $(ev.currentTarget).is(':checked');
         var disable = "disable";
@@ -306,7 +350,6 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         $('.selectSaveChannels', $(thediv)).filter(':input').selectmenu("refresh", true);
       });
 
-
       $('.startButton', $(thediv)).on("click", function () {
           $('.startButton', $(thediv)).button("option", "disabled", true);
           $('.relDigi', $(thediv)).button("option", "disabled", true);
@@ -319,9 +362,18 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           shouldStop = false;
           var ssc = getSelected($('.selectSaveChannels', $(thediv)));
           var mods = getSelected($('.selectSaveModules', $(thediv)));
+          var data_per_ms = getTotalSelectedChannels()*settings.current_frequency_khz;
+          var buf_size = parseFloat($('.timeWindow', $(thediv)).val());
+          settings.readoutTime = buf_size;
+          buf_size = parseInt(buf_size * data_per_ms);
           x.sendObj({
               cmd: "startReadout",
-              args: { should_upload : upload_data, should_save : save_data, log : com, channel_list : ssc, mod_list : mods }
+              args: { should_upload : upload_data,
+                        should_save : save_data,
+                                log : com,
+                        buffer_size : buf_size,
+                       channel_list : ssc,
+                           mod_list : mods }
           });
       });
 
@@ -372,6 +424,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               }
               sel.selectmenu("refresh", true);
           });
+          updateTimeRange();
       }
 
       function enable_all(mods) {
@@ -390,12 +443,27 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       }
 
       function setFrequency() {
-          current_frequency_khz = sys_freq / sys_divide / (current_clk_div * 1000);
-          $('.frequency_set').val(current_frequency_khz);
+          settings.current_frequency_khz = settings.sysclk / settings.divide / (settings.current_clk_div * 1000);
+          $('.frequency_set').val(settings.current_frequency_khz.toPrecision(3));
+          updateTimeRange();
       }
+
+      function BuildGains() {
+        $.each($('.allChannelsGain', $(thediv)).children(), function() { $(this).empty(); });
+          // No loop over modules and channels
+        var allChans = $.makeArray(
+                         $('.selectSaveModules')
+                                      .filter(':input')
+                                      .children()
+                                      .map(function() {
+                          return { number: $(this).val(), range: $(this).data('chan_range') };
+                       }));
+        console.log(allChans);
+      }
+
       function setClkDiv(obj) {
            var msg = obj.header.result;
-           current_clk_div = msg;
+           settings.current_clk_div = msg;
            toastr.info("ClkDiv: " + msg.toString());
            setFrequency();
       }
@@ -476,7 +544,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       }
       $('.set_frequency', $(thediv)).on("click", function() {
         var clkdiv = parseFloat($('.frequency_set', $(thediv)).val());
-        clkdiv = sys_freq / sys_divide / (clkdiv*1000);
+        clkdiv = settings.sysclk / settings.divide / (clkdiv*1000);
         x.sendObj({
             cmd: "setClkDiv",
             embed: true,
@@ -488,7 +556,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.connectBtn', $(thediv)).on("click", connect);
-      $('.adv_options', $(thediv)).on("collapsibleexpand", function() {
+      $('.measurement_options', $(thediv)).on("collapsibleexpand", function() {
         edtr.resize();
       });
       $('.selectSaveModules', $(thediv)).on("change", function() {
