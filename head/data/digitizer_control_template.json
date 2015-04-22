@@ -1,0 +1,568 @@
+{
+  "_id"  : "digitizer_control_template",
+  "type" : "control_template",
+  "title" : "Digitizer Controls",
+  "host_ip" : "192.168.1.113:9000",
+  "description" : """
+Digitizer control:
+<br><br>
+
+Connect button: Try to connect to the digitizer server if connection is lost
+<br><br>
+
+Select IP: Select digitizer device
+<br><br>
+
+Request/release digitizer: Request a digitizer or release one that is currently 'owned'.  Only one digitizer at a time may be owned by a browser.
+<br><br>
+
+Stop/start: Start or stop the readout of the digitizer.
+<br><br>
+
+Select channels: select which channels are viewed on the oscilloscope.  *This doesn't affect the saved channels!*
+<br><br>
+
+Measurement options:
+<br><br>
+
+Log allows the logging of a measurement
+<br><br>
+
+Upload to DB: when checked, will upload the measurement metadata following clicking "Stop"
+<br><br>
+
+Save raw data: when checked, will save the raw data of a measurement *and* upload to the database.  A link will appear after clicking "Stop"
+<br><br>
+
+Measurements are available on the <a href="/page/control/nedm/measurements">measurements</a> page.
+<br><br>
+
+Select Modules: The modules to read out must be selected in this pull-down
+menu.  If you wish to save channels, these can be selected in the pull-down
+menu to the right of this.
+<br><br>
+
+Example scripts on how to readout: <a href="https://gist.github.com/6033a49c60771e7dd16f">python</a>, <a href="https://gist.github.com/de7b3621ed14ee559662">C/C++<a/>.
+""",
+  "html" : """
+<div data-role="controlgroup" data-type="horizontal">
+    <input type="button" value="Connect" class="connectBtn">
+</div>
+<div class="fullDigitizerPage" class="ui-disabled">
+    <div data-role="controlgroup" data-type="horizontal">
+        <select class='selectIPAddress' data-native-menu='false' class="ui-disabled">
+            <option>Select IP:</option>
+        </select>
+        <input type="button" value="Request digitizer" class="reqDigi" disabled>
+        <input type="button" value="Release digitizer" class="relDigi" disabled>
+    </div>
+    <div class="digitizerControl ui-disabled">
+        <div class="show_plot"></div>
+        <div data-role="controlgroup" data-type="horizontal">
+            <input type="button" value="Stop" class="stopButton" disabled>
+            <input type="button" value="Start" class="startButton">
+            <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
+                <option>Select channels:</option>
+            </select>
+            <span class="NoData" style="color:red;display:none;">No Data</span>
+        </div>
+        <div class='adv_options'>
+          <div data-role='collapsible' class='measurement_options'>
+            <h4>Measurement (save) options</h4>
+            <div data-role='fieldcontain'>
+              <div align='left'>
+                  <div class="comment code_editor"></div>
+              </div>
+              <fieldset data-role='controlgroup' data-type='horizontal'>
+                <label><input type='checkbox' class='upload_data'/>Upload to DB</label>
+                <label><input type='checkbox' class='save_data' disabled/>Save raw data</label>
+              </fieldset>
+              <fieldset data-role='controlgroup' data-type='horizontal'>
+                <select class='selectSaveModules' multiple='multiple' data-native-menu='false'>
+                    <option>Select modules:</option>
+                </select>
+                <select class='selectSaveChannels saveClass' multiple='multiple' data-native-menu='false' disabled>
+                    <option>Select channels:</option>
+                </select>
+                <input type="button" value="All" class="allChannels saveClass" disabled>
+                <input type="button" value="None" class="noChannels saveClass" disabled>
+              </fieldset>
+
+            </div>
+            <div data-role='fieldcontain'>
+                <div data-role='controlgroup' data-type='horizontal'>
+                    <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class="frequency_set">
+                    <button class='set_frequency'>Set Freq (kHz)</button>
+                </div>
+            </div>
+            <label><input type="range" value="50" min="0" max="100" class="timeWindow"/>Time window (ms)</label>
+          </div>
+          <div data-role='collapsible' class='gain_options'>
+            <h4>Gain options</h4>
+            <fieldset data-role='controlgroup' data-type='horizontal'>
+              <select class='setAllGains' data-native-menu='false'>
+                  <option>Select gains:</option>
+              </select>
+              <input type="button" value="Propagate to channels" class="propagateToChannelsBtn">
+              <input type="button" value="Send to card" class="sendGainsToCard">
+            </fieldset>
+            <div class="ui-grid-c allChannelsGain">
+                <div class="ui-block-a"></div>
+                <div class="ui-block-b"></div>
+                <div class="ui-block-c"></div>
+                <div class="ui-block-d"></div>
+            </div>
+
+          </div>
+        </div>
+    </div>
+    <div>
+        Last uploaded file: <span class="uploaded_file"></span>
+    </div>
+</div>
+""",
+"script" : """
+    function(thediv, docobj) {
+      // Add logging...
+      var cmt = $('.comment', $(thediv));
+      var edtr = ace.edit(cmt[0]);
+      edtr.setTheme('ace/theme/xcode');
+      cmt.data({editor : edtr});
+
+      // Do the reset
+      var toastr = require("toastr");
+      var _ = require("underscore");
+      var data = [];
+      var labels = ["time", "ch0"];
+      var g = new nedm.Dygraph($(".show_plot", $(thediv))[0], data, {
+          drawPoints: false,
+          showRoller: false,
+          xlabel : "time (ms)",
+          ylabel : "ADC units",
+          connectSeparatedPoints: true,
+          labels: ["time (ms)"]
+      });
+      $(".show_plot", $(thediv)).data({plot : g});
+      var shouldStop = false;
+      var x = null;
+
+      var settings;
+
+      function showNewData(obj) {
+          if (obj.header.error) return;
+          var read_size = settings.readout_size;
+          if (!read_size) return;
+          var thedat = obj.data;
+          var offset = obj.offset;
+          var header = new DataView(thedat);
+          var numChannels = header.getInt32(offset, true);
+          if (numChannels === 0) {
+              setTimeout(sendAndReceive, 1000);
+              return;
+          }
+          var chs = [];
+          var headerSize = 4 + 4 * numChannels + offset;
+          labels = ["time (ms)"];
+          var arr_type = Int16Array;
+          if (read_size == 4) arr_type = Int32Array;
+          for (var i = 0; i < numChannels; i++) {
+              chs[chs.length] = header.getInt32(offset + 4 * i + 4, true);
+              labels[i + 1] = "ch" + chs[chs.length - 1].toString();
+          }
+          var length_per_ch = (thedat.byteLength - headerSize) / numChannels;
+          if (length_per_ch === 0) {
+              $('.NoData', $(thediv)).toggle(true);
+              setTimeout(sendAndReceive, 1000);
+          } else {
+              $('.NoData', $(thediv)).toggle(false);
+              var time_step_ms = 1.0/(settings.current_frequency_khz);
+              var arr = [_.range(0, time_step_ms*(length_per_ch / read_size), time_step_ms)];
+              arr[0].length = length_per_ch / read_size;
+              for (i = 0; i < numChannels; i++) {
+                  arr[arr.length] = new arr_type(thedat, headerSize + i * length_per_ch, length_per_ch / read_size);
+              }
+              appendData(_.zip.apply(this, arr));
+              sendAndReceive();
+          }
+      }
+
+      function getSelected($anobj) {
+          return $.makeArray($anobj
+              .find(':selected')
+              .map(function () {
+              return parseInt($(this).val(), 10);
+          }));
+      }
+
+      function sendAndReceive() {
+          if (shouldStop) return;
+          var ssc = getSelected($('.selectSlowControl', $(thediv)));
+          if (ssc.length === 0) {
+              setTimeout(sendAndReceive, 1000);
+          } else {
+              x.sendObj({
+                  cmd: "readBuffer",
+                  args: {
+                      channels: ssc
+                  }
+              });
+          }
+
+      }
+
+      function getTotalSelectedChannels()
+      {
+        return $('.selectSaveModules').filter(':input')
+                                      .find(':selected')
+                                      .map(function() { return $(this).data('chan_range'); }).length;
+      }
+
+      function updateTimeRange() {
+        var total_chans = getTotalSelectedChannels();
+        var tw = $('.timeWindow', $(thediv));
+        if (total_chans < 1) {
+          tw.slider('disable');
+        } else {
+		  tw.slider('enable');
+          var data_per_ms = total_chans*settings.current_frequency_khz;
+          var max_time_ms = settings.max_buffer/data_per_ms;
+          var time_step_ms = max_time_ms/100.0;
+          var new_setting = (parseFloat(tw.val())/parseFloat(tw.attr('max')))*max_time_ms;
+          tw.attr( { min : 0, max : max_time_ms, step : time_step_ms } );
+          tw.val(new_setting);
+        }
+        tw.slider('refresh');
+      }
+
+      // The following initializes the selection of IP address.
+      function initializeWebPage(obj) {
+          var urls = obj.header.result.urls;
+          var sel = $(".selectIPAddress", $(thediv)).filter(":input");
+          sel.empty();
+          sel.append($('<option/>').append("Select IP:"));
+          for (var i = 0; i < urls.length; i++) {
+              sel.append($('<option/>').attr({
+                  value: urls[i]
+              }).append(urls[i]));
+          }
+          sel.selectmenu("refresh");
+          sel.removeClass("ui-disabled");
+          $('.fullDigitizerPage', $(thediv)).removeClass('ui-disabled');
+          $('.digitizerControl', $(thediv)).addClass('ui-disabled');
+          enableIPSelection();
+      }
+
+      function enableIPSelection() {
+          $(".reqDigi", $(thediv)).button("option", "disabled", false);
+          $(".relDigi", $(thediv)).button("option", "disabled", true);
+          $('.selectIPAddress', $(thediv)).filter(':input').selectmenu("enable");
+      }
+
+      function requestDigitizerControl(obj) {
+          if ("error" in obj.header) {
+              // re-enable interface
+              enableIPSelection();
+          } else {
+              $(".relDigi", $(thediv)).button("option", "disabled", false);
+              x.sendObj({
+                  cmd: "getChannels",
+                  embed: true
+              });
+          }
+      }
+
+      function releaseDigitizerControl() {
+          $('.digitizerControl', $(thediv)).addClass('ui-disabled');
+          enableIPSelection();
+      }
+
+      $('.selectIPAddress', $(thediv)).on("change", function (ev) {
+          $('.reqDigi', $(thediv)).button("option", "disabled", false);
+      });
+
+      $('.reqDigi', $(thediv)).on("click", function (ev) {
+          $(ev.currentTarget).button("option", "disabled", true);
+          var obj = $('.selectIPAddress', $(thediv)).filter(":input");
+          var ip = obj.find(':selected').val();
+          obj.selectmenu('disable');
+          x.sendObj({ cmd : 'requestDigitizerControl', args : { ip_addr : ip } }, true);
+      });
+
+       $('.relDigi', $(thediv)).on("click", function (ev) {
+          $(ev.currentTarget).button("option", "disabled", true);
+          x.sendObj({ cmd : 'releaseDigitizerControl' }, true);
+      });
+
+      function appendData(dat) {
+          data = dat;
+          g.updateOptions({
+              'file': data,
+              labels: labels
+          });
+      }
+
+      function startReadout(obj) {
+          if ("error" in obj.header) {
+            stopReadout(obj);
+          } else {
+            toastr.info("Starting readout...");
+            sendAndReceive(obj);
+            $('.stopButton', $(thediv)).button("option", "disabled", false);
+            $('.adv_options', $(thediv)).addClass("ui-disabled");
+          }
+      }
+
+      function stopReadout(obj) {
+          toastr.info("Stopping readout...");
+          $('.startButton', $(thediv)).button("option", "disabled", false);
+          $('.stopButton', $(thediv)).button("option", "disabled", true);
+          $('.adv_options', $(thediv)).removeClass("ui-disabled");
+          $('.relDigi', $(thediv)).button("option", "disabled", false);
+      }
+
+      function getChannels(obj) {
+          var channels = obj.header.result;
+          settings = channels;
+          enable_all(channels.mods);
+          setFrequency();
+          BuildGains();
+      }
+
+      $('.upload_data', $(thediv)).on("change", function (ev) {
+        var upload = $(ev.currentTarget).is(':checked');
+        $('.save_data').checkboxradio("option", "disabled", !upload);
+      });
+
+      $('.save_data', $(thediv)).on("change", function (ev) {
+        var save = $(ev.currentTarget).is(':checked');
+        var disable = "disable";
+        if (save) disable = "enable";
+        $('.saveClass', $(thediv)).filter(':not(:button)').filter(':input').selectmenu(disable);
+        $('.saveClass', $(thediv)).filter(':button').button("option", "disabled", !save);
+      });
+
+      $('.allChannels', $(thediv)).on('click', function() {
+        $('.selectSaveChannels', $(thediv)).filter(':input').children().attr("selected", true);
+        $('.selectSaveChannels', $(thediv)).filter(':input').selectmenu("refresh", true);
+      });
+
+      $('.noChannels', $(thediv)).on('click', function() {
+        $('.selectSaveChannels', $(thediv)).filter(':input').children().removeAttr("selected");
+        $('.selectSaveChannels', $(thediv)).filter(':input').selectmenu("refresh", true);
+      });
+
+      $('.startButton', $(thediv)).on("click", function () {
+          $('.startButton', $(thediv)).button("option", "disabled", true);
+          $('.relDigi', $(thediv)).button("option", "disabled", true);
+          var upload_data = $('.upload_data', $(thediv)).is(':checked');
+          var save_data = $('.save_data', $(thediv)).is(':checked');
+          if (!upload_data) {
+            save_data = false;
+          }
+          var com = cmt.data('editor').getSession().getValue();
+          shouldStop = false;
+          var ssc = getSelected($('.selectSaveChannels', $(thediv)));
+          var mods = getSelected($('.selectSaveModules', $(thediv)));
+          var data_per_ms = getTotalSelectedChannels()*settings.current_frequency_khz;
+          var buf_size = parseFloat($('.timeWindow', $(thediv)).val());
+          settings.readoutTime = buf_size;
+          buf_size = parseInt(buf_size * data_per_ms);
+          x.sendObj({
+              cmd: "startReadout",
+              args: { should_upload : upload_data,
+                        should_save : save_data,
+                                log : com,
+                        buffer_size : buf_size,
+                       channel_list : ssc,
+                           mod_list : mods }
+          });
+      });
+
+      $('.stopButton', $(thediv)).on("click", function () {
+          x.sendObj({
+              cmd: "stopReadout"
+          });
+          shouldStop = true;
+          $('.stopButton', $(thediv)).button("option", "disabled", true);
+      });
+
+      function announce(obj) {
+          var msg = obj.header.msg;
+          if (typeof msg === 'object') {
+              if (msg.type) {
+                  if (msg.type == "FileUpload") {
+                      $('.uploaded_file', $(thediv)).empty().append($('<a/>').attr({"href": msg.url, "data-ajax" : false}).append(msg.file_name));
+                      toastr.info("File: " + msg.file_name + " uploaded...");
+                  } else if(msg.type == "DocUpload") {
+                      toastr.info("Document upload: " + msg.id);
+                  } else if (msg.type=="JobFinished") {
+                      stopReadout();
+                  }
+                  if (msg.error) {
+                      toastr.error("<pre class='result'>" + msg.error + "</pre>", msg.type);
+                  }
+
+              }
+          } else {
+              toastr.info(msg);
+          }
+      }
+
+      function checkModuleSelectEnable() {
+          var sel_mods = $('.selectSaveModules', $(thediv)).filter(":input");
+          var enabled_channels = [].concat($('.selectSaveModules option:selected').map(
+             function() {
+                 return $(this).data('chan_range');
+             }).get());
+          ['.selectSlowControl', '.selectSaveChannels'].forEach(function(o) {
+              var sel = $(o, $(thediv)).filter(":input");
+              sel.empty();
+              for (var i = 0; i < enabled_channels.length; i++) {
+                  var ch = enabled_channels[i];
+                  sel.append($('<option/>').attr({
+                      value: ch
+                  }).append("Ch " + ch.toString()));
+              }
+              sel.selectmenu("refresh", true);
+          });
+          updateTimeRange();
+      }
+
+      function enable_all(mods) {
+          var num_channels = 0;
+          var sel_mods = $('.selectSaveModules', $(thediv)).filter(":input");
+          sel_mods.empty();
+          for(var j in mods) {
+            sel_mods.append($('<option/>').attr({value: j})
+                                          .append("Mod " + j.toString())
+                                          .data({ chan_range: _.range(num_channels, num_channels + mods[j]) }));
+            num_channels += mods[j];
+          }
+          sel_mods.selectmenu('refresh', true);
+          $(".digitizerControl", $(thediv)).removeClass("ui-disabled");
+          checkModuleSelectEnable();
+      }
+
+      function setFrequency() {
+          settings.current_frequency_khz = settings.sysclk / settings.divide / (settings.current_clk_div * 1000);
+          $('.frequency_set').val(settings.current_frequency_khz.toPrecision(3));
+          updateTimeRange();
+      }
+
+      function BuildGains() {
+        $.each($('.allChannelsGain', $(thediv)).children(), function() { $(this).empty(); });
+          // No loop over modules and channels
+        var allChans = $.makeArray(
+                         $('.selectSaveModules')
+                                      .filter(':input')
+                                      .children()
+                                      .map(function() {
+                          return { number: $(this).val(), range: $(this).data('chan_range') };
+                       }));
+        console.log(allChans);
+      }
+
+      function setClkDiv(obj) {
+           var msg = obj.header.result;
+           settings.current_clk_div = msg;
+           toastr.info("ClkDiv: " + msg.toString());
+           setFrequency();
+      }
+
+      var responseObj = {
+          readBuffer: showNewData,
+          startReadout: startReadout,
+          stopReadout: stopReadout,
+          getChannels: getChannels,
+          requestDigitizerControl: requestDigitizerControl,
+          releaseDigitizerControl: releaseDigitizerControl,
+          announce: announce,
+          setClkDiv: setClkDiv,
+          initializeWebPage: initializeWebPage
+      };
+
+      function connect(beS) {
+          var beSilent = beS;
+          $('.connectBtn', $(thediv)).attr("disabled", "disabled");
+          x = new WebSocket("ws://" + docobj.host_ip);
+          x.binaryType = "arraybuffer";
+          x.onmessage = function (mess) {
+              // Read/parse the header
+              var dv = new DataView(mess.data);
+              var header_length = dv.getInt32(0, true);
+
+              var msg = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(mess.data, 4, header_length)));
+              if (!("ok" in msg)) {
+                  toastr.error("<pre class='result'>" + msg.error + "</pre>");
+              }
+
+              // Now call the correct callback function
+              var cmd = msg.cmd;
+              if (cmd in responseObj) {
+                  responseObj[cmd]({
+                      header: msg,
+                      data: mess.data,
+                      offset: header_length + 4
+                  });
+              }
+          };
+
+          function resetInterface() {
+              releaseDigitizerControl();
+              $('.connectBtn', $(thediv)).button("option", "disabled", false);
+              $('.fullDigitizerPage', $(thediv)).addClass('ui-disabled');
+              var sel = $(".selectIPAddress", $(thediv)).filter(":input");
+              sel.empty();
+              sel.selectmenu("refresh");
+          }
+
+          x.onclose = function () {
+              if (!beSilent) toastr.info("Socket now closed");
+              resetInterface();
+              setTimeout(function() { connect(true); }, 2000);
+          };
+
+          x.onerror = function () {
+              if (!beSilent) toastr.error("Socket error");
+              resetInterface();
+          };
+          x.sendObj = function (obj, no_digi) {
+              if (!no_digi) {
+                  obj.ip = true;
+              }
+              this.send(JSON.stringify(obj));
+          };
+
+          x.onopen = function () {
+              $('.connectBtn', $(thediv)).button("option", "disabled", true);
+              beSilent = false;
+              toastr.info("Socket connected...");
+              x.send(JSON.stringify({
+                  cmd: "initializeWebPage",
+                  embed: true
+              }));
+          };
+      }
+      $('.set_frequency', $(thediv)).on("click", function() {
+        var clkdiv = parseFloat($('.frequency_set', $(thediv)).val());
+        clkdiv = settings.sysclk / settings.divide / (clkdiv*1000);
+        x.sendObj({
+            cmd: "setClkDiv",
+            embed: true,
+            args: {
+                clkdiv: clkdiv
+            }
+        });
+
+      });
+
+      $('.connectBtn', $(thediv)).on("click", connect);
+      $('.measurement_options', $(thediv)).on("collapsibleexpand", function() {
+        edtr.resize();
+      });
+      $('.selectSaveModules', $(thediv)).on("change", function() {
+        checkModuleSelectEnable();
+      });
+      connect();
+}"""
+}
