@@ -101,19 +101,9 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           <div data-role='collapsible' class='gain_options'>
             <h4>Gain options</h4>
             <fieldset data-role='controlgroup' data-type='horizontal'>
-              <select class='setAllGains' data-native-menu='false'>
-                  <option>Select gains:</option>
-              </select>
-              <input type="button" value="Propagate to channels" class="propagateToChannelsBtn">
               <input type="button" value="Send to card" class="sendGainsToCard">
             </fieldset>
-            <div class="ui-grid-c allChannelsGain">
-                <div class="ui-block-a"></div>
-                <div class="ui-block-b"></div>
-                <div class="ui-block-c"></div>
-                <div class="ui-block-d"></div>
-            </div>
-
+            <div class="ui-grid-c allChannelsGain"><div class="ui-block-a"/><div class="ui-block-b"/><div class="ui-block-c"/><div class="ui-block-d"/></div>
           </div>
         </div>
     </div>
@@ -398,6 +388,14 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           $('.stopButton', $(thediv)).button("option", "disabled", true);
       });
 
+      function performCmd(obj) {
+        if ("ok" in obj.header) {
+           toastr.info("Command succeeded");
+        } else {
+           toastr.error("Command failed");
+        }
+      }
+
       function announce(obj) {
           var msg = obj.header.msg;
           if (typeof msg === 'object') {
@@ -471,7 +469,27 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                                       .map(function() {
                           return { number: $(this).val(), range: $(this).data('chan_range') };
                        }));
-        console.log(allChans);
+        var select_div = $('<div/>').append($('<span/>').addClass('channel_name'));
+        var select_templ = $('<select/>').addClass('gainChanSettings');
+        for (var k in settings.gain_settings) {
+            select_templ.append($('<option/>').attr({value: k})
+                                              .append(settings.gain_settings[k]));
+        }
+        select_div.append(select_templ);
+        var grid_list = [ "a", "b", "c", "d"];
+        var global_idx = 0;
+        for(var i=0;i<allChans.length;i++) {
+            var nl = allChans[i];
+            for(var j=0;j<nl.range.length;j++) {
+                var no = select_div.clone();
+                $('.gainChanSettings', no).data("obj", { module : nl.number, channel : j })
+                                          .val(settings.current_gains[nl.number][j]);
+                $('.channel_name', no).text("Mod: " + nl.number + ", chan: " + j);
+                $('.allChannelsGain .ui-block-' + grid_list[ global_idx % grid_list.length ], $(thediv)).append(no);
+                global_idx += 1;
+            }
+        }
+        $('.allChannelsGain', $(thediv)).trigger('create');
       }
 
       function setClkDiv(obj) {
@@ -489,6 +507,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           requestDigitizerControl: requestDigitizerControl,
           releaseDigitizerControl: releaseDigitizerControl,
           announce: announce,
+          performCmd: performCmd,
           setClkDiv: setClkDiv,
           initializeWebPage: initializeWebPage
       };
@@ -569,6 +588,27 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.connectBtn', $(thediv)).on("click", connect);
+      $('.sendGainsToCard', $(thediv)).on("click", function() {
+          var all_vals =
+          $.makeArray(
+            $('.allChannelsGain select :selected').map(function() {
+              var o = $(this).parent().data('obj');
+              o.val = $(this).val();
+              return o;
+          }));
+          var cmds = all_vals.map(function(o) {
+            var chan = o.channel + 1;
+            return "set.site " + o.module + " gain" + chan + " " + o.val;
+          });
+          x.sendObj({
+              cmd: "performCmd",
+              embed: true,
+              args: {
+                  cmd: cmds
+              }
+          });
+
+      });
       $('.measurement_options', $(thediv)).on("collapsibleexpand", function() {
         edtr.resize();
       });
