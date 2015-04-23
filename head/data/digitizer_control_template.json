@@ -65,7 +65,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
                 <option>Select channels:</option>
             </select>
-            <span class="NoData" style="color:red;display:none;">No Data</span>
+            <progress class="progressBar" value="0" max="100"/>
         </div>
         <div class='adv_options'>
           <div data-role='collapsible' class='measurement_options'>
@@ -145,6 +145,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var x = null;
 
       var settings;
+      var has_waited = false;
 
       function showNewData(obj) {
           if (obj.header.error) return;
@@ -155,7 +156,9 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           var header = new DataView(thedat);
           var numChannels = header.getInt32(offset, true);
           if (numChannels === 0) {
+              // Means we are not requesting any channels
               setTimeout(sendAndReceive, 1000);
+              resetProgressBar(true);
               return;
           }
           var chs = [];
@@ -169,10 +172,16 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           }
           var length_per_ch = (thedat.byteLength - headerSize) / numChannels;
           if (length_per_ch === 0) {
-              $('.NoData', $(thediv)).toggle(true);
-              setTimeout(sendAndReceive, 1000);
+              // Means we have not gotten any data
+              if (!has_waited) {
+                  resetProgressBar();
+                  setTimeout(sendAndReceive, settings.readoutTime);
+                  has_waited = true;
+              } else {
+                  sendAndReceive();
+              }
           } else {
-              $('.NoData', $(thediv)).toggle(false);
+              has_waited = false;
               var time_step_ms = 1.0/(settings.current_frequency_khz);
               var arr = [_.range(0, time_step_ms*(length_per_ch / read_size), time_step_ms)];
               arr[0].length = length_per_ch / read_size;
@@ -182,6 +191,24 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               appendData(_.zip.apply(this, arr));
               sendAndReceive();
           }
+      }
+
+      function resetProgressBar(stop) {
+          settings.progress = 0;
+          if (settings.progressTimer) {
+             clearInterval(settings.progressTimer);
+          }
+          $('.progressBar', $(thediv)).val(settings.progress);
+          if (settings.ReadoutTime < 2000 || stop) return;
+          settings.progressTimer =
+           setInterval(function() {
+            settings.progress += 2;
+            $('.progressBar', $(thediv)).val(settings.progress);
+            if (settings.progress >= 100) {
+              clearInterval(settings.progressTimer);
+              settings.progressTimer = null;
+            }
+          }, settings.readoutTime/50.0);
       }
 
       function getSelected($anobj) {
@@ -224,9 +251,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 		  tw.slider('enable');
           var data_per_ms = total_chans*settings.current_frequency_khz;
           var max_time_ms = settings.max_buffer/data_per_ms;
-          var time_step_ms = max_time_ms/100.0;
+          var min_time_ms = settings.min_buffer/data_per_ms;
+          var time_step_ms = (max_time_ms - min_time_ms)/100.0;
           var new_setting = (parseFloat(tw.val())/parseFloat(tw.attr('max')))*max_time_ms;
-          tw.attr( { min : 0, max : max_time_ms, step : time_step_ms } );
+          tw.attr( { min : min_time_ms, max : max_time_ms, step : time_step_ms } );
           tw.val(new_setting);
         }
         tw.slider('refresh');
@@ -305,6 +333,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             stopReadout(obj);
           } else {
             toastr.info("Starting readout...");
+            resetProgressBar(true);
             sendAndReceive(obj);
             $('.stopButton', $(thediv)).button("option", "disabled", false);
             $('.adv_options', $(thediv)).addClass("ui-disabled");
@@ -313,6 +342,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       function stopReadout(obj) {
           toastr.info("Stopping readout...");
+          resetProgressBar(true);
           $('.startButton', $(thediv)).button("option", "disabled", false);
           $('.stopButton', $(thediv)).button("option", "disabled", true);
           $('.adv_options', $(thediv)).removeClass("ui-disabled");
@@ -367,7 +397,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           var mods = getSelected($('.selectSaveModules', $(thediv)));
           var data_per_ms = getTotalSelectedChannels()*settings.current_frequency_khz;
           var buf_size = parseFloat($('.timeWindow', $(thediv)).val());
-          settings.readoutTime = buf_size;
+          settings.readoutTime = buf_size; // Save readoutTime
           buf_size = parseInt(buf_size * data_per_ms);
           x.sendObj({
               cmd: "startReadout",
