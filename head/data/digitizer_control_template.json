@@ -4,6 +4,7 @@
   "title" : "Digitizer Controls",
   "host_ip" : "192.168.1.113:9000",
   "include_only_digitizers" : [],
+  "default_header_info" : {},
   "description" : """
 Digitizer control:
 <br><br>
@@ -71,8 +72,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           <div data-role='collapsible' class='measurement_options'>
             <h4>Measurement (save) options</h4>
             <div data-role='fieldcontain'>
-              <div align='left'>
-                  <div class="comment code_editor"></div>
+              <div align="left" class="ui-body ui-body-a ui-corner-all">
+                <h3>Measurement comment:</h3>
+                <div class="comment code_editor"></div>
+              </div>
+              <div align="left" class="ui-body ui-body-a ui-corner-all">
+                <h3>Additional header info:</h3>
+                <div class="header code_editor"></div>
               </div>
               <fieldset data-role='controlgroup' data-type='horizontal'>
                 <label><input type='checkbox' class='upload_data'/>Upload to DB</label>
@@ -119,6 +125,12 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var edtr = ace.edit(cmt[0]);
       edtr.setTheme('ace/theme/xcode');
       cmt.data({editor : edtr});
+
+      var hdr = $('.header', $(thediv));
+      var jsoneditor = require('jsoneditor');
+      var hdr_editor = new jsoneditor(hdr[0], { mode : "code" });
+      hdr_editor.set(docobj.default_header_info);
+      hdr.data({ editor : hdr_editor});
 
       var setDefaults;
       if (docobj.defaults) {
@@ -408,6 +420,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               args: { should_upload : upload_data,
                         should_save : save_data,
                                 log : com,
+                           logitems : hdr_editor.get(),
                         buffer_size : buf_size,
                        channel_list : ssc,
                            mod_list : mods }
@@ -645,6 +658,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
       $('.measurement_options', $(thediv)).on("collapsibleexpand", function() {
         edtr.resize();
+        hdr_editor.resize();
       });
       $('.selectSaveModules', $(thediv)).on("change", function() {
         checkModuleSelectEnable();
