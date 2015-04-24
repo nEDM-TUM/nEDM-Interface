@@ -3,6 +3,7 @@
 @import url("jquery-mobile.css");
 @import url("jquery-mobile-datebox.css");
 @import url("jw-jqm-cal.css");
+@import url("jsoneditor.css");
 
 input, button {
     -webkit-appearance: none;
