@@ -199,7 +199,11 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
              clearInterval(settings.progressTimer);
           }
           $('.progressBar', $(thediv)).val(settings.progress);
-          if (settings.ReadoutTime < 2000 || stop) return;
+          if (settings.ReadoutTime < 2000 || stop) {
+            $('.progressBar', $(thediv)).hide();
+            return;
+          }
+          $('.progressBar', $(thediv)).show();
           settings.progressTimer =
            setInterval(function() {
             settings.progress += 2;
