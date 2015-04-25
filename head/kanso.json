@@ -15,7 +15,6 @@
     "properties" : null,
     "users" : null,
     "session" : null,
-    "handlebars" : null,
     "db" : null,
     "events" : null,
     "jquery" : "1.10.1-kanso", 
