@@ -26,6 +26,7 @@
     "jqm-calendar" : null,
     "dygraph-combined" : null,
     "jsoneditor" : null,
+    "dsp" : null,
     "underscore" : null 
   } 
 }
