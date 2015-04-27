@@ -68,6 +68,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             </select>
             <progress class="progressBar" value="0" max="100"/>
         </div>
+        <div data-role='collapsible' class='fft_window'>
+            <h4>FFT</h4>
+            <div class="show_fft"></div>
+        </div>
         <div class='adv_options'>
           <div data-role='collapsible' class='measurement_options'>
             <h4>Measurement (save) options</h4>
@@ -143,6 +147,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var toastr = require("toastr");
       var _ = require("underscore");
       var data = [];
+      var fft_data = [];
       var labels = ["time", "ch0"];
       var g = new nedm.Dygraph($(".show_plot", $(thediv))[0], data, {
           drawPoints: false,
@@ -152,12 +157,46 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           connectSeparatedPoints: true,
           labels: ["time (ms)"]
       });
+      var fftg = new nedm.Dygraph($(".show_fft", $(thediv))[0], [], {
+          drawPoints: false,
+          showRoller: false,
+          xlabel : "frequency (kHz)",
+          ylabel : "ADC units",
+          labels: ["frequency (kHz)"]
+      });
+      var should_show_fft = false;
+
       $(".show_plot", $(thediv)).data({plot : g});
       var shouldStop = false;
       var x = null;
 
       var settings;
       var has_waited = false;
+      var the_fft;
+
+      function showFFT(the_data) {
+        if (!should_show_fft) return;
+        // All should be already a factor of 2.
+        var len = the_data[0].length;
+        if (!the_fft) {
+          var dsp = require("dsp");
+          the_fft = new dsp.FFT(len, settings.current_frequency_khz*1000);
+        }
+        // The following can happen on the last buffer call...
+        if (the_fft.bufferSize !== len) return;
+        var nyquist_freq = settings.current_frequency_khz/2.0;
+        var freq_step = nyquist_freq/(len/2);
+        var len_of_fft = len/2 + 1;
+        var arr = [_.range(0, freq_step*(len_of_fft), freq_step)];
+        arr[0].length = len_of_fft;
+
+        for (i = 1; i < the_data.length; i++) {
+            the_fft.forward(the_data[i]);
+            arr[arr.length] = new Float32Array(the_fft.spectrum);
+        }
+        appendFFTData(_.zip.apply(this, arr));
+
+      }
 
       function showNewData(obj) {
           if (obj.header.error) return;
@@ -200,6 +239,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               for (i = 0; i < numChannels; i++) {
                   arr[arr.length] = new arr_type(thedat, headerSize + i * length_per_ch, length_per_ch / read_size);
               }
+              showFFT(arr);
               appendData(_.zip.apply(this, arr));
               sendAndReceive();
           }
@@ -343,6 +383,15 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               labels: labels
           });
       }
+
+      function appendFFTData(dat) {
+          fft_data = dat;
+          fftg.updateOptions({
+              'file': fft_data,
+              labels: labels
+          });
+      }
+
 
       function startReadout(obj) {
           if ("error" in obj.header) {
@@ -660,6 +709,15 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         edtr.resize();
         hdr_editor.resize();
       });
+
+      $('.fft_window', $(thediv)).on("collapsibleexpand", function() {
+        should_show_fft = true;
+      });
+
+      $('.fft_window', $(thediv)).on("collapsiblecollapse", function() {
+        should_show_fft = false;
+      });
+
       $('.selectSaveModules', $(thediv)).on("change", function() {
         checkModuleSelectEnable();
       });
