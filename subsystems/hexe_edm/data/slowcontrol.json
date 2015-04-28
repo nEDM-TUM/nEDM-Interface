@@ -1,5 +1,5 @@
 {
-    "_id" : "slow_control",
+    "_id" : "slowcontrol",
     "type" : "control",
     "title" : "Slow Control",
     "description" : "Controls of oven, laser, polarizer & guide coils",

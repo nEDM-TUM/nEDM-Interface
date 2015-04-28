@@ -3,6 +3,7 @@
   "prettyname" : "He-Xe EDM",
   "pages" : {
         "Control" : "control.html",
+        "Slow Control" : "slowcontrol.html",
         "Monitor" : "monitor.html"
   }
 
