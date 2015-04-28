@@ -1,0 +1,60 @@
+{
+    "_id" : "overview",
+    "type" : "control",
+    "title" : "Current status",
+    "description" : "Monitors several values",
+   "body" : """
+            <h1 >Overview</h1>
+            <div>
+              <div class='ui-grid-c'>
+                <div class='ui-block-a'>
+                  <h4>Refresh every (s):</h4>
+                </div>
+                <div class='ui-block-b'>
+                  <input type='range' min='1' max='20' step='1' class='refresh_time' value='10'>
+                </div>
+                <div class='ui-block-c'>
+                  <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p>
+                </div>
+              </div>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <p>Oven temp (C)</p>
+                <input type='text' class='output_text' id='oven_temp' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <p>Laser current (A)</p>
+                <input type='text' class='output_text' id='laser_current' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <p>Gas pressure (mbar)</p>
+                <input type='text' class='output_text' id='gas_pres' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            </div>
+""",
+    "script" : """
+    var last_sync = new Date();
+    var clock_text = $('.last_checked');
+    var time_out = null;
+    var vars = [{v : 'oven_temp', id: 'oven_temp'}, {v: 'laser_current', id: 'laser_current'}, {v: 'gas_pres', id: 'gas_pres'}];
+
+    function post_value(x) {
+        return function(e, o) {
+        if (e !== null) return;
+        $('#' + x.id, $($theDiv)).val(x.v.return);
+        };
+    }
+
+    function sync_vars() {
+        for (var va in vars) {
+            nedm.get_database('hexe_edm').get_most_recent_value(va.v, post_value(va));
+        }
+        time_out = setTimeout(sync_vars, Number($('.refresh_time').val())*1000);
+    }
+
+    var run_clock = function() {
+      var time_diff = Math.round(((new Date()) - last_sync)/1000);
+      clock_text.text(Math.round(time_diff));
+      setTimeout(run_clock, 1000);
+    };
+"""
+}
