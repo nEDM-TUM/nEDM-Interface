@@ -224,6 +224,13 @@
               </div>
           </div>
         </div>
+        <div data-role="collapsible" class="alldoc__collapsible">
+          <h2>All information</h2>
+          <div align='left'>
+            <div class="alldoc code_editor"/>
+          </div>
+        </div>
+
         <div data-role="collapsible" class='list_of_files'>
           <h2>Attach/remove files</h2>
           <div class="actual_file_list">
@@ -536,6 +543,14 @@
         editor.resize();
       });
 
+      var alldoc = $('.alldoc', $(thediv));
+      var jsoneditor = require('jsoneditor');
+      var alldoc_editor = new jsoneditor(alldoc[0], { mode : "code" });
+      $('.alldoc__collapsible', $(thediv)).on("collapsibleexpand", function() {
+        alldoc_editor.resize();
+      });
+
+
 
       //*****************************************************
 
@@ -700,6 +715,7 @@
       // Load measurement
       var load_from_object = function(obj) {
         cmt.data('editor').getSession().setValue(obj.log);
+        alldoc_editor.set(obj);
         // Do protocol
         $('.protocol_table').children('.protocol_clone_act').each(function() {
           $(this).remove();
