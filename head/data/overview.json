@@ -2,11 +2,6 @@
   "_id"  : "overview",
   "type" : "control_template",
   'body' : """
-<div data-role='page'>
-    <div class='headerChild'>
-    </div>
-    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
-        <div class='content-primary'>
             <h1 >Overview</h1>
             <div>
             <div class='ui-grid-c'>
@@ -32,12 +27,8 @@
               </div>
 
             </div>
-        </div>
-        <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
-            </div>
-        </div> <!-- content-secondary -->
-    </div>
+""",
+  'footer' : """
     <div class='ui-field-contain db_template' style='display:none;'>
       <h3 class='db_name'></h3>
       <div class='ui-grid-c variable_template' style='display:none;'>
@@ -55,7 +46,8 @@
         </div>
       </div>
     </div>
-<script>
+""",
+  'script' : """ 
     var last_sync = new Date();
     var clock_text = $('.last_checked');
     var time_out = null;
@@ -105,7 +97,7 @@
              var r = o.rows;
              var dbtoclone = $('.db_template');
              var svs = $('.all_shown_variables');
-             var dbs = {}
+             var dbs = {};
              for (var i=0;i<r.length;i++) {
                var k = r[i].key[0];
                var v = r[i].key[1];
@@ -142,14 +134,14 @@
              };
              var adb = $('.all_dbs').filter(':input');
              adb.find('option').remove();
-             for (var k in all_dbs) {
-               var o = $('<option/>').val(k).text(all_dbs[k].prettyname);
-               var d = 'nedm%2F' + k;
-               o.data({ db_name : d });
-               adb.append(o);
+             for (var kk in all_dbs) {
+               var obj = $('<option/>').val(kk).text(all_dbs[kk].prettyname);
+               var d = 'nedm%2F' + kk;
+               obj.data({ db_name : d });
+               adb.append(obj);
                nedm.get_database(d).getView('slow_control_time', 'slow_control_time',
                  { opts : { stale : 'ok', group_level : 1 } },
-                 get_vars_for_db(o));
+                 get_vars_for_db(obj));
              }
              adb.selectmenu('refresh', true);
       });
@@ -192,8 +184,5 @@
       });
       $('.submit_new_variable').on('click', submit_new_variable);
     }());
-
-</script>
-</div>
 """
 }

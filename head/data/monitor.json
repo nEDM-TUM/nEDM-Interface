@@ -5,14 +5,8 @@
 {
   "_id"  : "monitor",
   "type" : "control_template",
+  "page_class" : "db_monitor_class",
   "body" : """
-
-<div data-role='page' class='db_monitor_class'>
-    <div class='headerChild'>
-    </div>
-
-    <div align='center' data-role='content'>
-        <div class='content-primary'>
             <h1 >Monitor</h1>
             <div data-role='controlgroup' data-type='horizontal'>
                 <a href='#' data-role='button' data-inline='true' class='makeNewPlot ui-disabled'>Insert New Graph</a>
@@ -28,14 +22,9 @@
             </div>
 
             <div class='monitor_div'>
-
             </div>
-        </div> <!-- content-primary -->
-        <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
-            </div>
-        </div> <!-- content-secondary -->
-        <script type='text/javascript'>
+""",
+   "script" : """
         var graph_template;
 
         var makeNewGraph = function(ev) {
@@ -49,7 +38,7 @@
             if (window_num > 0) {
                 window_num = parseInt($('option:last-child', selection).val()) + 1;
             }
-            var new_div = $('<div/>').append(graph_template.html).addClass('graph_monitor');;
+            var new_div = $('<div/>').append(graph_template.html).addClass('graph_monitor');
             $('.monitor_div', aP).append(new_div);
             if (graph_template.script) {
                 graph_template.script(new_div, { window_name: 'Window ' + window_num });
@@ -87,7 +76,7 @@
             var sIndex = scp[0].selectedIndex;
             var selected = scp.find(':selected');
             removeWindow(selected);
-            if (sIndex != 0) sIndex--;
+            if (sIndex !== 0) sIndex--;
             scp[0].selectedIndex = sIndex;
 
             // Update the buttons.
@@ -116,11 +105,12 @@
         var getAvailableItems = function (ev, ui) {
 			// We can have stale = update_after since the data types will not
 			// change all that often.
-            var ev = ev;
-            nedm.get_database(nedm.get_current_db_name($(ev.target).attr('data-url'))).getView('slow_control_time', 'slow_control_time',
+            var evtar = $(ev.target);
+            var ev1 = ev;
+            nedm.get_database(nedm.get_current_db_name(evtar.attr('data-url'))).getView('slow_control_time', 'slow_control_time',
                 { opts : {stale : 'ok', group_level : 1} }, function (e, o) {
                         if (e !== null ) return;
-                        var ssc = $('.selectSlowControl', $(ev.target)).filter(':input');
+                        var ssc = $('.selectSlowControl', evtar).filter(':input');
                         ssc.find('option').remove();
                         for (var i=0;i<o.rows.length;i++) {
                             var aname = o.rows[i].key;
@@ -128,11 +118,11 @@
                         }
                         if (ssc.find('option').length !== 0) {
                             ssc.removeClass('ui-disabled');
-                            if ($('.selectCurrentPlot', $(ev.target)).find('option').length !== 0) {
-                                $('.addSlowControl', $(ev.target)).removeClass('ui-disabled');
+                            if ($('.selectCurrentPlot', evtar).find('option').length !== 0) {
+                                $('.addSlowControl', evtar).removeClass('ui-disabled');
                             }
                         }
-                        populateGraphsWithCookies(ev);
+                        populateGraphsWithCookies(ev1);
                         ssc.selectmenu('refresh', true);
                     });
 
@@ -175,22 +165,24 @@
 
         (function() {
             $( '.db_monitor_class' ).off('pageinit').on( 'pageinit', function(ev, ui) {
-                var ev = ev;
-                var ui = ui;
                 var addr = '/nedm_head/_design/nedm_head/_show/define_control/graph_template';
                 var tthis = $(this);
+                var evv = ev;
+                var uii = ui;
                 $.ajax({ type: 'POST',
                          url: addr,
                          data: JSON.stringify({}),
                          success: function(e) {
                              graph_template = e;
                              if (e.doc && e.doc.script) {
+                                 /* jshint ignore:start */
                                  graph_template.script = eval('(' + e.doc.script + ')');
+                                 /* jshint ignore:end */
                              }
-                             getAvailableItems(ev, ui);
+                             getAvailableItems(evv, uii);
                              // Set up also for later
                              tthis.on('pageshow', populateGraphsWithCookies);
-                             $('.makeNewPlot', $(ev.target)).removeClass('ui-disabled');
+                             $('.makeNewPlot', $(evv.target)).removeClass('ui-disabled');
                          }
                 });
 
@@ -200,8 +192,5 @@
                 tthis.on('pagebeforehide', exitCleanup);
             });
         }());
-	    </script>
-    </div>
-</div>
 """
 }
