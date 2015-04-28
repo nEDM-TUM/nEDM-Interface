@@ -477,7 +477,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               for (var i = 0; i < enabled_channels.length; i++) {
                   var ch = enabled_channels[i];
                   sel.append($('<option/>').attr({
-                      value: ch
+                      value: i
                   }).append("Ch " + ch.toString()));
               }
               sel.selectmenu("refresh", true);

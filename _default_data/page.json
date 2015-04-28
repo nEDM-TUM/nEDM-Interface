@@ -1,0 +1,49 @@
+{
+  "_id" : "_design/page",
+  "language" : "javascript",
+  "header_intro" : """
+  <head>
+  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>nEDM Base</title>
+  <link rel='stylesheet' href='/nedm_head/_design/nedm_head/css/nedm.css'/>
+  <script src='/nedm_head/_design/nedm_head/modules.js'></script>
+  <script src='/nedm_head/_design/nedm_head/scripts/nedm-base.js'></script>
+  <style> .center { text-align: center; } </style>
+  </head>
+""",
+  "primary_content" : """
+    <div class='headerChild'>
+    </div>
+    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
+        <div class='content-primary'>
+""",
+  "secondary_content" : """
+        <div class='content-secondary'>
+            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
+            </div>
+        </div> <!-- content-secondary -->
+""",
+  "shows" : {
+     "page" : """
+function(doc, req) {
+  html =  "<html class='ui-mobile'>" + this.header_intro;
+  html += "<body class='ui-mobile-viewport ui-overlay-c'>";
+  var aclass = "";
+  if (doc.page_class) aclass = "class='" + doc.page_class + "'";
+  html += "<div data-role='page' " + aclass + ">"; 
+  html += this.primary_content;
+  html += doc.body;
+  html += "</div>"; // Primary content
+  html += this.secondary_content;
+  html += "</div>"; // content
+  html += doc.footer || "";
+  html += "<script>" + (doc.script || "") + "</script>";
+  html += "</div>"; // data-role=page
+  html += "</body></html>";
+  return { body : html };
+}
+"""
+  }
+}

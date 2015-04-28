@@ -12,8 +12,8 @@
 {
   "_id" : "graph_template",
   "type" : "view_template",
-  "title" : "{{title}}",
-  "description" : "{{description}}",
+  "title" : "",
+  "description" : "",
   "html" : """
   <div class = 'monitor_class'>
     <p class='window_name_class'/>

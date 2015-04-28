@@ -11,7 +11,6 @@ var nedm = nedm || {};
 
 (function() {
 
-var handlebars = require("handlebars");
 var events = require("events");
 var db = require("db");
 var dygraphs = require("dygraph-combined");
@@ -1094,7 +1093,7 @@ nedm.get_database = function(name) {
  */
 
 nedm.compile = function(astr) {
-    return handlebars.compile(astr);
+    alert("Not supported");
 };
 
 var all_db_listeners = {};

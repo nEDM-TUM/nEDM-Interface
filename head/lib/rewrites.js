@@ -1,41 +1,59 @@
-module.exports = [ 
+module.exports = [
   { "description": "Access to index"
   , "from": ""
-  , "to"  : "index.html"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/index"
   }
-, 
+  ,
   { "description": "Access to favicon.ico"
   , "from": "favicon.ico"
   , "to"  : "favicon.ico"
   }
-,
+  ,
   { "description": "Access to _rewrite"
   , "from": "_rewrite/_couchdb/*"
   , "to"  : "../../../*"
   },
+, { "description": "Access to the main CouchDB API; requires _config/httpd/secure_rewrites = false"
+  , "from": "_couchdb"
+  , "to"  : "../../.."
+  }
+, { "from": "_couchdb/*"
+  , "to"  : "../../../*"
+  }
+, { "from": "_couchdb/*"
+  , "to"  : "../../../*"
+  },
   { "description": "Access to pages"
   , "from": "_rewrite/page/monitor/*"
-  , "to"  : "_show/page/monitor"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/monitor"
   },
   { "description": "Access to pages"
   , "from": "_rewrite/page/control/*"
-  , "to"  : "_show/page/control"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/control"
   },
   { "description": "Access to pages"
   , "from": "page/monitor/*"
-  , "to"  : "_show/page/monitor"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/monitor"
   },
   { "description": "Access to pages"
   , "from": "page/control/*"
-  , "to"  : "_show/page/control"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/control"
+  },
+  { "description": "Access to system pages"
+  , "from": "_rewrite/page/:page/:foo"
+  , "to"  : "_rewrite/_couchdb/:foo/_design/page/_show/page/:page"
+  },
+  { "description": "Access to generic pages"
+  , "from": "page/:page/:foo"
+  , "to"  : "_rewrite/_couchdb/:foo/_design/page/_show/page/:page"
   },
   { "description": "Access to pages"
-  , "from": "page/*"
-  , "to"  : "_show/page/*"
+  , "from": "page/:foo"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/:foo"
   },
   { "description": "Access to pages"
-  , "from": "_rewrite/page/*"
-  , "to"  : "_show/page/*"
+  , "from": "_rewrite/page/:foo"
+  , "to"  : "_rewrite/_db/page/_show/page/:foo"
   },
   { "description": "Access to this database"
   , "from": "_db"
@@ -44,7 +62,7 @@ module.exports = [
 , { "from": "_db/*"
   , "to"  : "../../*"
   }
-, 
+,
   { "description" : "Access design documents"
   , "from": "nedm_head/_design/*"
   , "to"  : "../*"
@@ -61,17 +79,5 @@ module.exports = [
 , { "from": "_ddoc/*"
   , "to"  : "*"
   }
-
-, { "description": "Access to the main CouchDB API; requires _config/httpd/secure_rewrites = false"
-  , "from": "_couchdb"
-  , "to"  : "../../.."
-  }
-, { "from": "_couchdb/*"
-  , "to"  : "../../../*"
-  }
-, { "from": "_couchdb/*"
-  , "to"  : "../../../*"
-  }
-
 
 ];

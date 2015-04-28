@@ -2,11 +2,6 @@
   "_id"  : "alarms",
   "type" : "control_template",
   "body" : """
-<div data-role='page'>
-    <div class='headerChild'>
-    </div>
-    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
-        <div class='content-primary alarms_page'>
             <h1 >Alarms</h1>
             <div>
               <table data-role='table' data-mode='reflow' class='ui-responsive alarm_table'>
@@ -73,15 +68,8 @@ def main(db):
                 </fieldset>
               </div>
             </div>
-
-        </div>
-        <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'>
-            </div>
-        </div> <!-- content-secondary -->
-    </div>
-    <script>
-
+""",
+  'script' : """
     var load_new_alarm_info = function(ev) {
       var targ = $(ev.currentTarget);
       targ.addClass('ui-icon-nedm-loading')
@@ -110,25 +98,26 @@ def main(db):
 
           tbut.removeClass('ui-icon-nedm-loading')
            .addClass('ui-icon-nedm-stopped');
-          if (e !== null || o.rows.length == 0) return;
+          if (e !== null || o.rows.length === 0) return;
           var popup_div = tbut.data('popup');
           var the_table = $('.alarm_table_fired', popup_div);
           var r = o.rows;
           var toclone = $('.alarm_seen_clone', $(the_table));
+          var k, t;
           for (var i=0;i<r.length;i++) {
-            var k = r[i].key.slice();
+            k = r[i].key.slice();
             var nc = toclone.clone();
             nc.show();
             nc.removeClass('alarm_seen_clone');
             $('.alarm_type', $(nc)).html(k[k.length-1]);
             $('.alarm_desc', $(nc)).html(r[i].doc.msg.verbose);
-            var t = new Date(Date.UTC.apply(this, k.splice(2, 6)));
+            t = new Date(Date.UTC.apply(this, k.splice(2, 6)));
             $('.alarm_date', $(nc)).html(t.toString().split(' GMT')[0]);
             $(the_table).append(nc);
           }
           if (! tbut.data('last_date') ) {
-            var k = r[0].key.slice();
-            var t = new Date(Date.UTC.apply(this, k.splice(2, 6)));
+            k = r[0].key.slice();
+            t = new Date(Date.UTC.apply(this, k.splice(2, 6)));
             $('.alarm_last_event', tbut.data('disp_row')).html(t.toString().split(' GMT')[0]);
           }
           tbut.data('last_date', r[r.length-1].key.splice(2));
@@ -141,6 +130,39 @@ def main(db):
       nedm.get_database_info( function(all_dbs) {
           var the_table = $('.alarm_table');
           var the_row = $('.alarm_row_clone');
+          function retFunction(x) {
+            return function( e, o ) {
+              if (e !== null) return;
+              var r = o.rows;
+              function helperFunc(p) {
+                  return function() { p.popup('open'); };
+              }
+              for (var i=0;i<r.length;i++) {
+                var nc = the_row.clone();
+                var d = r[i].doc;
+                $('.system_name', $(nc)).html(all_dbs[x].prettyname);
+                $('.alarm_name', $(nc)).html(d.name);
+                $('.alarm_desc', $(nc)).html(d.description);
+                nc.show();
+                nc.removeClass('alarm_row_clone');
+                var popup = $('.alarmpopup').clone()
+                                            .removeClass('alarmpopup')
+                                            .attr({id : d._id + '-popup'});
+                $('.load_more_data', $(popup))
+                  .data( { db    : 'nedm%2F' + x,
+                           popup : popup,
+                              id : d._id,
+                       last_date : null,
+                        disp_row : nc} )
+                  .on('click', load_new_alarm_info);
+                nc.append(popup);
+                popup.popup().popup('close');
+                $(':input', $('.alarm_more_info', $(nc))).on('click', helperFunc(popup));
+                the_table.append(nc);
+                $('.load_more_data', $(popup)).trigger('click');
+              }
+            };
+          }
           for (var d in all_dbs) {
               nedm.get_database('nedm%2F' + d)
                   .getView('document_type',
@@ -150,37 +172,7 @@ def main(db):
                              endkey : ['alarm'],
                            startkey : ['alarm', {}],
                          descending : true,
-                         include_docs : true } },
-              function(x) { return function( e, o ) {
-                  if (e !== null) return;
-                  var r = o.rows;
-                  for (var i=0;i<r.length;i++) {
-                    var nc = the_row.clone();
-                    var d = r[i].doc;
-                    $('.system_name', $(nc)).html(all_dbs[x].prettyname);
-                    $('.alarm_name', $(nc)).html(d.name);
-                    $('.alarm_desc', $(nc)).html(d.description);
-                    nc.show();
-                    nc.removeClass('alarm_row_clone');
-                    var popup = $('.alarmpopup').clone()
-                                                .removeClass('alarmpopup')
-                                                .attr({id : d._id + '-popup'});
-                    $('.load_more_data', $(popup))
-                      .data( { db    : 'nedm%2F' + x,
-                               popup : popup,
-                                  id : d._id,
-                           last_date : null,
-                            disp_row : nc} )
-                      .on('click', load_new_alarm_info);
-                    nc.append(popup);
-                    popup.popup().popup('close');
-                    $(':input', $('.alarm_more_info', $(nc))).on('click', function(p) {
-                      return function() { p.popup('open'); } } (popup));
-                    the_table.append(nc);
-                    $('.load_more_data', $(popup)).trigger('click');
-                  }
-                };
-              }(d));
+                         include_docs : true } }, retFunction(d));
           }
       });
     };
@@ -196,7 +188,8 @@ def main(db):
         console.log(the_db);
     };
     var editor = null;
-    $(document).on('pageinit', function() {
+    $(document).on('pageinit', function(ev) {
+      if ( $(ev.target).attr('data-url').indexOf("page/alarms") === -1 ) return;
       get_alarm_info();
       var db_sel = $('.alarm_database_select').filter(':input');
       nedm.get_database_info( function(dbs) {
@@ -212,8 +205,5 @@ def main(db):
       editor.getSession().setMode('ace/mode/python');
       editor.setTheme('ace/theme/xcode');
     });
-
-    </script>
-
-</div>"""
+"""
 }
