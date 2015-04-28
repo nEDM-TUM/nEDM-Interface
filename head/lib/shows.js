@@ -1,16 +1,3 @@
-exports.page = function(doc, req) {
-  new_query = {}
-  for (var k in req.query) {
-    new_query[k] = encodeURIComponent(req.query[k]).replace("%", "_");
-  }
-  html = "<html class='ui-mobile'><head><meta http-equiv='Content-Type' content='text/html; charset=UTF-8'><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>nEDM Base</title> <link rel='stylesheet' href='/nedm_head/_design/nedm_head/css/nedm.css' /><script src='/nedm_head/_design/nedm_head/modules.js'></script><script src='/nedm_head/_design/nedm_head/scripts/nedm-base.js'></script><style> .center { text-align: center; } </style>" + doc.header + "</head>";
-
-  html += "<body class='ui-mobile-viewport ui-overlay-c'>";
-  html += doc.body;
-  html += "</body></html>";
-  return html;
-};
-
 exports.define_control = function(doc, req) {
   var template_func = function(obj) {
       var template = "<h3>" + obj.title + "</h3>" + obj.html;

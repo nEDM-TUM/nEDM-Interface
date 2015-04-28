@@ -1,30 +1,13 @@
 {
   "_id"  : "control",
   "type" : "control_template",
+  "page_class" : "db_control_class",
   'body' : """
-
-    <!--<div id='standardHeader'>
-        <div data-role='header' data-position='fixed' data-theme='b'>
-            <h1>nEDM Interface</h1>
-            <a href='#login' data-rel='dialog' class='ui-btn-right'>Login</a>
-        </div>
-    </div> -->
-
-<div data-role='page' class='db_control_class'>
-    <div class='headerChild'> 
-    </div>
-    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
-        <div class='content-primary'>
             <h1 >Control</h1>
             <div class='controlDiv_class'>
             </div>
-        </div>
-        <div class='content-secondary'>
-            <div data-role='collapsible-set' class='listofdbs' data-inset='false'> 
-            </div>
-        </div> <!-- content-secondary -->
-    </div>
-    <script>
+""",
+  'script' : """
         function loadControls(ev, ui) {
             nedm.get_database(nedm.get_current_db_name($(ev.target).attr('data-url')))
               .getView('document_type', 'document_type',
@@ -35,13 +18,15 @@
                 include_docs : true} },
             function(err, objs) {
                 var fillDiv = $('.controlDiv_class', $(ev.target));
-                if (fillDiv.children('div').size() != 0) fillDiv.empty();
-                if (err != null) return;
+                if (fillDiv.children('div').size() !== 0) fillDiv.empty();
+                if (err !== null) return;
                 var success_func = function(fill_it_loc) {
                                      return function(e) {
                                           fill_it_loc.append(e.html);
                                           if (e.doc && e.doc.script) {
+                                              /* jshint ignore:start */
                                               var afunc = eval('(' + e.doc.script + ')');
+											  /* jshint ignore:end */
                                               afunc(fill_it_loc, e.doc);
                                           }
                                           fillDiv.trigger('create');
@@ -53,7 +38,7 @@
                     var fill_it = $('<div/>');
                     fillDiv.append(fill_it);
                     var addr = '/nedm_head/_design/nedm_head/_show/define_control';
-                    if (arr.template != undefined) {
+                    if (arr.template !== undefined) {
                         addr += '/' + arr.template;
                     }
                     $.ajax({ type: 'POST',
@@ -66,8 +51,5 @@
         (function() {
           $('.db_control_class').off('pagecreate').on('pagecreate', loadControls);
         }());
-    </script>
-
-</div>
 """
 }
