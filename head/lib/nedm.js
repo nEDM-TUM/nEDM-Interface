@@ -709,8 +709,8 @@ $(document).on('mobileinit', function() {
 
     // Remove loading message.
     setTimeout(function() {
-                $.mobile.hidePageLoadingMsg();
-    }, $.mobile.loadPage.defaults.loadMsgDelay);
+                $.mobile.loading( 'hide' );
+    }, 50);
 
     // parse the error/reason
     var error = escape(JSON.parse(data.xhr.responseText).error);
