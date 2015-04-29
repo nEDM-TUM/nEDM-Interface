@@ -46,7 +46,7 @@ menu to the right of this.
 Example scripts on how to readout: <a href="https://gist.github.com/6033a49c60771e7dd16f">python</a>, <a href="https://gist.github.com/de7b3621ed14ee559662">C/C++<a/>.
 """,
   "html" : """
-<div data-role="controlgroup" data-type="horizontal" id="ConnGroup">
+<div data-role="controlgroup" data-type="horizontal">
     <input type="button" value="Connect" class="connectBtn">
 </div>
 <div class="fullDigitizerPage" class="ui-disabled">
