@@ -46,7 +46,7 @@ menu to the right of this.
 Example scripts on how to readout: <a href="https://gist.github.com/6033a49c60771e7dd16f">python</a>, <a href="https://gist.github.com/de7b3621ed14ee559662">C/C++<a/>.
 """,
   "html" : """
-<div data-role="controlgroup" data-type="horizontal">
+<div data-role="controlgroup" data-type="horizontal" id="ConnGroup">
     <input type="button" value="Connect" class="connectBtn">
 </div>
 <div class="fullDigitizerPage" class="ui-disabled">
@@ -72,6 +72,8 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <h4>Measurement (save) options</h4>
             <div data-role='fieldcontain'>
               <div align="left" class="ui-body ui-body-a ui-corner-all">
+                <h3>Measurement name:</h3>
+                <input type='text' class="meas_name">
                 <h3>Measurement comment:</h3>
                 <div class="comment code_editor"></div>
               </div>
@@ -412,12 +414,14 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           var mods = getSelected($('.selectSaveModules', $(thediv)));
           var data_per_ms = getTotalSelectedChannels()*settings.current_frequency_khz;
           var buf_size = parseFloat($('.timeWindow', $(thediv)).val());
+          var meas_name = $('.meas_name', $(thediv)).val();
           settings.readoutTime = buf_size; // Save readoutTime
           buf_size = parseInt(buf_size * data_per_ms);
           x.sendObj({
               cmd: "startReadout",
               args: { should_upload : upload_data,
                         should_save : save_data,
+                   measurement_name : meas_name,
                                 log : com,
                            logitems : hdr_editor.get(),
                         buffer_size : buf_size,
