@@ -1,5 +1,6 @@
 var events = require("events");
 var dygraphs = require("dygraph-combined");
+var toastr = require("toastr");
 
 /**
  * Updates the login/logout buttons and user status.  Called during session

@@ -7,6 +7,7 @@
  */
 
 var events = require("events");
+var toastr = require("toastr");
 var on_cloudant;
 function BuildURL(options) {
     var url = "";
