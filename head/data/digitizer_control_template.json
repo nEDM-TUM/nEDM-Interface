@@ -4,7 +4,12 @@
   "title" : "Digitizer Controls",
   "host_ip" : "192.168.1.113:9000",
   "include_only_digitizers" : [],
-  "default_header_info" : {},
+  "default_header_info" : { 
+  				full_scale: 20,
+  				conversion_factor: 0.985e-9,
+  				external_clock: true,
+  				measurement_name: ""
+  },
   "description" : """
 Digitizer control:
 <br><br>
