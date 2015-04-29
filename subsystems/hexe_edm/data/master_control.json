@@ -4,6 +4,12 @@
   "title" : "HeXe EDM Digitizer",
   "template" : "digitizer_control_template",
   "include_only_digitizers" : ["digitizer.2.nedm1"],
+  "default_header_info" : { 
+  				full_scale: 20,
+  				conversion_factor: 0.985e-9,
+  				external_clock: true,
+  				measurement_name: ""
+  },
   "channel_names" : {
     "0" : "SQUID_X1",
     "1" : "SQUID_Y1",
