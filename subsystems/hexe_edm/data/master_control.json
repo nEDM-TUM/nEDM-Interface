@@ -7,11 +7,7 @@
   "default_header_info" : { 
   				"full_scale": 20,
   				"conversion_factor": 0.985e-9,
-  				"external_clock": "true",
-<<<<<<< HEAD
-=======
-  				"measurement_name": ""
->>>>>>> 74fa744434820036d87ae3fc25880f2f2c9d549b
+  				"external_clock": "true"
   },
   "channel_names" : {
     "0" : "SQUID_X1",
