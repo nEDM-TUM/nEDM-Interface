@@ -1,6 +1,8 @@
 var events = require("events");
 var dygraphs = require("dygraph-combined");
 var toastr = require("toastr");
+var cookie = require("js-cookie");
+cookie.json = true;
 
 /**
  * Updates the login/logout buttons and user status.  Called during session
@@ -340,6 +342,7 @@ function registerUser(un, pw, tryLogin, callback) {
 
 // Register handling changes in the session
 session.on('change', function(userCtx) {
+    cookie.remove('db_info', { path : '/' });
     SetUserName(userCtx);
     ListenToDBChanges();
     UpdateButtons();
@@ -482,8 +485,23 @@ function database_status( ) {
  * @api public
  */
 
+var db_info_is_called = false;
+var db_info_cb_list = [];
 function get_database_info( callback ) {
+    if (!logged_in_as) return;
+    if ( callback ) {
+       db_info_cb_list.push(callback);
+    }
+    if (db_info_is_called) return;
+    db_info_is_called = true;
 
+    var db_info_cookie = cookie.get('db_info');
+    if (db_info_cookie) {
+        db_info_cb_list.forEach( function(o) { o(db_info_cookie); } ); 
+        db_info_cb_list = [];
+        db_info_is_called = false;
+        return;
+    }
     // First define a function to grab all the information
     function getDBInfo(db_name) {
            var esc_name = "nedm%2F" + db_name;
@@ -501,7 +519,6 @@ function get_database_info( callback ) {
            return dfd.promise();
     }
 
-    if (!logged_in_as) return;
     $.ajax({
           url : '/nedm_head/_design/nedm_head/_rewrite/_couchdb/_all_dbs', 
      dataType : "json",
@@ -526,7 +543,9 @@ function get_database_info( callback ) {
                 if (obj[1].hide) continue;
                 current_database_info[obj[0]] = obj[1];
             }
-            callback( current_database_info );
+            cookie.set('db_info', current_database_info, { path : '/' });
+            db_info_is_called = false;
+            get_database_info();
         });
        }
 
