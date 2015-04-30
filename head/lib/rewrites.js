@@ -1,7 +1,7 @@
 module.exports = [
   { "description": "Access to index"
   , "from": ""
-  , "to"  : "index.html"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/index"
   }
   ,
   { "description": "Access to favicon.ico"
