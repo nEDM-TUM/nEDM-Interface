@@ -78,7 +78,11 @@ which is accessible with the normal TUM VPN.
   "owner" : "your_id",
   "source" : "http://UN:PW@10.155.59.15:5984/nedm%2Faggregate",
   "target" : "nedm/aggregate",
-  "continuous" : true
+  "continuous" : true,
+  "user_ctx" : {
+    "name" : "your_id",
+    "roles" : [ "_admin"]
+  }
 }
 ```
 Swap out UN and PW (standard nEDM read-only values)

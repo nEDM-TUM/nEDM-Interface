@@ -2,7 +2,7 @@
   "name": "nedm_head", 
   "version": "0.0.1", 
   "description": "nEDM-Interface default",
-  "attachments": ["index.html", "header.html", "login.html", "scripts", "css", "favicon.ico"],
+  "attachments": ["header.html", "login.html", "scripts", "css", "favicon.ico"],
   "load"    : "lib/app",
   "modules" : ["lib"],
   "ace" : {
@@ -21,7 +21,7 @@
     "jquery-mobile" : null, 
     "jquery-mobile-datebox" : null, 
     "toastr" : null,
-    "jquery-cookie" : null,
+    "js-cookie" : null,
     "ace" : null,
     "jqm-calendar" : null,
     "dygraph-combined" : null,
