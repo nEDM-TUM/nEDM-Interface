@@ -34,7 +34,7 @@ function(doc, req) {
   if (doc.page_class) aclass = "class='" + doc.page_class + "'";
   html += "<div data-role='page' " + aclass + ">"; 
   html += this.primary_content;
-  html += doc.body;
+  html += doc.body || "Ill-formed page";
   html += "</div>"; // Primary content
   html += this.secondary_content;
   html += "</div>"; // content
