@@ -7,7 +7,19 @@
   "default_header_info" : {
   				"full_scale": 20,
   				"conversion_factor": 0.985e-9,
-  				"external_clock": True
+  				"external_clock": True,
+  				"channel_names" : {
+				"0" : "SQUID_X1",
+    				"1" : "SQUID_Y1",
+    				"2" : "SQUID_Z1",
+    				"3" : "SQUID_X2",
+    				"4" : "SQUID_Y2",
+    				"5" : "SQUID_Z2",
+    				"6" : "Lockin_XE",
+    				"7" : "Lockin_HE",
+    				"8" : "CH8",
+    				"9" : "CH9"
+  				}
   },
   "channel_names" : {
     "0" : "SQUID_X1",
