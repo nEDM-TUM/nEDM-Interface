@@ -1,0 +1,29 @@
+{
+  "_id"  : "index",
+  "type" : "page",
+  "page_class" : "index_class",
+  "body" : """
+            <h1>Start page</h1>
+            <div>
+              <h1>Database status</h1>
+              <div>
+                  <table data-role="table" class="status_db_class ui-responsive table-stroke" data-mode="reflow">
+                      <thead>
+                          <tr>
+                              <th data-priority="1">Database</th>
+                              <th data-priority="2">Writing</th>
+                              <th data-priority="3">Control active</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                  </table>
+              </div>
+            </div>
+""",
+  "script" : """
+      $(".index_class").on("pageinit", function() {
+        nedm.database_status();
+      });
+"""
+}
