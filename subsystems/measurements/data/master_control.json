@@ -174,13 +174,9 @@
     <div class='entire_protocol'>
       <div class="ui-body ui-body-a ui-corner-all" align="left">
         <h3>Name: <span class='measurement_name'>(No name)</span></h3>
-        <div class='ui-grid-b'>
-          <div class='ui-block-a'>
-            <h4>Saved: <span class='measurement_status'>(Not saved)</span></h4>
-          </div>
-          <div class='ui-block-b'>
-            <button class='collapse_all'>Collapse all</button>
-          </div>
+        <h4>Saved: <span class='measurement_status'>(Not saved)</span></h4>
+        <div data-role='controlgroup' data-type='horizontal'>
+          <button class='collapse_all'>Collapse all</button>
         </div>
       </div>
       <div>
