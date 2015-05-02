@@ -1,0 +1,19 @@
+{
+  "_id" : "_design/controls",
+  "language" : "javascript",
+  "views" : {
+    "controls" : {
+      "map" : """
+function(doc) {
+  if (!doc.type || doc.type !== "control") return;
+  var order = doc.order || doc._id;
+  if (doc.template) {
+    emit([order,0], { _id : doc.template } );
+  }
+  emit([order,1], null);
+}
+    """
+    }
+  }
+}
+
