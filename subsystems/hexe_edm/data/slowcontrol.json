@@ -1,10 +1,11 @@
 {
     "_id" : "slowcontrol",
-    "type" : "control",
+    "type" : "page",
     "title" : "Slow Control",
     "description" : "Controls of oven, laser, polarizer & guide coils",
-    "html" : """
+    "body" : """
 
+<h2>Slow Control</h2>
 <div>
     <div class='overview' data-role='content'>
         <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p>
@@ -13,10 +14,10 @@
             <p>Oven temp (&#176 C):</p>
           </div>
           <div class='ui-block-b'>
-            <input type='text' size='1' class='output_text' id='oven_temp1' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            <input type='text' size='1' class='output_text oven_temp1' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
           <div class='ui-block-c'>
-            <input type='text' size='1' class='output_text' id='oven_temp2' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            <input type='text' size='1' class='output_text oven_temp2' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
         </div>
         <div class='ui-grid-c'>
@@ -24,7 +25,7 @@
             <p>Laser current (A)</p>
           </div>
           <div class='ui-block-b'>
-            <input type='text' size='1' class='output_text' id='laser_current' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            <input type='text' size='1' class='output_text laser_current' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
         </div>
         <div class='ui-grid-c'>
@@ -32,24 +33,24 @@
             <p>Gas pressure (mbar)</p>
           </div>
           <div class='ui-block-b'>
-            <input type='text' size='1' class='output_text' id='gas_pres' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            <input type='text' size='1' class='output_text gas_pres' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
         </div>
     </div>
     <div class='oven_control'>
         <h3>Oven control</h3>
         <div data-role='controlgroup' data-type='horizontal'>
-            <button class='set_value_class' id='oven_heat'>Heat</button>
-            <button class='set_value_class' id='oven_cool'>Cool</button>
+            <button class='set_value_class oven_heat'>Heat</button>
+            <button class='set_value_class oven_cool'>Cool</button>
         </div>
     </div>
     <div class='laser_control'>
         <h3>Laser control</h3>
             <div data-role='controlgroup' data-type='horizontal'>
                 <h4>Laser Status</h4>
-                <button class='set_laser_status' id='setON' value='1'>ON</button>
-                <button class='set_laser_status' id='setOFF' value='0'>OFF</button>
-                <div style='float:left' id='status_light' class='control_status nedm-status-r'> </div>
+                <button class='set_laser_status' value='1'>ON</button>
+                <button class='set_laser_status' value='0'>OFF</button>
+                <div style='float:left' class='status_light control_status nedm-status-r'> </div>
             </div>
             <div data-role='controlgroup' data-type='horizontal'>
                 <h4>Laser Power</h4>
@@ -61,7 +62,7 @@
     <div class='coil_control'>
         <h3>Polarizer and Transport coils control</h3>
             <div data-role='controlgroup' data-type='horizontal'>
-                <select required id='which_coil'>
+                <select required class='which_coil'>
                   <option value='pol'>Polarizer coils</option>
                   <option value='trans'>Transport coil</option>
                   <option value='guide'>Guide coil</option>
@@ -73,42 +74,42 @@
             <h4>coil settings</h4>
                 <div class='ui-grid-a'>
                   <div class='ui-block-a'>
-                    <input type='range' min='0.1' max = '3.1' step='0.1' class='input_val' id='pol_coil_cur' value='3.1'>
+                    <input type='range' min='0.1' max = '3.1' step='0.1' class='input_val pol_coil_cur' value='3.1'>
                   </div>
                   <div class='ui-block-b'>
-                    <button class='set_value_class' id='set_pol_coil_cur'>Set Polarizer coils Current (A)</button>
+                    <button class='set_value_class set_pol_coil_cur'>Set Polarizer coils Current (A)</button>
                   </div>
                 </div>
                 <div class='ui-grid-a'>
                   <div class='ui-block-a'>
-                    <input type='range' min='0.1' max = '3.1' step='0.1' class='input_val' id='trans_coil_cur' value='3.1'>
+                    <input type='range' min='0.1' max = '3.1' step='0.1' class='input_val trans_coil_cur' value='3.1'>
                   </div>
                   <div class='ui-block-b'>
-                    <button class='set_value_class' id='set_trans_coil_cur'>Set Transport coil Current (A)</button>
+                    <button class='set_value_class set_trans_coil_cur'>Set Transport coil Current (A)</button>
                   </div>
                 </div>
                 <div class='ui-grid-a'>
                   <div class='ui-block-a'>
-                    <input type='range' min='0.1' max = '3.1' step='0.1' class='input_val' id='guide_coil_cur' value='3.1'>
+                    <input type='range' min='0.1' max = '3.1' step='0.1' class='input_val guide_coil_cur' value='3.1'>
                   </div>
                   <div class='ui-block-b'>
-                    <button class='set_value_class' id='set_guide_coil_cur'>Set Guide coil Current (A)</button>
-                  </div>
+                    <button class='set_value_class set_guide_coil_cur'>Set Guide coil Current (A)</button>
+                  </div>'ge/slowcontrol/nedm/hexe_edm
                 </div>
                 <div data-role='fieldcontain'>
                     <div class='ui-grid-a'>
                       <div class='ui-block-a'>
-                        <input type='text' class='input_val' id='ramp_time' data-wrapper-class='controlgroup-textinput ui-btn'>
+                        <input type='text' class='input_val ramp_time' data-wrapper-class='controlgroup-textinput ui-btn'>
                       </div>
                       <div class='ui-block-b'>
-                        <button class='set_value_class' id='set_ramp_time'>Set ramp time (s)</button>
+                        <button class='set_value_class set_ramp_time'>Set ramp time (s)</button>
                       </div>
                     </div>
                 </div>
         <div data-role='fieldcontain'>
             <div class='ui-grid-b'>
               <div class='ui-block-a'>
-                <select required id='get_which_coil'>
+                <select required class='get_which_coil'>
                   <option value='pol'>Polarizer coils</option>
                   <option value='trans'>Transport coil</option>
                   <option value='guide'>Guide coil</option>
@@ -132,17 +133,17 @@
             <h3>Oven control</h3>
             <div data-role='fieldcontain'>
                 <fieldset data-role='controlgroup' data-type='horizontal'>
-                    <button class='set_value_class' id='setTemp'>Set Temp</button>
-                    <input type='text' class='input_val' id='temp_val' data-wrapper-class='controlgroup-textinput ui-btn'>
-                    <select required id='unit'>
+                    <button class='set_value_class setTemp'>Set Temp</button>
+                    <input type='text' class='input_val temp_val' data-wrapper-class='controlgroup-textinput ui-btn'>
+                    <select required class='unit'>
                       <option value='Deg'>&#176 C</option>
                       <option value='V'>V</option>
                     </select>
                 </fieldset>
                 <p style='text-align:left'>(standard values: ??)</p>
                 <div data-role='controlgroup' data-type='horizontal'>
-                    <button class='set_value_class' id='setFlow'>Set Flow (&#37)</button>
-                    <input type='text' class='input_val' id='flow_val' data-wrapper-class='controlgroup-textinput ui-btn'>
+                    <button class='set_value_class setFlow'>Set Flow (&#37)</button>
+                    <input type='text' class='input_val flow_val' data-wrapper-class='controlgroup-textinput ui-btn'>
                     <button class='set_flow_min'>Min</button>
                     <button class='set_flow_max'>Max</button>
                 </div>
@@ -152,8 +153,8 @@
             <h3>Laser control</h3>
             <div data-role='fieldcontain'>
                 <div data-role='controlgroup' data-type='horizontal'>
-                    <input type='text' class='input_val' id='laser_power' data-wrapper-class='controlgroup-textinput ui-btn'>
-                    <button class='set_value_class' id='setLaserPower'>Set Laser Power (A)</button>
+                    <input type='text' class='input_val laser_power' data-wrapper-class='controlgroup-textinput ui-btn'>
+                    <button class='set_value_class setLaserPower'>Set Laser Power (A)</button>
                 </div>
             </div>
         </div>
@@ -161,14 +162,12 @@
 </div>
 """,
     "script" : """
-function($theDiv, anobj) {
-
     var disable_all = function() {
-    $(':button,[type=text]', $($theDiv)).addClass('ui-disabled');
+    $(':button,[type=text]').addClass('ui-disabled');
     };
 
     var enable_all = function() {
-    $(':button,[type=text]', $($theDiv)).removeClass('ui-disabled');
+    $(':button,[type=text]').removeClass('ui-disabled');
     };
 
     var last_sync = new Date();
@@ -186,7 +185,7 @@ function($theDiv, anobj) {
         return function(e, o) {
         if (e !== null) {
           return;}
-        $('#' + x.id, $($theDiv)).val(x.v);
+        $('.' + x.id).val(x.v);
         last_sync = new Date();
         };
     };
@@ -208,7 +207,7 @@ function($theDiv, anobj) {
       run_clock();
     });
 
-    $('#oven_heat', $($theDiv)).on('click', function() {
+    $('.oven_heat').on('click', function() {
         disable_all();
         nedm.send_command({cmd_name : 'set_oven_temp', arguments: ['C', '130'], timeout: 5000,
         callback: function(e,o) {
@@ -222,7 +221,7 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#oven_cool', $($theDiv)).on('click', function() {
+    $('.oven_cool').on('click', function() {
         disable_all();
         nedm.send_command({cmd_name : 'set_oven_temp', arguments: ['V', '0'], timeout: 5000,
         callback: function(e,o) {
@@ -236,10 +235,10 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#setTemp', $($theDiv) ).on('click', function () {
+    $('.setTemp').on('click', function () {
         disable_all();
-        var value = $('#temp_val', $($theDiv)).val();
-        var unit = $('#unit:selected', $($theDiv)).val();
+        var value = $('.temp_val').val();
+        var unit = $('.unit:selected').val();
         var args = [unit, value];
         nedm.send_command( { cmd_name : 'set_oven_temp',
         arguments : args,
@@ -250,9 +249,9 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#setFlow', $($theDiv)).on('click', function() {
+    $('.setFlow').on('click', function() {
         disable_all();
-        var value = $('#flow_val', $($theDiv)).val();
+        var value = $('.flow_val').val();
         var args = [value];
         nedm.send_command( {cmd_name: 'set_oven_flow',
         arguments: args,
@@ -263,7 +262,7 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.set_flow_min', $($theDiv)).on('click', function() {
+    $('.set_flow_min').on('click', function() {
         disable_all();
         var args = ['0'];
         nedm.send_command( {cmd_name: 'set_oven_flow',
@@ -275,7 +274,7 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.set_flow_max', $($theDiv)).on('click', function() {
+    $('.set_flow_max').on('click', function() {
         disable_all();
         var args = ['100'];
         nedm.send_command( {cmd_name: 'set_oven_flow',
@@ -287,7 +286,7 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.set_laser_status', $($theDiv)).on('click', function() {
+    $('.set_laser_status').on('click', function() {
         disable_all();
         var args = [$(this).val()];
         nedm.send_command({cmd_name: 'set_laser_status',
@@ -301,12 +300,12 @@ function($theDiv, anobj) {
 
     var check_laser_status = function(e, o){
         if (o.val() == '0'){
-            $('#status_light').removeClass('control_status nedm-status-g');
-            $('#status_light').addClass('control_status nedm-status-r');
+            $('.status_light').removeClass('control_status nedm-status-g');
+            $('.status_light').addClass('control_status nedm-status-r');
         }
         if (o.val() == '1'){
-            $('#status_light').removeClass('control_status nedm-status-r');
-            $('#status_light').addClass( 'control_status nedm-status-g');
+            $('.status_light').removeClass('control_status nedm-status-r');
+            $('.status_light').addClass( 'control_status nedm-status-g');
 		}
     };
 
@@ -320,7 +319,7 @@ function($theDiv, anobj) {
         nedm.on_db_updates(check_for_changes);
     });
 
-    $('.setMin', $($theDiv) ).on('click', function () {
+    $('.setMin').on('click', function () {
         disable_all();
         nedm.send_command( { cmd_name : 'set_laser_current',
         arguments : ['0'],
@@ -331,7 +330,7 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.setMed', $($theDiv) ).on('click', function () {
+    $('.setMed').on('click', function () {
         disable_all();
         nedm.send_command( { cmd_name : 'set_laser_current',
         arguments : ['30'],
@@ -342,7 +341,7 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.setMax', $($theDiv) ).on('click', function () {
+    $('.setMax').on('click', function () {
         disable_all();
         nedm.send_command( { cmd_name : 'set_laser_current',
         arguments : ['70'],
@@ -353,9 +352,9 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#setLaserPower', $($theDiv)).on('click', function() {
+    $('.setLaserPower').on('click', function() {
         disable_all();
-        var value = $('#laser_power', $($theDiv)).val();
+        var value = $('.laser_power').val();
         var args = [value];
         nedm.send_command( {cmd_name: 'set_laser_current',
         arguments: args,
@@ -366,9 +365,9 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#set_pol_coil_cur', $($theDiv)).on('click', function() {
+    $('.set_pol_coil_cur').on('click', function() {
         disable_all();
-        var value = $('#pol_coil_cur', $($theDiv)).val();
+        var value = $('.pol_coil_cur').val();
         var args = ['pol', value];
         nedm.send_command( {cmd_name: 'set_coil_current',
         arguments: args,
@@ -379,9 +378,9 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#set_trans_coil_cur', $($theDiv)).on('click', function() {
+    $('.set_trans_coil_cur').on('click', function() {
         disable_all();
-        var value = $('#trans_coil_cur', $($theDiv)).val();
+        var value = $('.trans_coil_cur').val();
         var args = ['trans', value];
         nedm.send_command( {cmd_name: 'set_coil_current',
         arguments: args,
@@ -392,9 +391,9 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#set_guide_coil_cur', $($theDiv)).on('click', function() {
+    $('.set_guide_coil_cur').on('click', function() {
         disable_all();
-        var value = $('#guide_coil_cur', $($theDiv)).val();
+        var value = $('.guide_coil_cur').val();
         var args = ['guide', value];
         nedm.send_command( {cmd_name: 'set_coil_current',
         arguments: args,
@@ -405,10 +404,10 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.set_coil_status', $($theDiv)).on('click', function() {
+    $('.set_coil_status').on('click', function() {
         disable_all();
         var value = $(this).val();
-        var coil = $('#which_coil', $($theDiv)).val();
+        var coil = $('#which_coil').val();
         var args = [coil, value];
         nedm.send_command({cmd_name: 'set_laser_status',
         arguments: args,
@@ -419,9 +418,9 @@ function($theDiv, anobj) {
         });
     });
 
-    $('#set_ramp_time', $($theDiv)).on('click', function() {
+    $('.set_ramp_time').on('click', function() {
         disable_all();
-        var value = $('#ramp_time', $($theDiv)).val();
+        var value = $('.ramp_time').val();
         var args = [value];
         nedm.send_command( {cmd_name: 'set_ramp_time',
         arguments: args,
@@ -432,21 +431,20 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.get_value_class', $($theDiv)).on('click', function() {
+    $('.get_value_class').on('click', function() {
         disable_all();
-        var args = [$('#get_which_coil', $($theDiv)).val()];
+        var args = [$('.get_which_coil').val()];
         nedm.send_command({cmd_name : 'get_coil_current',
         arguments: args,
         timeout: 5000,
         callback: function(e, o) {
         if (o && o.ok) {
-        $('.output_text', $($theDiv)).val(o.return);
+        $('.output_text').val(o.return);
         }
         enable_all();
         }
         });
     });
 
-}
 """
 }
