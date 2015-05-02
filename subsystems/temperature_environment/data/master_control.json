@@ -8,8 +8,8 @@
     <div class='all_temperature_controls'>
         <div data-role='fieldcontain'>
             <div data-role='controlgroup' data-type='horizontal' class='all_functions ui-disabled'>
-                <select class='temp_device_select'/>
-                <select class='function_select'/>
+                <select class='temp_device_select'></select>
+                <select class='function_select'></select>
                 <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_val'>
                 <button class='set_function'>Set</button>
                 <button class='get_function'>Get</button>
@@ -31,8 +31,8 @@
  """,
  "script" : """
     function( avar, anobj ) {
-       var devices = $('.temp_device_select', $(avar));
-       var funcs = $('.function_select', $(avar));
+       var devices = $('.temp_device_select', $(avar)).filter(":input");
+       var funcs = $('.function_select', $(avar)).filter(":input");
        var setup_func = function(e, o) {
            if (!o || !o.return) return;
            for (var k in o.return) {
