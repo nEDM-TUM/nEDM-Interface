@@ -25,10 +25,11 @@
        // We define a synchronization function which synchronizes the web-site with
        // the database
        var is_syncing = false;
+       var this_db = nedm.get_database();
        var sync = function() {
          if (is_syncing) return;
          is_syncing = true;
-         nedm.get_database().getView('slow_control_time', 'slow_control_time',
+         this_db.getView('slow_control_time', 'slow_control_time',
            { opts : {reduce : false,
                     endkey : [anobj.switch_name],
                   startkey : [anobj.switch_name, {}],
@@ -51,7 +52,7 @@
        $('.switch_class', $(avar)).on( 'change' , function (event, ui) {
          var update_doc = { type: 'data', value : {} };
          update_doc.value[anobj.switch_name] = this.value;
-         nedm.get_database().updateDoc(update_doc,
+         this_db.updateDoc(update_doc,
              'nedm_default', 'insert_with_timestamp', function(err, obj) {
                 if (err) {
                     nedm.show_error_window(err.error, err.reason);
@@ -60,7 +61,7 @@
          } );
        });
        sync();
-       nedm.get_database().on("data", sync);
+       this_db.on("data", sync);
    }
 """
 }

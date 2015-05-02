@@ -11,11 +11,12 @@
   "script" : """
     function( avar, anobj ) {
       var is_syncing = false;
+      var the_db = nedm.get_database();
       var sync = function() {
         if (is_syncing) return;
         is_syncing = true;
         var but = $('.start_stop_class', $(avar));
-        nedm.get_database().getView('slow_control_time', 'slow_control_time',
+        the_db.getView('slow_control_time', 'slow_control_time',
           { opts : {
               endkey : [anobj.process_bool_variable],
             startkey : [anobj.process_bool_variable, {}],
@@ -51,7 +52,7 @@
         nedm.send_command( { cmd_name : cmd, timeout: 10000 } );
       });
       sync();
-      nedm.get_database().on("data", sync);
+      the_db.on("data", sync);
     }
   """
 }
