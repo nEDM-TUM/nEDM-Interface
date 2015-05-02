@@ -8,6 +8,14 @@
 <div data-role="header" data-position="fixed" id="base_header" data-theme="b">
     <h1 id="nedm_header_name">nEDM Interface</h1>
     <div class='ui-btn-left left_header' data-role="controlgroup" data-type="horizontal">
+      <a href="/nedm_head/_design/page/_show/page/index" data-role='button' data-icon="home" id="homebtn">Home</a>
+      <a href="#" data-icon="bars" onClick="headerResizeFunction()"
+         data-role='button' class="ui-btn-icon-notext">Toggle sidebar</a>
+      <a href="#" data-icon="gear" data-role='button'
+         class="ui-btn-icon-notext db-status-button">Status</a>
+    </div>
+    <a href="/nedm_head/_design/nedm_head/login.html" data-rel="dialog" data-icon="check" id="loginbtn" class="ui-btn-right">Login</a>
+    <a href="#" id="logoutbtn" data-icon="delete" class="ui-btn-right">Logout</a>
       <script>
          var headerResizeFunction = function() {
            $('.content-secondary,.content-primary').each(
@@ -17,15 +25,11 @@
            );
            window.dispatchEvent(new Event('resize'));
          };
+        var __base = require("lib/nedm");
+        var nedm = new __base.nEDMDatabase();
+        $('#logoutbtn').on('click', nedm.logout);
       </script>
-      <a href="/nedm_head/_design/page/_show/page/index" data-role='button' data-icon="home" id="homebtn">Home</a>
-      <a href="#" data-icon="bars" onClick="headerResizeFunction()"
-         data-role='button' class="ui-btn-icon-notext">Toggle sidebar</a>
-      <a href="#" data-icon="gear" data-role='button'
-         class="ui-btn-icon-notext db-status-button">Status</a>
-    </div>
-    <a href="/nedm_head/_design/nedm_head/login.html" data-rel="dialog" data-icon="check" id="loginbtn" class="ui-btn-right">Login</a>
-    <a href="#" id="logoutbtn" onclick="nedm.logout()" data-icon="delete" class="ui-btn-right">Logout</a>
+
 </div>
 
 </body>
