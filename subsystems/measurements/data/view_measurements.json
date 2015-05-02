@@ -35,6 +35,7 @@
     var the_cal = $(".past_measurements", $(thediv));
     var day_importance = null;
     var changes_listener;
+    var this_db = nedm.get_database();
     var changes_since_rev = function() {
       var opts = {
         feed   : "longpoll",
@@ -43,7 +44,7 @@
         heartbeat : 5000
       };
       if (since_rev) opts.since = since_rev;
-      return nedm.get_database().changes(opts, function(err, obj) {
+      return this_db.changes(opts, function(err, obj) {
         // Handle aborts (normal)
         if (err && err.status === 0) return; 
         // Handle other errors
@@ -75,7 +76,7 @@
                          startkey : ['measurement']
                                 }
                    };
-        nedm.get_database().getView('document_type', 'document_type', tmp,
+        this_db.getView('document_type', 'document_type', tmp,
            function(err, obj) {
              day_importance = {};
              if (err) {
@@ -109,7 +110,7 @@
                  };
       Array.prototype.push.apply(tmp.opts.endkey, nedm.keyFromDate(end));
       Array.prototype.push.apply(tmp.opts.startkey, nedm.keyFromDate(begin));
-      nedm.get_database().getView('document_type', 'document_type', tmp,
+      this_db.getView('document_type', 'document_type', tmp,
          function(err, obj) {
            the_cal.removeClass('ui-disabled');
            var proc = [];
