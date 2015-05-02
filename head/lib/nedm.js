@@ -554,32 +554,6 @@ function get_database_info( callback ) {
 
 };
 
-/**
- * Helper function, gets most recent value of a variable
- *
- * @param {String} var_name - name of variable
- * @param {Function} callback(err, obj) - Typical callback from view, see
- *   DB.getView
- *
- * @api public
- */
-
-function get_most_recent_value(var_name, callback) {
-    get_database().get_most_recent_value(var_name, callback);
-};
-
-/**
- * Helper function, sends command to current database
- *
- * @param {Object} o - command, see DB.send_command
- * @return {jqXHR Object}
- * @api public
- */
-
-function send_command(o) {
-    return get_database().send_command(o);
-};
-
 
 /**
  * Show toastr error window
@@ -659,8 +633,6 @@ var to_export = {
         keyFromUTCDate : keyFromUTCDate,
         dateFromKey : dateFromKey,
         show_error_window : show_error_window,
-        send_command : send_command,
-        get_most_recent_value : get_most_recent_value,
         get_database_info : get_database_info,
         database_status : database_status,
         get_database : get_database,
@@ -673,9 +645,47 @@ var to_export = {
         MonitoringGraph : require("lib/monitoring_graph").MonitoringGraph
 };
 
-for (var k in to_export) {
-  exports[k] = to_export[k];
+function nEDMDatabase(db_name) {
+  var db_name = db_name;
+  for (var k in to_export) {
+    this[k] = to_export[k];
+  }
+  this.get_database = function(adb) {
+    if (!adb) adb = db_name;
+    return get_database(adb);
+  }
+  /**
+  * Helper function, gets most recent value of a variable
+  *
+  * @param {String} var_name - name of variable
+  * @param {Function} callback(err, obj) - Typical callback from view, see
+  *   DB.getView
+  *
+  * @api public
+  */
+
+  this.get_most_recent_value = function(var_name, callback) {
+    this.get_database().get_most_recent_value(var_name, callback);
+  };
+
+  /**
+   * Helper function, sends command to current database
+   *
+   * @param {Object} o - command, see DB.send_command
+   * @return {jqXHR Object}
+   * @api public
+   */
+
+  this.send_command = function(o) {
+      return this.get_database().send_command(o);
+  };
+
 }
+
+//for (var k in to_export) {
+//  exports[k] = to_export[k];
+//}
+exports.nEDMDatabase = nEDMDatabase;
 
 
 // Now call basic elements
