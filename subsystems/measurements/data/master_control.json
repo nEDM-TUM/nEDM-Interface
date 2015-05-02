@@ -3,6 +3,7 @@
   "type" : "control",
   "title" : "Measurements",
   "description" : "Run measurements",
+  "order" : 0,
   "protocol_types" : {
     "Command" : {
       "html" : """
