@@ -4,12 +4,25 @@
   "title" : "HeXe EDM Digitizer",
   "template" : "digitizer_control_template",
   "include_only_digitizers" : ["digitizer.2.nedm1"],
-  "channel_names" : {
-    "0" : "Squid Data 0",
-    "1" : "Squid Data 1",
-  },
-  "view_channels" : [0,1,2,3,4],
-  "save_channels" : [5,6,7],
+  "default_header_info" : {
+  			"full_scale": 20,
+  			"conversion_factor": 0.985e-9,
+  			"external_clock": True,
+  			"channel_names" : {
+    					"0" : "SQUID_X1",
+    					"1" : "SQUID_Y1",
+    					"2" : "SQUID_Z1",
+    					"3" : "SQUID_X2",
+    					"4" : "SQUID_Y2",
+    					"5" : "SQUID_Z2",
+    					"6" : "Lockin_XE",
+    					"7" : "Lockin_HE",
+    					"8" : "CH9",
+    					"9" : "CH10"
+  					}
+  			},
+  "view_channels" : [0,1,2,3,4,5,6,7],
+  "save_channels" : [0,1,2,3,4,5,6,7,8,9],
   "defaults" : """
 	function(thediv, docobj) {
 	  // Called when page loaded, we can modify the page, set defaults
@@ -26,8 +39,8 @@
       var save_chan = $('.selectSaveChannels', $(thediv)).filter(':input');
 
       // Channel names
-      for (var k in docobj.channel_names) {
-        var n = docobj.channel_names[k];
+      for (var k in docobj.default_header_info.channel_names) {
+        var n = docobj.default_header_info.channel_names[k];
         view_chan.find('option[value="' + k + '"]').text(n);
         save_chan.find('option[value="' + k + '"]').text(n);
       }

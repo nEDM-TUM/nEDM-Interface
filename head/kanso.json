@@ -21,7 +21,7 @@
     "jquery-mobile" : null, 
     "jquery-mobile-datebox" : null, 
     "toastr" : null,
-    "jquery-cookie" : null,
+    "js-cookie" : null,
     "ace" : null,
     "jqm-calendar" : null,
     "dygraph-combined" : null,

@@ -120,7 +120,7 @@
                  var d = nedm.dateFromKey(o.key);
                  var nm = o.doc.measurement_name || "(Unnamed)";
                  return {
-                   summary : nm + " : " + o.id,
+                   summary : nm + " : <span class='sub_li_header'>" + o.doc.log + "</span>",
                    doc_id  : o.id,
                    begin : d,
                    end : d
@@ -141,7 +141,7 @@
 
     var listItemFormat = function($li, ts, sum, ev) {
       var text = ts.split('-')[0] + " " + sum;
-      $('<a></a>').text( text )
+      $('<a></a>').append( text )
                   .attr( 'href', '#')
                   .data( { docid : ev.doc_id })
                   .on('click', onDateClick)
