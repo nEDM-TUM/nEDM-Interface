@@ -40,12 +40,12 @@ module.exports = [
   { "description": "Access to pages"
   , "from": "_rewrite/page/control/:foo"
   , "to"  : "_rewrite/_couchdb/:foo/_design/page/_list/controls/controls/controls"
-  , "query" : { "include_docs" : "true" }
+  , "query" : { "include_docs" : "true", "stale" : "update_after" }
   },
   { "description": "Access to pages"
   , "from": "page/control/:foo"
   , "to"  : "_rewrite/_couchdb/:foo/_design/page/_list/controls/controls/controls"
-  , "query" : { "include_docs" : "true" }
+  , "query" : { "include_docs" : "true", "stale" : "update_after" }
   },
   { "description": "Access to pages"
   , "from": "page/monitor/*"
