@@ -15,7 +15,7 @@
          class="ui-btn-icon-notext db-status-button">Status</a>
     </div>
     <a href="/nedm_head/_design/nedm_head/login.html" data-rel="dialog" data-icon="check" id="loginbtn" class="ui-btn-right">Login</a>
-    <a href="#" id="logoutbtn" data-icon="delete" class="ui-btn-right">Logout</a>
+    <a href="#" id="logoutbtn" data-icon="delete" onClick="logout()" class="ui-btn-right">Logout</a>
       <script>
          var headerResizeFunction = function() {
            $('.content-secondary,.content-primary').each(
@@ -25,9 +25,7 @@
            );
            window.dispatchEvent(new Event('resize'));
          };
-        var __base = require("lib/nedm");
-        var nedm = new __base.nEDMDatabase();
-        $('#logoutbtn').on('click', nedm.logout);
+         var logout = require("session").logout;
       </script>
 
 </div>
