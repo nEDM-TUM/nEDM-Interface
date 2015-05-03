@@ -56,6 +56,9 @@ function(doc, req) {
     };
   }
   var db_name = req.info.db_name.replace('/', '%2F');
+  if (req.requested_path.length > 1) {
+    db_name = req.requested_path[req.requested_path.length-1].replace('/', '%2F');
+  }
   var html =  this.header_intro;
   html += "<body class='ui-mobile-viewport ui-overlay-c'>";
   var aclass = "";
