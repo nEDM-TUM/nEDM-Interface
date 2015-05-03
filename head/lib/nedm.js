@@ -151,6 +151,44 @@ function UpdateHeader(ev, ui) {
 
 }
 
+
+var $sidebar;
+function GetSidebar( dbs, callback) {
+  if ($sidebar) {
+    callback($sidebar);
+    return;
+  }
+  get_database("nedm_head").getDoc("sidebar", function(e, o ) {
+      if (e) return;
+      $sidebar = $('<div/>');
+      $sidebar.append(o.body);
+      if (using_prefix !== '/') {
+        $('.overview,.alarms', $sidebar).each( function() {
+          var ln = $(this);
+          ln.attr('href', using_prefix + ln.attr('href'));
+        });
+      }
+      var db_list = $('.all_dbs_list_class', $sidebar);
+      for(var key in dbs) {
+          var esc_name = "nedm%2F" + key;
+          var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
+                     .append($("<h3/>").append(dbs[key].prettyname));
+          var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
+          if ("pages" in dbs[key]) {
+              for(var pg in dbs[key].pages) {
+                  var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
+                  ul.append($('<li/>').append($('<a/>').attr( { href : using_prefix + 'page/' + pg_name + '/' + esc_name } )
+                                                       .append(pg)));
+              }
+          }
+          html.append(ul);
+          db_list.append(html);
+      }
+      callback($sidebar);
+  });
+
+}
+
 /**
  * Builds database list (subsystems)
  *
@@ -160,40 +198,14 @@ function UpdateHeader(ev, ui) {
  */
 
 function BuildDBList(ev, id) {
-   get_database_info( function( x, y ) { return function( dbs ) {
-       get_database("nedm_head").getDoc("sidebar", function(e, o ) {
-           if (e) return;
-           var listDBs = (x) ? $(x.target).find('.listofdbs') : $('.listofdbs');
+   var listDBs = (ev) ? $(ev.target).find('.listofdbs') : $('.listofdbs');
+   get_database_info( function( dbs ) {
+       GetSidebar( dbs, function($asid) {
            listDBs.empty();
-           listDBs.append(o.body);
-           if (using_prefix !== '/') {
-             ['overview', 'alarms'].forEach(function(x) {
-               var ln = $('.' + x, $(listDBs));    
-               if (ln.data("changed")) return;
-               ln.attr('href', using_prefix + ln.attr('href'));
-               ln.data({changed : true});
-             });
-           }
-           var db_list = $('.all_dbs_list_class', $(listDBs));
-           for(var key in dbs) {
-               var esc_name = "nedm%2F" + key;
-               var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
-                          .append($("<h3/>").append(dbs[key].prettyname));
-               var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
-               if ("pages" in dbs[key]) {
-                   for(var pg in dbs[key].pages) {
-                       var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
-                       ul.append($('<li/>').append($('<a/>').attr( { href : using_prefix + 'page/' + pg_name + '/' + esc_name } )
-                                                            .append(pg)));
-                   }
-               }
-               html.append(ul);
-               db_list.append(html);
-           }
-
-           listDBs.trigger("create");
+           listDBs.append($asid.clone());
+           listDBs.trigger('create');
        });
-   };}(ev,id));
+   });
 }
 
 
@@ -343,6 +355,7 @@ function registerUser(un, pw, tryLogin, callback) {
 // Register handling changes in the session
 session.on('change', function(userCtx) {
     cookie.remove('db_info', { path : '/' });
+    $sidebar = null;
     SetUserName(userCtx);
     ListenToDBChanges();
     UpdateButtons();
@@ -488,7 +501,6 @@ function database_status( ) {
 var db_info_is_called = false;
 var db_info_cb_list = [];
 function get_database_info( callback ) {
-    if (!logged_in_as) return;
     if ( callback ) {
        db_info_cb_list.push(callback);
     }
