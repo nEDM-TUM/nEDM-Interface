@@ -94,7 +94,7 @@
                   </div>
                   <div class='ui-block-b'>
                     <button class='set_value_class set_guide_coil_cur'>Set Guide coil Current (A)</button>
-                  </div>'ge/slowcontrol/nedm/hexe_edm
+                  </div>
                 </div>
                 <div data-role='fieldcontain'>
                     <div class='ui-grid-a'>
@@ -194,7 +194,7 @@
         for (var va in vars) {
             nedm.get_database('hexe_edm').get_most_recent_value(va.v, post_value(va));
         }
-        time_out = setTimeout(sync_vars, 5000);
+        time_out = setTimeout(sync_vars, 2000);
     }
 
     var refresh_all = function() {
