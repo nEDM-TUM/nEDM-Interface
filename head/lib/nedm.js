@@ -297,16 +297,6 @@ function CheckUserStatus(callback) {
 }
 
 /**
- * Logout from server
- *
- * @api public
- */
-
-function logout() {
-    session.logout();
-}
-
-/**
  * Login to server
  *
  * @param {String} un - username
@@ -651,7 +641,6 @@ var to_export = {
         get_current_db_name : get_current_db_name,
         registerUser : registerUser,
         validate : validate,
-        logout : logout,
         remove_db_updates : remove_db_updates,
         on_db_updates : on_db_updates,
         MonitoringGraph : require("lib/monitoring_graph").MonitoringGraph
