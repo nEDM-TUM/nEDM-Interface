@@ -497,7 +497,7 @@ function get_database_info( callback ) {
 
     var db_info_cookie = cookie.get('db_info');
     if (db_info_cookie) {
-        db_info_cb_list.forEach( function(o) { o(db_info_cookie); } ); 
+        db_info_cb_list.forEach( function(o) { o(db_info_cookie); } );
         db_info_cb_list = [];
         db_info_is_called = false;
         return;
@@ -520,11 +520,11 @@ function get_database_info( callback ) {
     }
 
     $.ajax({
-          url : '/nedm_head/_design/nedm_head/_rewrite/_couchdb/_all_dbs', 
+          url : '/nedm_head/_design/nedm_head/_rewrite/_couchdb/_all_dbs',
      dataType : "json",
      statusCode : {
        401: function() { console.log("401 error seen."); }
-       }, 
+       },
        success: function(data) {
         var patt = /^nedm\//;
         var db_infos = [];
@@ -704,7 +704,7 @@ $(document).on('mobileinit', function() {
     ud.on_cloudant(true);
   } else {
     ud.on_cloudant(false);
-     
+
   }
   $(document).on('pageinit', function(x, y) {
       UpdateHeader(x, y);
