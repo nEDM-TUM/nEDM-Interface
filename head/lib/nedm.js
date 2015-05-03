@@ -350,7 +350,6 @@ session.on('change', function(userCtx) {
     ListenToDBChanges();
     UpdateButtons();
     BuildDBList();
-    database_status();
 });
 
 /**
@@ -435,9 +434,7 @@ function DatabaseStatus() {
 
    on_db_updates( UpdateFunction );
 
-   var _table_built = false;
    function db_stat( all_dbs ) {
-       if (_table_built) return;
        var tbody = $(".status_db_class tbody");
        tbody.empty();
        for (var adb in all_dbs) {
@@ -454,7 +451,6 @@ function DatabaseStatus() {
              heartbeat : setTimeout(ResetToRed($('.' + adb + ' .control_status')), 10000)
            };
        }
-       _table_built = true;
    }
    this.build_table = function() {
      get_database_info( db_stat );
