@@ -173,7 +173,11 @@
     var last_sync = new Date();
     var clock_text = $('.last_checked');
     var time_out = null;
-    var vars = [{v : 'oven_temp1', id: 'oven_temp1'}, {v: 'oven_temp2', id: 'oven_temp2'}, {v: 'laser_current', id: 'laser_current'}, {v: 'gas_pres', id: 'gas_pres'}];
+    var oven_temp1 = '0';
+    var oven_temp2 = '0';
+    var laser_current = '0';
+    var gas_system_pressure = '0';
+    var vars = [{value:oven_temp1, name:'oven_temp1'}, {value:oven_temp2, name:'oven_temp2'}, {value:laser_current, name:'laser_current'}, {value:gas_system_pressure, name:'gas_pres'}];
 
     var run_clock = function() {
         var time_diff = Math.round(((new Date()) - last_sync)/1000);
@@ -185,14 +189,14 @@
         return function(e, o) {
         if (e !== null) {
           return;}
-        $('.' + x.id).val(x.v);
+        $('.' + x.name).val(x.value);
         last_sync = new Date();
         };
     };
 
     function sync_vars() {
-        for (var va in vars) {
-            nedm.get_database('hexe_edm').get_most_recent_value(va.v, post_value(va));
+        for (var v in vars) {
+            nedm.get_database('hexe_edm').get_most_recent_value(vars[v].value, post_value(vars[v]));
         }
         time_out = setTimeout(sync_vars, 2000);
     }
