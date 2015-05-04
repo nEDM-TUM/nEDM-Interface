@@ -86,8 +86,27 @@ which is accessible with the normal TUM VPN.
 }
 ```
 Swap out UN and PW (standard nEDM read-only values)
+
 1. Add continuous replication for your DB of choice (e.g. `nedm/cs_laser`),
-by modifying the above as necessary and submitting a new document.
+by modifying the above as necessary and submitting a new document.  The filter
+field ensures that only data documents are replicated, which is generally what
+you want.
+```
+{
+  "owner" : "your_id",
+  "source" : "http://UN:PW@10.155.59.15:5984/nedm%2Fcs_laser",
+  "target" : "nedm/cs_laser",
+  "continuous" : true,
+  "filter" : "nedm_default/doc_type",
+  "query_params" : {
+    "type" : "data"
+  },
+  "user_ctx" : {
+    "name" : "your_id",
+    "roles" : [ "_admin"]
+  }
+}
+```
 
 
 
