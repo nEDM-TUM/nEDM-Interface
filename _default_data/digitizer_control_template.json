@@ -154,6 +154,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           connectSeparatedPoints: true,
           labels: ["time (ms)"]
       });
+      $( ":mobile-pagecontainer" ).on( "pagecontainershow", function( ev, ui ) {
+        if (ui.toPage[0] !== theCurrentPage[0]) return;
+        g.resize();
+      });
       $(".show_plot", $(thediv)).data({plot : g});
       var shouldStop = false;
       var x = null;
