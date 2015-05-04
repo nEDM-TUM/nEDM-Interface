@@ -90,7 +90,13 @@ Swap out UN and PW (standard nEDM read-only values)
 1. Add continuous replication for your DB of choice (e.g. `nedm/cs_laser`),
 by modifying the above as necessary and submitting a new document.  The filter
 field ensures that only data documents are replicated, which is generally what
-you want.
+you want.  To get only the results *since now*, grab the recent `update_seq`
+number, e.g.: 
+```
+> curl  "http://UN:PW@10.155.59.15:5984/nedm%2Fcs_laser" 
+{"db_name":"nedm/cs_laser","doc_count":4558162,"doc_del_count":242,"update_seq":4558974,"purge_seq":0,"compact_running":false,"disk_size":1415667831,"data_size":1393833154,"instance_start_time":"1429621582837885","disk_format_version":6,"committed_update_seq":4558974}
+```
+and input it into your replication `since_seq`.
 ```
 {
   "owner" : "your_id",
@@ -101,6 +107,7 @@ you want.
   "query_params" : {
     "type" : "data"
   },
+  "since_seq" : 4558974,
   "user_ctx" : {
     "name" : "your_id",
     "roles" : [ "_admin"]
