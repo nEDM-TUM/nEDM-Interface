@@ -15,17 +15,47 @@
   <style> .center { text-align: center; } </style>
   </head>
 """,
-  "define_script" : """
-  exports.define = function(ascript, db_name) {
-    var to_return = "\\n<script type='text/javascript'><!--\\n(function() {\\n";
+  "define" : """
+  exports.define = function(me, doc, raw_db_name) {
+    var script = (doc.script || "").trim();
+    var db_name = raw_db_name.replace('/', '%2F');
+    var jQ_db_name = raw_db_name.replace('/', '-');
     var adb = "'" + db_name + "'";
     if (!db_name) adb = undefined;
-    to_return += "var __base = require('lib/nedm');\\n";
-    to_return += "var nedm = new __base.nEDMDatabase(" + adb + ");\\n";
-    to_return += (ascript || "").trim();
-    to_return += "})();// --></script>";
-    return to_return;
-};
+    var page_cl = "";
+    if (doc.page_class) {
+       page_cl = "class='" + doc.page_class + "'";
+    }
+    var page_name = jQ_db_name + '-' + doc._id;
+    this.define_script = function(another_script) {
+      var the_script = (another_script || script).trim();
+      if (the_script === "") return "";
+      var to_return = "\\n<script type='text/javascript'><!--\\n(function() {\\n";
+      to_return += "var __base = require('lib/nedm');\\n";
+      to_return += "var nedm = new __base.nEDMDatabase(" + adb + ");\\n";
+      to_return += "var theCurrentPage = $('#" + page_name + "');\\n";
+      to_return += the_script;
+      to_return += "})();// --></script>";
+      return to_return;
+    };
+    this.define_header = function() {
+      var html =  me.header_intro;
+      html += "<body class='ui-mobile-viewport ui-overlay-c'>";
+      html += "<div data-role='page' " + page_cl + " id='" + page_name + "'>";
+      html += me.primary_content;
+      return html;
+    };
+    this.define_footer = function() {
+      var html = "</div>"; // Primary content
+      html += me.secondary_content;
+      html += "</div>"; // content
+      html += doc.footer || "";
+      html += this.define_script();
+      html += "</div>"; // data-role=page
+      html += "</body></html>";
+      return html;
+    };
+  };
 """,
   "primary_content" : """
     <div class='headerChild'>
@@ -61,24 +91,15 @@ function(doc, req) {
       }
     };
   }
-  var db_name = req.info.db_name.replace('/', '%2F');
+  var db_name = req.info.db_name;
   if (req.query.db) {
-    db_name = req.query.db.replace('/', '%2F');
+    db_name = req.query.db;
   }
-  var html =  this.header_intro;
-  html += "<body class='ui-mobile-viewport ui-overlay-c'>";
-  var aclass = "";
-  if (doc.page_class) aclass = "class='" + doc.page_class + "'";
-  html += "<div data-role='page' " + aclass + ">";
-  html += this.primary_content;
+  var __base = require("define");
+  var def = new __base.define(this, doc, db_name);
+  var html =  def.define_header();
   html += doc.body || "Ill-formed page";
-  html += "</div>"; // Primary content
-  html += this.secondary_content;
-  html += "</div>"; // content
-  html += doc.footer || "";
-  html += require("define_script").define(doc.script, db_name);
-  html += "</div>"; // data-role=page
-  html += "</body></html>";
+  html += def.define_footer();
   return { body : html };
 }
 """
@@ -87,7 +108,9 @@ function(doc, req) {
     "controls" : """
 function(head, req) {
   var db_name = req.info.db_name.replace('/', '-');
-  var real_db_name = req.info.db_name.replace('/', '%2F');
+  var real_db_name = req.info.db_name;
+  var __base = require("define");
+  var def = new __base.define(this, { _id : "control_page_" + db_name }, real_db_name);
   var template_func = function(obj) {
       var tag_name = obj._id + "_" + db_name;
       var template = "<div id='control_" + tag_name + "'>";
@@ -95,18 +118,16 @@ function(head, req) {
       template += "<a href='#help" + obj._id + "' data-rel='popup'  data-role='button' class='ui-icon-alt'";
       template += " data-inline='true' data-transition='pop' data-icon='info' data-theme='e' data-iconpos='notext'>Help</a>";
       template += "<div data-role='popup' id='help" + tag_name + "'><p>" + obj.description + "</p></div></div>";
-      var script = "$('#control_page_" + db_name + "').on('pagecreate', function() {";
+      var script = "theCurrentPage.on('pagecreate', function() {";
       script += "(" + obj.script.trim() + ")($('#control_"+ tag_name + "'),";
       delete obj.html;
       delete obj.script;
       script += JSON.stringify(obj) + ");});";
-      return template + require("define_script").define(script, real_db_name);
+      return template + def.define_script(script);
   };
   provides("html", function() {
-    send(this.header_intro);
-    send("<body class='ui-mobile-viewport ui-overlay-c'>");
-    send("<div data-role='page' id='control_page_" + db_name + "'>");
-    send(this.primary_content);
+    send(def.define_header());
+
     // Now finally to the rows
     var last_template;
     while( (row = getRow()) ) {
@@ -129,9 +150,7 @@ function(head, req) {
       send(template_func(new_doc));
       last_template = null;
     }
-    send("</div>"); // content primary
-    send(this.secondary_content);
-    send("</div></div></body></html>");
+    send(def.define_footer());
   });
 
 }
