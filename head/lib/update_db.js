@@ -466,7 +466,7 @@ function UpdateDBInterface(db) {
       var ret_function = function(err, resp) {
         if (err) {
           if (callback) callback(err);
-          if (!quiet) nedm.show_error_window(err.error, err.reason);
+          if (!quiet) toastr.error(err.reason, err.error);
         } else {
           if (callback) callback(null, resp);
           if (!quiet) toastr.success(resp.toastr.msg, resp.toastr.title);
@@ -580,6 +580,8 @@ function UpdateDBInterface(db) {
       _callback_emitters.emit("both", msg);
     }
 
+    var __base = require('lib/nedm');
+    var nedm = new __base.nEDMDatabase();
     db.on = function(type, callback) {
       if (!callback) {
         callback = type;

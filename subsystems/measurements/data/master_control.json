@@ -3,6 +3,7 @@
   "type" : "control",
   "title" : "Measurements",
   "description" : "Run measurements",
+  "order" : 0,
   "protocol_types" : {
     "Command" : {
       "html" : """
@@ -11,7 +12,7 @@
                 <h5>Name:</h5>
                 <h5>Argument(s):</h5>
               </div>
-             <div class='ui-block-b'>
+              <div class='ui-block-b'>
                 <select class='cmd_name'></select>
                 <input type="text" class='all_args'>
                 <div data-role='collapsible'>
@@ -24,7 +25,6 @@
                 </div>
               </div>
             </div>
-
       """,
       "object" : """
       function() {
@@ -193,7 +193,7 @@
                   </div>
                   <div class='protocol_settings'></div>
                   <div>
-                    <p><span class="bolded_font">Status: </span><pre class="status_output"></pre></p>
+                    <span class="bolded_font">Status: </span><pre class="status_output"></pre>
                   </div>
               </div>
             </div>
@@ -223,7 +223,8 @@
         <div data-role="collapsible" class="alldoc__collapsible">
           <h2>All information</h2>
           <div align='left'>
-            <div class="alldoc code_editor"/>
+            <div class="alldoc code_editor">
+            </div>
           </div>
         </div>
 
@@ -269,6 +270,7 @@
       var line_clone = $('.protocol_clone', $(thediv)).clone();
       var prot_sel = $('.protocol_type', $(line_clone));
       var command_obj = {};
+      var this_db = nedm.get_database();
 
       // Database cache, caches the available databases
       function DatabaseCache() {
@@ -485,7 +487,7 @@
 
           if (file_obj.data('uploaded')) {
             // Try to delete it...
-            nedm.get_database().removeAttachment(
+            this_db.removeAttachment(
               { _id : $(thediv).data('current_doc') },
               file_obj.text(),
               function(err, obj) {
@@ -606,13 +608,13 @@
                 }
                 curr_progress.val(100);
                 set_uploaded(curr_obj.obj,
-                  nedm.get_database().url+"/" + doc._id+"/"+curr_obj.obj.text());
+                  this_db.url+"/" + doc._id+"/"+curr_obj.obj.text());
                 i += 1;
                 add_next_file(doc);
               };
           }
 
-          nedm.get_database().addAttachment(doc,
+          this_db.addAttachment(doc,
             curr_obj.file, new Callbacks());
         };
         add_next_file(the_doc);
@@ -682,7 +684,7 @@
               tthis.siblings('.ui-checkbox').find(':input').is(':checked')) {
               adoc._id = $(thediv).data('current_doc');
             }
-            nedm.get_database().updateDoc(adoc,
+            this_db.updateDoc(adoc,
               'nedm_default', 'insert_with_timestamp',
               {
                 success : function(err, obj) {
@@ -691,7 +693,7 @@
                     nedm.show_error_window("Error loading document");
                     return;
                   }
-                  nedm.get_database().getDoc(obj.id,
+                  this_db.getDoc(obj.id,
                     function(e, o) {
                       if (e) {
                         nedm.show_error_window("Error reloading document");
@@ -731,7 +733,7 @@
             var cur = $('.add_files_class', $(thediv));
             add_file_fn( { currentTarget : cur },
                { name : k,
-                 href : nedm.get_database().url+"/" + obj._id+"/"+k });
+                 href : this_db.url+"/" + obj._id+"/"+k });
           }
         }
         $('.set_measurement_name', $(thediv))
@@ -740,7 +742,7 @@
         save_id(obj._id);
       };
       var load_with_docid = function(doc_id) {
-        nedm.get_database().getDoc(doc_id,
+        this_db.getDoc(doc_id,
           function(err, obj) {
             if (err) {
               nedm.show_error_window("Document not found: " + doc_id);

@@ -22,8 +22,9 @@
             </div>
 """,
   "script" : """
-      $(".index_class").on("pageinit", function() {
+      $(".index_class").on("pagecreate", function() {
         nedm.database_status();
+        require("session").on("change", nedm.database_status);
       });
 """
 }

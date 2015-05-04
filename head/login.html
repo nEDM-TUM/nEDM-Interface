@@ -36,6 +36,8 @@
         <a href="#" data-role="button" data-theme="b"  class="submitLogin" data-inline="true">Login</a>
         <p id="warningText" style="color:red;"></p>
         <script type="text/javascript">
+        var __base = require("lib/nedm");
+        var nedm = new __base.nEDMDatabase();
         function login_callback(success) {
             if (success) {
                 history.back();
