@@ -34,30 +34,34 @@ module.exports = [
   , "query" : { "db" : ":bar", "requested_doc" : ":atype" }
   },
   { "description": "Access to pages"
-  , "from": "_rewrite/page/monitor/*"
+  , "from": "page/monitor/:foo"
   , "to"  : "_rewrite/_db/_design/page/_show/page/monitor"
+  , "query" : { "db" : ":foo" }
+  },
+  { "description": "Access to pages"
+  , "from": "_rewrite/page/monitor/:foo"
+  , "to"  : "_rewrite/_db/_design/page/_show/page/monitor"
+  , "query" : { "db" : ":foo" }
   },
   { "description": "Access to pages"
   , "from": "_rewrite/page/control/:foo"
   , "to"  : "_rewrite/_couchdb/:foo/_design/page/_list/controls/controls/controls"
-  , "query" : { "include_docs" : "true", "stale" : "update_after" }
+  , "query" : { "include_docs" : "true", "stale" : "update_after", "db" : ":foo"}
   },
   { "description": "Access to pages"
   , "from": "page/control/:foo"
   , "to"  : "_rewrite/_couchdb/:foo/_design/page/_list/controls/controls/controls"
-  , "query" : { "include_docs" : "true", "stale" : "update_after" }
+  , "query" : { "include_docs" : "true", "stale" : "update_after", "db" : ":foo" }
   },
-  { "description": "Access to pages"
-  , "from": "page/monitor/*"
-  , "to"  : "_rewrite/_db/_design/page/_show/page/monitor"
-  },
-  { "description": "Access to system pages"
+  { "description": "Access to generic pages"
   , "from": "_rewrite/page/:page/:foo"
   , "to"  : "_rewrite/_couchdb/:foo/_design/page/_show/page/:page"
+  , "query" : { "db" : ":foo" }
   },
   { "description": "Access to generic pages"
   , "from": "page/:page/:foo"
   , "to"  : "_rewrite/_couchdb/:foo/_design/page/_show/page/:page"
+  , "query" : { "db" : ":foo" }
   },
   { "description": "Access to pages"
   , "from": "page/:foo"
