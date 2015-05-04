@@ -121,25 +121,21 @@ interface looks for documents of type "control", e.g.:
     doc = {
         "_id": "name_of_control",         # Required
         "type" : "control",               # Required
-        "html" : "...",                   # Optional, gives html that will be
+        "html" : """...""",               # Optional, gives html that will be
                                           # used to show control
 
-        "pageevents" : {                  # Optional, allows functions to be
-                                          # called on page events.  This is
-                                          # useful, for example, to call
-                                          # shutdown functions.  Allowed events
-                                          # are those given in the
-                                          # jquery-mobile framework.  Takes
-                                          # javascript.
-
-            "pagehide" : " javascript"
-        },
-        "script" : "javascript script",   # Script that will be run during
-                                          # loading of the controls on the
-                                          # webpage.
-
-        ...
+        "script" : """                    # Script that will be run during
+  function($theDOM, docobj) {             # loading of the controls on the
+	...                                   # webpage (during the jQuery-Mobile
+										  # event 'pagecreate').  '$theDOM' is
+										  # the DOM object }""" where the
+										  # control is inserted.  'docobj' is
+										  # the JSON document inserted in to
+										  # the DB, allowing customization
+										  # based upon fields in the JSON.
     }
+"""
+}
 
 
 There are several templates that one can derive from by using
@@ -153,6 +149,6 @@ doc = {
 ```
 
 This allows users to specify that this is e.g. a switch type.  See the various
-template objects in head/data/*.json.  There is further documentation in that
+template objects in _default_data/*.json.  There is further documentation in that
 directory.
 
