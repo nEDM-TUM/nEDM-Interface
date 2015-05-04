@@ -10,6 +10,21 @@
     "Restart dmn" : [ "service", "rspby", "restart" ],
     "User def" : ""
   },
+  "code_template" : """
+    <div align='left' data-role='collapsible' class='code_sample'>
+       <h3><span class='doc_name'>(Not saved)</span></h3>
+       <h5>Name:</h5>
+       <input type='text' class='code_name' value='Unique name'>
+       <h5>Code:</h5>
+       <div class='code_editor'># Fill the following with python code</div>
+       <div data-role='fieldcontain'>
+         <fieldset data-role='controlgroup' data-type='horizontal'>
+            <button class='ui-btn ui-corner-all save_code'>Save</button>
+            <button class='ui-btn ui-corner-all remove_code'>Remove</button>
+         </fieldset>
+       </div>
+    </div>
+""",
   "html" : """
 <div>
     <div>
@@ -83,24 +98,11 @@
             </div>
         </div>
     </div>
-    <div align='left' data-role='collapsible' class='arduino_edit_template' style='display:none;'>
-       <h3><span class='doc_name'>(Not saved)</span></h3>
-       <h5>Name:</h5>
-       <input type='text' class='code_name' value='Unique name'>
-       <h5>Code:</h5>
-       <div class='code_editor'># Fill the following with python code</div>
-       <div data-role='fieldcontain'>
-         <fieldset data-role='controlgroup' data-type='horizontal'>
-            <button class='ui-btn ui-corner-all save_code'>Save</button>
-            <button class='ui-btn ui-corner-all remove_code'>Remove</button>
-         </fieldset>
-       </div>
-    </div>
 </div>""",
 "script" : """
     function(thediv, docobj) {
       var toastr = require("toastr");
-      var to_clone = $('.arduino_edit_template', $(thediv)).clone();
+      var to_clone = docobj.code_template; 
       var ac = $('.all_avail_code', $(thediv));
       var ard_select = $('.arduino_select', $(thediv)).filter(':input');
       var update_timeout;
@@ -115,7 +117,7 @@
                $('.code_editor', $(new_code)).text(adoc.code);
              }
              $('.doc_name', $(new_code)).text("Saved: (" + adoc._id + ", " + adoc._rev + ")");
-             new_code.data({ doc : adoc });
+             $(new_code).data({ doc : adoc });
           }
       };
 
@@ -170,20 +172,18 @@
 
       };
       var add_new_code = function(ev, adoc, tag) {
-          var new_code = to_clone.clone();
-          new_code.removeClass('arduino_edit_template').addClass('code_sample');
-          new_code.show();
+          var new_code = $.parseHTML(to_clone.trim());
           update_div_with_code( new_code, adoc);
           editor = ace.edit($('.code_editor', $(new_code))[0]);
           editor.getSession().setMode('ace/mode/python');
           editor.setTheme('ace/theme/xcode');
-          new_code.data({ editor : editor });
 
           $('.remove_code', $(new_code)).on('click', remove_code);
           $('.save_code', $(new_code)).on('click', save_code);
-          new_code.data( { editor : editor,
+          $(new_code).data( { editor : editor,
                               tag : tag || $('.arduino_select :selected').val() });
           ac.append(new_code);
+          ac.trigger('create');
           ac.collapsibleset('refresh');
       };
       var update_current_code = function(ev) {
