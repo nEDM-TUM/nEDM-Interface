@@ -233,7 +233,7 @@
 
     function sync_vars() {
         for (var v in vars) {
-            nedm.get_database('hexe_edm').get_most_recent_value(vars[v].value, post_value(vars[v]));
+            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(vars[v].value, post_value(vars[v]));
         }
         time_out = setTimeout(sync_vars, 2000);
     }
@@ -352,7 +352,7 @@
 
     var check_for_changes = function(obj){
         if (obj.db == 'hexe_edm' && obj.type == 'data') {
-            nedm.get_database('hexe_edm').get_most_recent_value('laser_status', check_laser_status);
+            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('laser_status', check_laser_status);
         }
     };
 
