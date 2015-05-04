@@ -151,6 +151,44 @@ function UpdateHeader(ev, ui) {
 
 }
 
+
+var $sidebar;
+function GetSidebar( dbs, callback) {
+  if ($sidebar) {
+    callback($sidebar);
+    return;
+  }
+  get_database("nedm_head").getDoc("sidebar", function(e, o ) {
+      if (e) return;
+      $sidebar = $('<div/>');
+      $sidebar.append(o.body);
+      if (using_prefix !== '/') {
+        $('.overview,.alarms', $sidebar).each( function() {
+          var ln = $(this);
+          ln.attr('href', using_prefix + ln.attr('href'));
+        });
+      }
+      var db_list = $('.all_dbs_list_class', $sidebar);
+      for(var key in dbs) {
+          var esc_name = "nedm%2F" + key;
+          var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
+                     .append($("<h3/>").append(dbs[key].prettyname));
+          var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
+          if ("pages" in dbs[key]) {
+              for(var pg in dbs[key].pages) {
+                  var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
+                  ul.append($('<li/>').append($('<a/>').attr( { href : using_prefix + 'page/' + pg_name + '/' + esc_name } )
+                                                       .append(pg)));
+              }
+          }
+          html.append(ul);
+          db_list.append(html);
+      }
+      callback($sidebar);
+  });
+
+}
+
 /**
  * Builds database list (subsystems)
  *
@@ -160,40 +198,14 @@ function UpdateHeader(ev, ui) {
  */
 
 function BuildDBList(ev, id) {
-   get_database_info( function( x, y ) { return function( dbs ) {
-       get_database("nedm_head").getDoc("sidebar", function(e, o ) {
-           if (e) return;
-           var listDBs = (x) ? $(x.target).find('.listofdbs') : $('.listofdbs');
+   var listDBs = (ev) ? $(ev.target).find('.listofdbs') : $('.listofdbs');
+   get_database_info( function( dbs ) {
+       GetSidebar( dbs, function($asid) {
            listDBs.empty();
-           listDBs.append(o.body);
-           if (using_prefix !== '/') {
-             ['overview', 'alarms'].forEach(function(x) {
-               var ln = $('.' + x, $(listDBs));    
-               if (ln.data("changed")) return;
-               ln.attr('href', using_prefix + ln.attr('href'));
-               ln.data({changed : true});
-             });
-           }
-           var db_list = $('.all_dbs_list_class', $(listDBs));
-           for(var key in dbs) {
-               var esc_name = "nedm%2F" + key;
-               var html = $('<div/>').attr({ 'data-role' : 'collapsible'})
-                          .append($("<h3/>").append(dbs[key].prettyname));
-               var ul = $('<ul/>').attr( { 'data-role' : 'listview', 'data-inset' : 'false' } );
-               if ("pages" in dbs[key]) {
-                   for(var pg in dbs[key].pages) {
-                       var pg_name = /(.*)\.[^.]+$/.exec(dbs[key].pages[pg])[1];
-                       ul.append($('<li/>').append($('<a/>').attr( { href : using_prefix + 'page/' + pg_name + '/' + esc_name } )
-                                                            .append(pg)));
-                   }
-               }
-               html.append(ul);
-               db_list.append(html);
-           }
-
-           listDBs.trigger("create");
+           listDBs.append($asid.clone());
+           listDBs.trigger('create');
        });
-   };}(ev,id));
+   });
 }
 
 
@@ -285,16 +297,6 @@ function CheckUserStatus(callback) {
 }
 
 /**
- * Logout from server
- *
- * @api public
- */
-
-function logout() {
-    session.logout();
-}
-
-/**
  * Login to server
  *
  * @param {String} un - username
@@ -343,11 +345,11 @@ function registerUser(un, pw, tryLogin, callback) {
 // Register handling changes in the session
 session.on('change', function(userCtx) {
     cookie.remove('db_info', { path : '/' });
+    $sidebar = null;
     SetUserName(userCtx);
     ListenToDBChanges();
     UpdateButtons();
     BuildDBList();
-    database_status();
 });
 
 /**
@@ -432,9 +434,7 @@ function DatabaseStatus() {
 
    on_db_updates( UpdateFunction );
 
-   var _table_built = false;
    function db_stat( all_dbs ) {
-       if (_table_built) return;
        var tbody = $(".status_db_class tbody");
        tbody.empty();
        for (var adb in all_dbs) {
@@ -451,7 +451,6 @@ function DatabaseStatus() {
              heartbeat : setTimeout(ResetToRed($('.' + adb + ' .control_status')), 10000)
            };
        }
-       _table_built = true;
    }
    this.build_table = function() {
      get_database_info( db_stat );
@@ -488,7 +487,6 @@ function database_status( ) {
 var db_info_is_called = false;
 var db_info_cb_list = [];
 function get_database_info( callback ) {
-    if (!logged_in_as) return;
     if ( callback ) {
        db_info_cb_list.push(callback);
     }
@@ -497,7 +495,7 @@ function get_database_info( callback ) {
 
     var db_info_cookie = cookie.get('db_info');
     if (db_info_cookie) {
-        db_info_cb_list.forEach( function(o) { o(db_info_cookie); } ); 
+        db_info_cb_list.forEach( function(o) { o(db_info_cookie); } );
         db_info_cb_list = [];
         db_info_is_called = false;
         return;
@@ -520,11 +518,11 @@ function get_database_info( callback ) {
     }
 
     $.ajax({
-          url : '/nedm_head/_design/nedm_head/_rewrite/_couchdb/_all_dbs', 
+          url : '/nedm_head/_design/nedm_head/_rewrite/_couchdb/_all_dbs',
      dataType : "json",
      statusCode : {
        401: function() { console.log("401 error seen."); }
-       }, 
+       },
        success: function(data) {
         var patt = /^nedm\//;
         var db_infos = [];
@@ -552,32 +550,6 @@ function get_database_info( callback ) {
     });
 
 
-};
-
-/**
- * Helper function, gets most recent value of a variable
- *
- * @param {String} var_name - name of variable
- * @param {Function} callback(err, obj) - Typical callback from view, see
- *   DB.getView
- *
- * @api public
- */
-
-function get_most_recent_value(var_name, callback) {
-    get_database().get_most_recent_value(var_name, callback);
-};
-
-/**
- * Helper function, sends command to current database
- *
- * @param {Object} o - command, see DB.send_command
- * @return {jqXHR Object}
- * @api public
- */
-
-function send_command(o) {
-    return get_database().send_command(o);
 };
 
 
@@ -659,23 +631,58 @@ var to_export = {
         keyFromUTCDate : keyFromUTCDate,
         dateFromKey : dateFromKey,
         show_error_window : show_error_window,
-        send_command : send_command,
-        get_most_recent_value : get_most_recent_value,
         get_database_info : get_database_info,
         database_status : database_status,
         get_database : get_database,
         get_current_db_name : get_current_db_name,
         registerUser : registerUser,
         validate : validate,
-        logout : logout,
         remove_db_updates : remove_db_updates,
         on_db_updates : on_db_updates,
         MonitoringGraph : require("lib/monitoring_graph").MonitoringGraph
 };
 
-for (var k in to_export) {
-  exports[k] = to_export[k];
+function nEDMDatabase(db_name) {
+  var db_name = db_name;
+  for (var k in to_export) {
+    this[k] = to_export[k];
+  }
+  this.get_database = function(adb) {
+    if (!adb) adb = db_name;
+    return get_database(adb);
+  }
+  /**
+  * Helper function, gets most recent value of a variable
+  *
+  * @param {String} var_name - name of variable
+  * @param {Function} callback(err, obj) - Typical callback from view, see
+  *   DB.getView
+  *
+  * @api public
+  */
+
+  this.get_most_recent_value = function(var_name, callback) {
+    this.get_database().get_most_recent_value(var_name, callback);
+  };
+
+  /**
+   * Helper function, sends command to current database
+   *
+   * @param {Object} o - command, see DB.send_command
+   * @return {jqXHR Object}
+   * @api public
+   */
+
+  this.send_command = function(o) {
+      return this.get_database().send_command(o);
+  };
+
 }
+
+//for (var k in to_export) {
+//  exports[k] = to_export[k];
+//}
+exports.nEDMDatabase = nEDMDatabase;
 
 
 // Now call basic elements
@@ -694,7 +701,7 @@ $(document).on('mobileinit', function() {
     ud.on_cloudant(true);
   } else {
     ud.on_cloudant(false);
-     
+
   }
   $(document).on('pageinit', function(x, y) {
       UpdateHeader(x, y);

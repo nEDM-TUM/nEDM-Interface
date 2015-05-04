@@ -216,6 +216,8 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      * @api private
      */
 
+    var __basenedm = require("lib/nedm");
+    var nedm = new __basenedm.nEDMDatabase();
     function DateFromKeyVal(obj) {
          var outp = [ nedm.dateFromKey(obj.key) ];
          var seen = false;

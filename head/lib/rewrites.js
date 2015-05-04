@@ -23,21 +23,33 @@ module.exports = [
 , { "from": "_couchdb/*"
   , "to"  : "../../../*"
   },
+  { "description": "Fix browsers that escape slashes"
+  , "from": "page/:atype/nedm/:bar"
+  , "to"  : "_rewrite/_db/_design/page/_show/page"
+  , "query" : { "db" : ":bar", "requested_doc" : ":atype" }
+  },
+  { "description": "Fix browsers that escape slashes"
+  , "from": "_rewrite/page/:atype/nedm/:bar"
+  , "to"  : "_rewrite/_db/_design/page/_show/page"
+  , "query" : { "db" : ":bar", "requested_doc" : ":atype" }
+  },
   { "description": "Access to pages"
   , "from": "_rewrite/page/monitor/*"
   , "to"  : "_rewrite/_db/_design/page/_show/page/monitor"
   },
   { "description": "Access to pages"
-  , "from": "_rewrite/page/control/*"
-  , "to"  : "_rewrite/_db/_design/page/_show/page/control"
+  , "from": "_rewrite/page/control/:foo"
+  , "to"  : "_rewrite/_couchdb/:foo/_design/page/_list/controls/controls/controls"
+  , "query" : { "include_docs" : "true", "stale" : "update_after" }
+  },
+  { "description": "Access to pages"
+  , "from": "page/control/:foo"
+  , "to"  : "_rewrite/_couchdb/:foo/_design/page/_list/controls/controls/controls"
+  , "query" : { "include_docs" : "true", "stale" : "update_after" }
   },
   { "description": "Access to pages"
   , "from": "page/monitor/*"
   , "to"  : "_rewrite/_db/_design/page/_show/page/monitor"
-  },
-  { "description": "Access to pages"
-  , "from": "page/control/*"
-  , "to"  : "_rewrite/_db/_design/page/_show/page/control"
   },
   { "description": "Access to system pages"
   , "from": "_rewrite/page/:page/:foo"

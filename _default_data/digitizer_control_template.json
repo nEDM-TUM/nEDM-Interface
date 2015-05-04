@@ -111,7 +111,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <fieldset data-role='controlgroup' data-type='horizontal'>
               <input type="button" value="Send to card" class="sendGainsToCard">
             </fieldset>
-            <div class="ui-grid-c allChannelsGain"><div class="ui-block-a"/><div class="ui-block-b"/><div class="ui-block-c"/><div class="ui-block-d"/></div>
+            <div class="ui-grid-c allChannelsGain"><div class="ui-block-a"></div><div class="ui-block-b"></div><div class="ui-block-c"></div><div class="ui-block-d"></div></div>
           </div>
         </div>
     </div>

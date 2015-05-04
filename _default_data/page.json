@@ -2,16 +2,30 @@
   "_id" : "_design/page",
   "language" : "javascript",
   "header_intro" : """
+  <!DOCTYPE html>
+  <html class='ui-mobile'>
   <head>
   <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title>nEDM Base</title>
   <link rel='stylesheet' href='/nedm_head/_design/nedm_head/css/nedm.css'/>
-  <script src='/nedm_head/_design/nedm_head/modules.js'></script>
-  <script src='/nedm_head/_design/nedm_head/scripts/nedm-base.js'></script>
+  <script src='/nedm_head/_design/nedm_head/modules.js' type='text/javascript'></script>
+  <script src='/nedm_head/_design/nedm_head/scripts/nedm-base.js' type='text/javascript'></script>
   <style> .center { text-align: center; } </style>
   </head>
+""",
+  "define_script" : """
+  exports.define = function(ascript, db_name) {
+    var to_return = "\\n<script type='text/javascript'><!--\\n(function() {\\n";
+    var adb = "'" + db_name + "'";
+    if (!db_name) adb = undefined;
+    to_return += "var __base = require('lib/nedm');\\n";
+    to_return += "var nedm = new __base.nEDMDatabase(" + adb + ");\\n";
+    to_return += (ascript || "").trim();
+    to_return += "})();// --></script>";
+    return to_return;
+};
 """,
   "primary_content" : """
     <div class='headerChild'>
@@ -28,22 +42,94 @@
   "shows" : {
      "page" : """
 function(doc, req) {
-  html =  "<html class='ui-mobile'>" + this.header_intro;
+  if (!doc) {
+    // We are handling browsers that rewrite the slash
+    var path = req.requested_path;
+    path.unshift("http://" + req.headers.Host);
+    var end = path.pop();
+    path[path.length-1] += "%2F" + end;
+    return {
+      code : 301,
+   headers : {
+       "Location" : path.join('/')
+      }
+    };
+  }
+  var db_name = req.info.db_name.replace('/', '%2F');
+  if (req.requested_path.length > 1) {
+    db_name = req.requested_path[req.requested_path.length-1].replace('/', '%2F');
+  }
+  var html =  this.header_intro;
   html += "<body class='ui-mobile-viewport ui-overlay-c'>";
   var aclass = "";
   if (doc.page_class) aclass = "class='" + doc.page_class + "'";
-  html += "<div data-role='page' " + aclass + ">"; 
+  html += "<div data-role='page' " + aclass + ">";
   html += this.primary_content;
   html += doc.body || "Ill-formed page";
   html += "</div>"; // Primary content
   html += this.secondary_content;
   html += "</div>"; // content
   html += doc.footer || "";
-  html += "<script>" + (doc.script || "") + "</script>";
+  html += require("define_script").define(doc.script, db_name);
   html += "</div>"; // data-role=page
   html += "</body></html>";
   return { body : html };
 }
 """
+  },
+  "lists" : {
+    "controls" : """
+function(head, req) {
+  var db_name = req.info.db_name.replace('/', '-');
+  var real_db_name = req.info.db_name.replace('/', '%2F');
+  var template_func = function(obj) {
+      var tag_name = obj._id + "_" + db_name;
+      var template = "<div id='control_" + tag_name + "'>";
+      template += "<h3>" + obj.title + "</h3>" + obj.html;
+      template += "<a href='#help" + obj._id + "' data-rel='popup'  data-role='button' class='ui-icon-alt'";
+      template += " data-inline='true' data-transition='pop' data-icon='info' data-theme='e' data-iconpos='notext'>Help</a>";
+      template += "<div data-role='popup' id='help" + tag_name + "'><p>" + obj.description + "</p></div></div>";
+      var script = "$('#control_page_" + db_name + "').on('pagecreate', function() {";
+      script += "(" + obj.script.trim() + ")($('#control_"+ tag_name + "'),";
+      delete obj.html;
+      delete obj.script;
+      script += JSON.stringify(obj) + ");});";
+      return template + require("define_script").define(script, real_db_name);
+  };
+  provides("html", function() {
+    send(this.header_intro);
+    send("<body class='ui-mobile-viewport ui-overlay-c'>");
+    send("<div data-role='page' id='control_page_" + db_name + "'>");
+    send(this.primary_content);
+    // Now finally to the rows
+    var last_template;
+    while( (row = getRow()) ) {
+      if (row.key[1] === 0) {
+        last_template = row.doc;
+        continue;
+      }
+      var arr = row.doc;
+      var new_doc = {};
+      if (last_template) {
+        for (var k in last_template) {
+            // Ignore special variables
+            if (k[0] == "_") continue;
+            new_doc[k] = last_template[k];
+        }
+      }
+      for (var j in arr) {
+          new_doc[j] = arr[j];
+      }
+      send(template_func(new_doc));
+      last_template = null;
+    }
+    send("</div>"); // content primary
+    send(this.secondary_content);
+    send("</div></div></body></html>");
+  });
+
+}
+"""
   }
+
 }

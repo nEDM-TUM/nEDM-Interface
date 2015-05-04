@@ -42,8 +42,8 @@
                     </fieldset>
                   </div>
                   <div align='left'>
-                    <p><span class="bolded_font">Last output: </span><pre class="returned_output"></pre></p>
-                    <p><span class="bolded_font">Last error: </span><pre class="returned_error"></pre></p>
+                    <span class="bolded_font">Last output: </span><pre class="returned_output"></pre>
+                    <span class="bolded_font">Last error: </span><pre class="returned_error"></pre>
                   </div>
                 </div>
             </div>
@@ -105,6 +105,7 @@
       var ard_select = $('.arduino_select', $(thediv)).filter(':input');
       var update_timeout;
       var submit_cmd_timeout;
+      var this_db = nedm.get_database();
       var update_div_with_code = function(new_code, adoc) {
           if (adoc) {
              $('.code_name', $(new_code)).val(adoc.name);
@@ -126,7 +127,7 @@
          var check_doc = function(o) {
              var anid = o.id || o._id;
              return function() {
-                 nedm.get_database().getDoc(anid, function(e, o) {
+                 this_db.getDoc(anid, function(e, o) {
                     if (e) return;
                     if (!o.ret) {
                         submit_cmd_timeout = setTimeout(check_doc(o), 2000);
@@ -140,7 +141,7 @@
                  });
            };
          };
-         nedm.get_database().updateDoc(ad,
+         this_db.updateDoc(ad,
              'nedm_default',
              'insert_with_timestamp',
              function(e,o) {
@@ -214,7 +215,7 @@
                return;
              }
              if (par.data('doc')) {
-                 nedm.get_database().removeDoc(
+                 this_db.removeDoc(
                    par.data('doc'),
                    function(e,o) {
                        if(e) {
@@ -242,7 +243,7 @@
             submit_doc._id = par.data('doc')._id;
           }
           par.addClass('ui-disabled');
-          nedm.get_database().
+          this_db.
             updateDoc(submit_doc,
               'nedm_default',
               'insert_with_timestamp',
@@ -252,7 +253,7 @@
                                            JSON.stringify(e));
                     par.removeClass('ui-disabled');
                 } else {
-                    nedm.get_database().getDoc(o.id,
+                    this_db.getDoc(o.id,
                       function(x,y) {
                         par.removeClass('ui-disabled');
                         if (x) return;
@@ -298,7 +299,7 @@
             }
             update_current_code( { currentTarget : ard_select });
         };
-        nedm.get_database()
+        this_db
             .getView('document_type',
                      'document_type',
                      { opts :
@@ -315,7 +316,7 @@
                   var k = r[i].id.split('_')[0];
                   if (!append_mac_id(k)) continue;
                   k = parseInt(k);
-                  nedm.get_database()
+                  this_db
                       .getView('document_type',
                                'document_type',
                                { opts : {
@@ -340,7 +341,7 @@
             if ($('li', alog).length === 0) {
               $('.rspy_log_loading', $(thediv)).show();
             }
-            nedm.get_database().getDoc(log_name,
+            this_db.getDoc(log_name,
               function(e,o) {
                 $('.rspy_log_loading', $(thediv)).hide();
                 if (!e) {
@@ -405,11 +406,13 @@
            $('.input_cmd', $(thediv)).addClass("ui-disabled");
          }
       };
+      var cmd_select = $('.cmd_select', $(thediv)).filter(":input");
       for (var k in docobj.predef_cmds) {
-        $('.cmd_select', $(thediv)).append($('<option/>')
+        cmd_select.append($('<option/>')
           .val(JSON.stringify(docobj.predef_cmds[k]))
           .text(k));
       }
+      cmd_select.selectmenu("refresh", true);
       $('.arduino_select', $(thediv)).on('change', update_current_code);
       $('.cmd_select', $(thediv)).on('change', update_current_cmd);
       $('.add_new_code', $(thediv)).on('click', add_new_code);

@@ -28,8 +28,8 @@
         <div data-role='fieldcontain'>
             <div data-role='controlgroup' data-type='horizontal' class='all_read_functions'>
                 <button class='get_value_class'>Get</button>
-                <select class='read_functions'/>
-                <select class='channel_spinner1'/>
+                <select class='read_functions'></select>
+                <select class='channel_spinner1'></select>
             </div>
         </div>
         <div class='ui-grid-c'>
@@ -52,8 +52,8 @@
         <div data-role='fieldcontain'>
             <div data-role='controlgroup' data-type='horizontal' class='all_write_functions'>
                 <button class='set_value_class'>Set</button>
-                <select class='write_functions'/>
-                <select class='channel_spinner2'/>
+                <select class='write_functions'></select>
+                <select class='channel_spinner2'></select>
             </div>
         </div>
         <div class='ui-grid-c'>
@@ -115,7 +115,7 @@
                          <option value='curr'>Current</option>
                          <option value='volt'>Voltage</option>
                       </select>
-                      <select class='channel_spinner3'/>
+                      <select class='channel_spinner3'></select>
 		              <button class='delete_btn ui-disabled'>Remove</button>
                   </div>
               </div>
@@ -140,14 +140,16 @@
         var enable_all = function() {
             $(':button,[type=text]', $($theDiv)).removeClass('ui-disabled');
         };
-        var sel = $('.read_functions', $($theDiv));
+        var sel = $('.read_functions', $($theDiv)).filter(':input');
         $.each(anobj.read_functions, function(val, text) {
           sel.append($('<option/>').val(val).text(text));
         });
-        sel = $('.write_functions', $($theDiv));
+        sel.selectmenu('refresh', true);
+        sel = $('.write_functions', $($theDiv)).filter(':input');
         $.each(anobj.write_functions, function(val, text) {
           sel.append($('<option/>').val(val).text(text[0]).data('should_enable', (text[1] == 1)));
         });
+        sel.selectmenu('refresh', true);
         var sync_func = function(e) {
           var o = $(':selected', $(e.target));
           if (o.data('should_enable')) {
@@ -159,14 +161,13 @@
         sync_func({ target : sel });
         sel.change(sync_func);
 
-        var chan1 = $('.channel_spinner1');
-        var chan2 = $('.channel_spinner2');
-        var chan3 = $('.channel_spinner3');
-        for (var i=1;i<40;i++) {
-          chan1.append($('<option/>').val(i).text('Ch ' + i.toString()));
-          chan2.append($('<option/>').val(i).text('Ch ' + i.toString()));
-          chan3.append($('<option/>').val(i).text('Ch ' + i.toString()));
-        }
+        $('.channel_spinner1,.channel_spinner2,.channel_spinner3', $($theDiv)).filter(':input').each(
+          function() {
+            for (var i=1;i<40;i++) {
+              $(this).append($('<option/>').val(i).text('Ch ' + i.toString()));
+            }
+            $(this).selectmenu('refresh', true);
+        });
         var channel_clone = $('.ramp_channel_ctrl_collapse', $($theDiv)).clone();
         $($theDiv).trigger('refresh');
 
