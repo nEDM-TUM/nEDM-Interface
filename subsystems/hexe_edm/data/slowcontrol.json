@@ -30,10 +30,46 @@
         </div>
         <div class='ui-grid-c'>
           <div class='ui-block-a'>
+            <p>Coil currents (mA)</p>
+          </div>
+          <div class='ui-block-b'>
+            <p>Polarizer</p>
+            <input type='text' size='1' class='output_text pol_coil_current' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+          <div class='ui-block-c'>
+            <p>Transport</p>
+            <input type='text' size='1' class='output_text trans_coil_current' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+          <div class='ui-block-d'>
+            <p>Guide</p>
+            <input type='text' size='1' class='output_text guide_coil_current' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+        </div>
+        <div class='ui-grid-c'>
+          <div class='ui-block-a'>
             <p>Gas pressure (mbar)</p>
           </div>
           <div class='ui-block-b'>
             <input type='text' size='1' class='output_text gas_pres' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+        </div>
+        <div class='ui-grid-c'>
+          <div class='ui-block-a'>
+            <p>HV (kV)</p>
+          </div>
+          <div class='ui-block-b'>
+            <input type='text' size='1' class='output_text hv1' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+          <div class='ui-block-c'>
+            <input type='text' size='1' class='output_text hv2' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+        </div>
+        <div class='ui-grid-c'>
+          <div class='ui-block-a'>
+            <p>HV Leakage Current (mA)</p>
+          </div>
+          <div class='ui-block-b'>
+            <input type='text' size='1' class='output_text leakage_current' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
         </div>
     </div>
@@ -136,7 +172,7 @@
                     <button class='set_value_class setTemp'>Set Temp</button>
                     <input type='text' class='input_val temp_val' data-wrapper-class='controlgroup-textinput ui-btn'>
                     <select required class='unit'>
-                      <option value='Deg'>&#176 C</option>
+                      <option value='C'>&#176 C</option>
                       <option value='V'>V</option>
                     </select>
                 </fieldset>
@@ -173,11 +209,7 @@
     var last_sync = new Date();
     var clock_text = $('.last_checked');
     var time_out = null;
-    var oven_temp1 = '0';
-    var oven_temp2 = '0';
-    var laser_current = '0';
-    var gas_system_pressure = '0';
-    var vars = [{value:oven_temp1, name:'oven_temp1'}, {value:oven_temp2, name:'oven_temp2'}, {value:laser_current, name:'laser_current'}, {value:gas_system_pressure, name:'gas_pres'}];
+    var vars = [{value:'oven_temp1', name:'oven_temp1'}, {value:'oven_temp2', name:'oven_temp2'}, {value:'laser_current', name:'laser_current'}, {value:'gas_system_pressure', name:'gas_pres'}, {value:'pol_coil_current', name:'pol_coil_current'}, {value:'trans_coil_current', name:'trans_coil_current'}, {value:'guide_coil_current', name:'guide_coil_current'}, {value:'hv_monitor_1', name:'hv1'}, {value:'hv_monitor_2', name:'hv2'}, {value:'hv_leakage_monitor', name:'leakage_current'}];
 
     var run_clock = function() {
         var time_diff = Math.round(((new Date()) - last_sync)/1000);
@@ -189,7 +221,12 @@
         return function(e, o) {
         if (e !== null) {
           return;}
-        $('.' + x.name).val(x.value);
+        if (o.rows.length != 1) {
+          alert(x.value + " not found");
+          return;
+        }
+        var v = o.rows[0].value;
+        $('.' + x.name).val(v);
         last_sync = new Date();
         };
     };
@@ -213,12 +250,12 @@
 
     $('.oven_heat').on('click', function() {
         disable_all();
-        nedm.send_command({cmd_name : 'set_oven_temp', arguments: ['C', '130'], timeout: 5000,
+        nedm.send_command({cmd_name : 'set_oven_temp', arguments: ['C', '170'], timeout: 5000,
         callback: function(e,o) {
             enable_all();
             }
         });
-        nedm.send_command({cmd_name :  'set_oven_flow', arguments: ['1'], timeout: 5000,
+        nedm.send_command({cmd_name :  'set_oven_flow', arguments: ['5'], timeout: 5000,
         callback: function(e,o) {
             enable_all();
             }
@@ -242,7 +279,7 @@
     $('.setTemp').on('click', function () {
         disable_all();
         var value = $('.temp_val').val();
-        var unit = $('.unit:selected').val();
+        var unit = $('.unit option:selected').val();
         var args = [unit, value];
         nedm.send_command( { cmd_name : 'set_oven_temp',
         arguments : args,
@@ -411,7 +448,7 @@
     $('.set_coil_status').on('click', function() {
         disable_all();
         var value = $(this).val();
-        var coil = $('#which_coil').val();
+        var coil = $('.which_coil option:selected').val();
         var args = [coil, value];
         nedm.send_command({cmd_name: 'set_laser_status',
         arguments: args,
@@ -437,7 +474,7 @@
 
     $('.get_value_class').on('click', function() {
         disable_all();
-        var args = [$('.get_which_coil').val()];
+        var args = [$('.get_which_coil option:selected').val()];
         nedm.send_command({cmd_name : 'get_coil_current',
         arguments: args,
         timeout: 5000,
