@@ -45,9 +45,15 @@ function(doc, req) {
   if (!doc) {
     // We are handling browsers that rewrite the slash
     var path = req.requested_path;
-    path.unshift("http://" + req.headers.Host);
-    var end = path.pop();
-    path[path.length-1] += "%2F" + end;
+    if (path) {
+      path.unshift("http://" + req.headers.Host);
+      var end = path.pop();
+      path[path.length-1] += "%2F" + end;
+    } else {
+      // on cloudant
+      path = ["http://" + req.headers.Host, "nedm_head", "_design",
+                "nedm_head", "_rewrite", "page", req.query.requested_doc, "nedm%2F" + req.query.db];
+    }
     return {
       code : 301,
    headers : {
@@ -56,8 +62,8 @@ function(doc, req) {
     };
   }
   var db_name = req.info.db_name.replace('/', '%2F');
-  if (req.requested_path.length > 1) {
-    db_name = req.requested_path[req.requested_path.length-1].replace('/', '%2F');
+  if (req.query.db) {
+    db_name = req.query.db.replace('/', '%2F');
   }
   var html =  this.header_intro;
   html += "<body class='ui-mobile-viewport ui-overlay-c'>";
