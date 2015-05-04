@@ -108,7 +108,7 @@
 			// change all that often.
             var evtar = $(ev.target);
             var ev1 = ev;
-            nedm.get_database(nedm.get_current_db_name(evtar.attr('data-url'))).getView('slow_control_time', 'slow_control_time',
+            nedm.get_database().getView('slow_control_time', 'slow_control_time',
                 { opts : {stale : 'ok', group_level : 1} }, function (e, o) {
                         if (e !== null ) return;
                         var ssc = $('.selectSlowControl', evtar).filter(':input');
