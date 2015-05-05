@@ -344,7 +344,7 @@ function registerUser(un, pw, tryLogin, callback) {
 
 // Register handling changes in the session
 session.on('change', function(userCtx) {
-    cookie.remove('db_info', { path : '/' });
+    db_info_cookie = null;
     $sidebar = null;
     SetUserName(userCtx);
     ListenToDBChanges();
@@ -486,6 +486,7 @@ function database_status( ) {
 
 var db_info_is_called = false;
 var db_info_cb_list = [];
+var db_info_cookie;
 function get_database_info( callback ) {
     if ( callback ) {
        db_info_cb_list.push(callback);
@@ -493,7 +494,6 @@ function get_database_info( callback ) {
     if (db_info_is_called) return;
     db_info_is_called = true;
 
-    var db_info_cookie = cookie.get('db_info');
     if (db_info_cookie) {
         db_info_cb_list.forEach( function(o) { o(db_info_cookie); } );
         db_info_cb_list = [];
@@ -541,7 +541,7 @@ function get_database_info( callback ) {
                 if (obj[1].hide) continue;
                 current_database_info[obj[0]] = obj[1];
             }
-            cookie.set('db_info', current_database_info, { path : '/' });
+            db_info_cookie = current_database_info;
             db_info_is_called = false;
             get_database_info();
         });
