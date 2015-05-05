@@ -6,7 +6,8 @@
       "map" : """
 function(doc) {
   if (!doc.type || doc.type !== "control") return;
-  var order = doc.order || doc._id;
+  var order = doc._id;
+  if (typeof doc.order !== "undefined") order = doc.order;
   if (doc.template) {
     emit([order,0], { _id : doc.template } );
   }
