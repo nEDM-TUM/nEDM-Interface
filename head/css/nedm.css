@@ -77,6 +77,10 @@ th.db_name {
 	}
 }
 
+.text_box_bad_input {
+    background-color: rgb(255, 125, 115) !important;
+}
+
 .code_editor {
     height: 275px;
     border: 1px solid #DDD;
