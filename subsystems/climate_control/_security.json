@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["cc_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["cc_reader"]
+  }
+}
