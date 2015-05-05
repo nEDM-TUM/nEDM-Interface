@@ -628,6 +628,43 @@ function UpdateDBInterface(db) {
     var _callback_emitters = new events.EventEmitter();
     var db_name = db.db_name();
 
+    var latest_callback_called = false;
+    var cached_variables;
+    var latest_time;
+    function CallbackLatestValue() {
+      // check for latest values
+      if (latest_callback_called) return;
+      latest_callback_called = true;
+      if (!cached_variables ) {
+        db.getVariableNames(function(arr) {
+          cached_variables = arr;
+          latest_callback_called = false;
+          CallbackLatestValue();
+        });
+      } else {
+        var opts = {
+                limit : cached_variables.length,
+           descending : true
+        };
+        if (latest_time) {
+          opts.endkey = latest_time;
+        }
+
+        db.getList("extremes", "extremes", "slow_control_time_label", "slow_control_time_label",
+          opts,
+          function(e, o) {
+            if (e === null && o.extreme_time) {
+              latest_time = o.extreme_time;
+              latest_time.push({});
+              _callback_emitters.emit("latest", o.keys);
+            }
+            latest_callback_called = false;
+          }
+        );
+      }
+
+    }
+
     function GenerateCallback(msg) {
       if (db_name !== msg.db) return;
       _callback_emitters.emit(msg.type, msg);
@@ -641,6 +678,9 @@ function UpdateDBInterface(db) {
         callback = type;
         type = "both";
       }
+      if (type === "latest") {
+        this.on("data", CallbackLatestValue);
+      }
       _callback_emitters.removeListener(type, callback);
       _callback_emitters.addListener(type, callback);
       nedm.on_db_updates(GenerateCallback);
@@ -652,6 +692,9 @@ function UpdateDBInterface(db) {
         type = "both";
       }
       _callback_emitters.removeListener(type, callback);
+      if (_callback_emitters.listeners("latest").length === 0) {
+        _callback_emitters.removeListener("data", CallbackLatestValue);
+      }
       if (_callback_emitters._events && Object.keys(_callback_emitters._events).length === 0) nedm.remove_db_updates(GenerateCallback);
     };
 }
