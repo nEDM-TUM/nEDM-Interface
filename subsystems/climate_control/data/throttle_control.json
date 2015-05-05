@@ -1,0 +1,88 @@
+{
+  "_id" : "throttle_control",
+  "type" : "control",
+  "title" : "Throttle Control",
+  "description" : "Control the temperature throttling",
+  "order" : 0,
+  "available_channels" : [
+    0,
+    1,
+    30,
+    31
+  ],
+  "maximum" : {
+    "integer" : 0x800, 
+    "volts" : 10, 
+    "current" : 20 
+  },
+  "html" : """
+<div class='all_temperature_controls'>
+        <label>Select channels, ADC value:<div data-role="controlgroup" data-type="horizontal">
+          <select class='channel_select'></select>
+          <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_val'>
+        </div></label>
+        <label>Converted value:<div data-role="controlgroup" data-type="horizontal">
+          <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='converted_val' readonly>
+          <button class='set_function'>Set</button>
+        </div></label>
+</div>
+ """,
+ "script" : """
+    function( avar, anobj ) {
+       var chans = $('.channel_select', $(avar)).filter(":input");
+       var text_input = $('.input_val', $(avar));
+       var convert_input = $('.converted_val', $(avar));
+       var submit_btn = $('.set_function', $(avar));
+       var toastr = require("toastr");
+
+       anobj.available_channels.forEach( function(o) {
+          var j = $('<option/>').val(o).text(o);
+          chans.append(j);
+       });
+       chans.selectmenu("refresh");
+       function validate_value() {
+         var anint = parseInt(text_input.val());     
+         if (anint < 0 || anint > anobj.maximum.integer || isNaN(anint)) {
+           submit_btn.addClass("ui-disabled");
+           text_input.addClass('text_box_bad_input');
+           convert_input.addClass('text_box_bad_input');
+           convert_input.val("");
+           return false;
+         } else {
+           submit_btn.removeClass("ui-disabled");
+           text_input.removeClass('text_box_bad_input');
+           convert_input.removeClass('text_box_bad_input');
+           var scaled = anint/anobj.maximum.integer;
+           var volts = scaled*anobj.maximum.volts;
+           var amps = scaled*anobj.maximum.current;
+           convert_input.val(volts.toPrecision(3) + " (V), " + amps.toPrecision(3) + " (mA)");
+           return true;
+         }
+       } 
+       function submit_command() {
+         if (!validate_value()) {
+           toastr.error("Out of range");
+         } else {
+           var obj = [
+             parseInt(chans.val()),
+             parseInt(text_input.val())
+           ];
+           $('.all_temperature_controls', $(avar)).addClass("ui-disabled");
+           nedm.send_command({
+                              cmd_name: "setADCForChan",
+                             arguments: obj,
+                               timeout: 5000,
+                              callback: function() {
+                                $('.all_temperature_controls', $(avar)).removeClass("ui-disabled");
+                              }
+                             });
+            
+         } 
+       }
+       text_input.on("input", validate_value);
+       submit_btn.on("click", submit_command);
+       validate_value();
+    }
+"""
+
+}
