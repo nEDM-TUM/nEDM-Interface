@@ -80,51 +80,33 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      * @api private
      */
 
-    function SyncFunction() {
+    var __basenedm = require("lib/nedm");
+    var nedm = new __basenedm.nEDMDatabase();
+    function HandleListening(msg) {
         // don't sync too often...
         if (isSyncing) return;
         isSyncing = true;
-        var total_length = name.length;
-        function ViewClbk(e, o) {
-            if (e !== null) return;
-            var all_data = o.rows.map(DateFromKeyVal, tthis).filter( function(o) {
-                if (o !== null) return true;
-                return false;
-            });
-            var recv_length = all_data.length;
-            if (recv_length !== 0) {
-                MergeData(all_data);
-            }
-            total_length -= 1;
-            if (total_length === 0) {
-              if (data.length !== 0 && time_range !== 0) {
-                  var time_before_now = new Date(data[data.length-1][0].getTime() - time_range*1000);
-                  tthis.removeBeforeDate(time_before_now);
-              }
-              tthis.update();
-              isSyncing = false;
-            }
+        var arr = [];
+        var t;
+        for (var k in msg) {
+          t = msg[k].time;
+          t.unshift(k);
+          arr[arr.length] = { key: t, value: { sum : msg[k].value, count : 1 } };
         }
-        for (var i=0;i<name.length;i++) {
-            myDB.getView('slow_control_time', 'slow_control_time',
-              { opts : { descending : true,
-                        group_level : tthis.groupLevel(),
-                             reduce : true,
-                             limit  : 1,
-                           startkey : [ name[i], {} ] } },
-              ViewClbk);
+        var all_data = arr.map(DateFromKeyVal, tthis).filter( function(o) {
+            if (o !== null) return true;
+            return false;
+        });
+        var recv_length = all_data.length;
+        if (recv_length !== 0) {
+            MergeData(all_data);
         }
-    }
-
-    /**
-     * Handle listening
-     *
-     * @param {Object} msg - EventSource message
-     * @api private
-     */
-
-    function HandleListening(msg) {
-      SyncFunction();
+        if (data.length !== 0 && time_range !== 0) {
+            var time_before_now = new Date(data[data.length-1][0].getTime() - time_range*1000);
+            tthis.removeBeforeDate(time_before_now);
+        }
+        tthis.update();
+        isSyncing = false;
     }
 
     /**
@@ -216,8 +198,6 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      * @api private
      */
 
-    var __basenedm = require("lib/nedm");
-    var nedm = new __basenedm.nEDMDatabase();
     function DateFromKeyVal(obj) {
          var outp = [ nedm.dateFromKey(obj.key) ];
          var seen = false;
@@ -239,7 +219,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      */
 
     function EndListening() {
-      myDB.off("data", HandleListening);
+      myDB.off("latest", HandleListening);
       isSyncing = false;
       isListening = false;
     }
@@ -253,7 +233,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     function BeginListening() {
       EndListening();
       isListening = true;
-      myDB.on("data", HandleListening);
+      myDB.on("latest", HandleListening);
     }
 
     // Public interface
