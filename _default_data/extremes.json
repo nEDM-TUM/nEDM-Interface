@@ -1,0 +1,23 @@
+{
+  "_id" : "_design/extremes",
+  "language" : "javascript",
+  "lists" : {
+    "extremes" : """function(head, req) {
+   provides("json", function() {
+     var keys = {};
+     var lab, row, extreme_time = null;
+     while( (row = getRow()) ) {
+       lab = row.key.pop(); 
+       if (!extreme_time) {
+         extreme_time = row.key;
+       }
+       if (keys[lab]) { 
+         continue;
+       }
+       keys[lab] = { value : row.value, time : row.key};
+     }
+     send(JSON.stringify({extreme_time : extreme_time, keys : keys}));
+   });
+}"""
+  } 
+}
