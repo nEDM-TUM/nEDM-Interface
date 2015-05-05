@@ -71,6 +71,44 @@ function UpdateDBInterface(db) {
         return null;
     };
 
+    db.getList = function (name, list, view, /*optional*/ other_ddoc, /*optional*/q, callback) {
+      if (!callback) {
+        if (!q) {
+          // (name, list, view, callback)
+          callback = other_ddoc;
+          q = {};
+          other_ddoc = undefined;
+        } else {
+          callback = q;
+          if(typeof other_ddoc === "object") {
+            // (name, list, view, q, callback)
+            q = other_ddoc;
+            other_ddoc = undefined;
+          } else {
+            // (name, list, view, other_ddoc, callback)
+            q = {};
+          }
+        }
+      }
+      var listname = this.encode(list);
+      var viewname = this.encode(view);
+      if (other_ddoc) {
+        viewname = this.encode(other_ddoc) + '/' + viewname;
+      }
+      try {
+          var data = this.stringifyQuery(q);
+      }
+      catch (e) {
+          return callback(e);
+      }
+      var req = {
+          url: this.url + '/_design/' + this.encode(name) +
+              '/_list/' + listname + '/' + viewname,
+          data: data
+      };
+      this.request(req, callback);
+    };
+
     // Add updateDoc to the API
     db.updateDoc = function (doc, designname, updatename, callback) {
         var method, url = this.url;
