@@ -576,13 +576,11 @@ function show_error_window(error, msg) {
  */
 
 function dateFromKey(arr) {
-  var start = 0;
-  var end = 1;
-  if (typeof arr[0] === "string") {
-    start = 1;
-    end = 0;
-  }
-  return new Date(Date.UTC.apply(this, arr.slice(start, arr.length-end)));
+  var arr = arr.filter( function(o) {
+    if (typeof o === "string") return false;
+    return true;
+  });
+  return new Date(Date.UTC.apply(this, arr));
 };
 
 /**
