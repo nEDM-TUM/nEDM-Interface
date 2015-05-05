@@ -108,15 +108,12 @@
 			// change all that often.
             var evtar = $(ev.target);
             var ev1 = ev;
-            nedm.get_database().getView('slow_control_time', 'slow_control_time',
-                { opts : {stale : 'ok', group_level : 1} }, function (e, o) {
-                        if (e !== null ) return;
+            nedm.get_database().getVariableNames( function(allnames) {
                         var ssc = $('.selectSlowControl', evtar).filter(':input');
                         ssc.find('option').remove();
-                        for (var i=0;i<o.rows.length;i++) {
-                            var aname = o.rows[i].key;
-                            ssc.append($('<option/>').attr({value : aname}).append(aname));
-                        }
+                        allnames.forEach( function (aname) {
+                          ssc.append($('<option/>').attr({value : aname}).append(aname));
+                        });
                         if (ssc.find('option').length !== 0) {
                             ssc.removeClass('ui-disabled');
                             if ($('.selectCurrentPlot', evtar).find('option').length !== 0) {
@@ -125,7 +122,7 @@
                         }
                         populateGraphsWithCookies(ev1);
                         ssc.selectmenu('refresh', true);
-                    });
+            });
 
         }; // getAvailableItems
 

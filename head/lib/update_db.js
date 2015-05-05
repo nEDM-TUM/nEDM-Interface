@@ -313,6 +313,22 @@ function UpdateDBInterface(db) {
         });
     };
 
+    db.getVariableNames = function(callback) {
+      this.getView('slow_control_time', 'slow_control_time',
+        { opts : { stale : 'ok',
+             group_level : 1
+                 }
+        },
+        function (e, o) {
+              if (e !== null ) {
+                callback([]);
+              } else {
+                callback(o.rows.map(function(x) { return x.key[0]; }));
+              }
+        }
+      );
+    };
+
     function OpenChangesFeed(url) {
       var hasOpened = false;
       var hasSeenError = false;
