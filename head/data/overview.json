@@ -3,19 +3,6 @@
   "type" : "control_template",
   'body' : """
             <h1 >Overview</h1>
-            <div>
-            <div class='ui-grid-c'>
-              <div class='ui-block-a'>
-                <h4>Refresh every (s):</h4>
-              </div>
-              <div class='ui-block-b'>
-                <input type='range' min='1' max='20' step='1' class='refresh_time' value='10'>
-              </div>
-              <div class='ui-block-c'>
-                <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p>
-              </div>
-            </div>
-            </div>
             <div class='all_shown_variables'>
             </div>
             <div class='set_new_variable'>
@@ -47,8 +34,7 @@
       </div>
     </div>
 """,
-  'script' : """ 
-    var last_sync = new Date();
+  'script' : """
     var clock_text = $('.last_checked');
     var time_out = null;
     var delete_overview_var = function(ev) {
@@ -62,14 +48,18 @@
             });
           });
     };
-    var sync_overview_vars = function() {
-      var af = function(x) {
-        return function(e, o) {
-          if (e !== null) return;
-          if (o.rows.length != 1) return;
-          var k = o.rows[0].key;
-          var v = o.rows[0].value;
-          var t = new Date(Date.UTC.apply(this, k.splice(1)));
+    var SyncObject = {};
+    function SyncForADB(adb) {
+      return function(msg) {
+        $('.variable_deployed').each( function() {
+          var x = $(this);
+          var d = x.data();
+          var var_name = d.var;
+          if (d.db !== adb || !msg[var_name]) return;
+          var obj = msg[var_name];
+          var k = obj.time;
+          var v = obj.value;
+          var t = new Date(Date.UTC.apply(this, k));
           var now = new Date();
           var bgd_color = '';
           if ((now-t) > 20000) bgd_color = '#ED4337';
@@ -77,29 +67,23 @@
 
           $('.variable_val', $(x)).text(v).css('background-color', bgd_color);
           $('.last_saved', $(x)).text('Last updated: ' + t.toUTCString());
-          last_sync = now;
-          x.val(JSON.stringify(o.rows[0]));
-        };
+        });
+
       };
-      $('.variable_deployed').each( function() {
-        var av = $(this);
-        var d = av.data();
-        nedm.get_database(d.db).get_most_recent_value(d.var, af(av));
-      });
-      time_out = setTimeout(sync_overview_vars, Number($('.refresh_time').val())*1000);
-    };
+    }
+
     var get_overview_vars = function(all_dbs) {
         nedm.get_database('nedm_head').getView('overview_vars',
                                                'overview_vars',
            { opts : { reduce : false } },
            function( e, o ) {
              if (e !== null) return;
-             var r = o.rows;
+             var k, r = o.rows;
              var dbtoclone = $('.db_template');
              var svs = $('.all_shown_variables');
              var dbs = {};
              for (var i=0;i<r.length;i++) {
-               var k = r[i].key[0];
+               k = r[i].key[0];
                var v = r[i].key[1];
                var id = r[i].id;
                if (! (k in dbs) ) {
@@ -120,18 +104,20 @@
                $('.variable_name', $(new_clone)).text(v);
                if ( id === 'overview_vars_default') $('.delete_over_var', $(new_clone)).addClass('ui-disabled');
              }
+             for (k in dbs) {
+               SyncObject[k] = SyncForADB(k);
+               nedm.get_database(k).on("latest", SyncObject[k]);
+             }
              svs.trigger('create');
              // Set up the button functions
              $('.delete_over_var').on('click', delete_overview_var);
-             sync_overview_vars();
 
-             var get_vars_for_db = function(x) {
-               return function(e, o) {
-                 if (e !== null) return;
-                 x.data( { all_keys : o.rows.map( function(j) { return j.key[0]; } ) } );
+             function get_vars_for_db(x) {
+               return function(keys) {
+                 x.data( { all_keys : keys } );
                  if ( x.prop('selected') ) $('.all_dbs').filter(':input').trigger('change');
                };
-             };
+             }
              var adb = $('.all_dbs').filter(':input');
              adb.find('option').remove();
              for (var kk in all_dbs) {
@@ -139,26 +125,17 @@
                var d = 'nedm%2F' + kk;
                obj.data({ db_name : d });
                adb.append(obj);
-               nedm.get_database(d).getView('slow_control_time', 'slow_control_time',
-                 { opts : { stale : 'ok', group_level : 1 } },
-                 get_vars_for_db(obj));
+               nedm.get_database(d).getVariableNames( get_vars_for_db( obj ) );
              }
              adb.selectmenu('refresh', true);
       });
     };
     var refresh_all = function() {
-      if (time_out) clearTimeout(time_out);
       $('.all_shown_variables').empty();
       nedm.get_database_info(function(d) {
         get_overview_vars(d);
       });
     };
-    var run_clock = function() {
-      var time_diff = Math.round(((new Date()) - last_sync)/1000);
-      clock_text.text(Math.round(time_diff));
-      setTimeout(run_clock, 1000);
-    };
-
     var submit_new_variable = function() {
       var d = $('.all_dbs :selected').data('db_name');
       var vn = $('.variable_for_db :selected').text();
@@ -174,7 +151,6 @@
 
     (function() {
       refresh_all();
-      run_clock();
       $('.all_dbs').change( function(ev) {
         var opt = $(':selected', $(ev.currentTarget));
         var vdb = $('.variable_for_db').filter(':input');
