@@ -44,6 +44,9 @@ npm install -g jshint
 
 ## Notes for developers
 
+For a general overview, see the
+[presentation](https://www.dropbox.com/s/8xfayj9zi67o3ao/GroupMeeting_23Oct2014.pdf?dl=0)
+describing the basic functionality of the system.
 
 *Note:*  The best mechanism for testing your interface is setting up a local
 server and pushing to it.  You will also need to set your configuration to
