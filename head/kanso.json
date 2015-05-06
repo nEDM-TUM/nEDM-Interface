@@ -27,6 +27,7 @@
     "dygraph-combined" : null,
     "jsoneditor" : null,
     "dsp" : null,
+    "autobahn" : null,
     "underscore" : null 
   } 
 }
