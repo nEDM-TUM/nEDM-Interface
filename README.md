@@ -116,15 +116,13 @@ and input it into your replication `since_seq`.
 ```
 
 
-
-
-
 ## Dealing with Commands
 
 
 Every interface will in principal have controls.  To facilitate this, the nEDM
 interface looks for documents of type "control", e.g.:
 
+```
     doc = {
         "_id": "name_of_control",         # Required
         "type" : "control",               # Required
@@ -143,6 +141,7 @@ interface looks for documents of type "control", e.g.:
     }
 """
 }
+```
 
 
 There are several templates that one can derive from by using
