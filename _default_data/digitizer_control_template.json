@@ -406,6 +406,14 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.startButton', $(thediv)).on("click", function () {
+          var add_header;
+          try {
+            add_header = hdr_editor.get();
+          } catch (e) {
+            nedm.show_error_window("Formatting error", "Header information improperly formatted.");
+            return;
+          }
+
           $('.startButton', $(thediv)).button("option", "disabled", true);
           $('.relDigi', $(thediv)).button("option", "disabled", true);
           var upload_data = $('.upload_data', $(thediv)).is(':checked');
@@ -428,7 +436,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                         should_save : save_data,
                    measurement_name : meas_name,
                                 log : com,
-                           logitems : hdr_editor.get(),
+                           logitems : add_header,
                         buffer_size : buf_size,
                        channel_list : ssc,
                            mod_list : mods }
