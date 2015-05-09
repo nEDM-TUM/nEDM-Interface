@@ -115,7 +115,7 @@ function(head, req) {
       var tag_name = obj._id + "_" + db_name;
       var template = "<div id='control_" + tag_name + "'>";
       template += "<h3>" + obj.title + "</h3>" + obj.html;
-      template += "<a href='#help" + obj._id + "' data-rel='popup'  data-role='button' class='ui-icon-alt'";
+      template += "<a href='#help" + tag_name + "' data-rel='popup'  data-role='button' class='ui-icon-alt'";
       template += " data-inline='true' data-transition='pop' data-icon='info' data-theme='e' data-iconpos='notext'>Help</a>";
       template += "<div data-role='popup' id='help" + tag_name + "'><p>" + obj.description + "</p></div></div>";
       var script = "theCurrentPage.on('pagecreate', function() {";
