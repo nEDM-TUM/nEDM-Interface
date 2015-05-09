@@ -3,7 +3,7 @@
   "type" : "control",
   "title" : "Past/Saved Measurements",
   "description" : "Measurements that have been run",
-  "order" : 1,
+  "order" : 0,
   "single_measurement" : {
     "html" : """
 <div>

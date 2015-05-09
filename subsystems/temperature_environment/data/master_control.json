@@ -3,7 +3,8 @@
   "type" : "control",
   "title" : "Master Controls",
   "description" : "Control the temperature controls",
- "html" : """
+  "order" : 1,
+  "html" : """
 <div>
     <div class='all_temperature_controls'>
         <div data-role='fieldcontain'>
