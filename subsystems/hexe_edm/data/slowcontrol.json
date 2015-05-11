@@ -8,7 +8,7 @@
 <h2>Slow Control</h2>
 <div>
     <div class='overview' data-role='content'>
-/*        <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p>*/
+<!--        <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p> -->
         <div class='ui-grid-c'>
           <div class='ui-block-a'>
             <p>Set oven temp (&#176 C):</p>
@@ -218,7 +218,7 @@
     var last_sync = new Date();
     var clock_text = $('.last_checked');
     var time_out = null;
-    var vars = [{value:'oven_temp1', name:'oven_temp1'}, {value:'oven_temp2', name:'oven_temp2'}, {value:'heater_power', name:'oven_settemp'}, {value:'heater_flow', name:'oven_flow'}, {value:'laser_current', name:'laser_current'}, {value:'gas_system_pressure', name:'gas_pres'}, {value:'pol_coil_current', name:'pol_coil_current'}, {value:'trans_coil_current', name:'trans_coil_current'}, {value:'guide_coil_current', name:'guide_coil_current'}, {value:'hv_monitor_1', name:'hv1'}, {value:'hv_monitor_2', name:'hv2'}, {value:'hv_leakage_monitor', name:'leakage_current'}];
+    var vars = [{dbname:'oven_temp1', classname:'oven_temp1'}, {dbname:'oven_temp2', classname:'oven_temp2'}, {dbname:'heater_power', classname:'oven_settemp'}, {dbname:'heater_flow', classname:'oven_flow'}, {dbname:'laser_current', classname:'laser_current'}, {dbname:'gas_system_pressure', classname:'gas_pres'}, {dbname:'pol_coil_current', classname:'pol_coil_current'}, {dbname:'trans_coil_current', classname:'trans_coil_current'}, {dbname:'guide_coil_current', classname:'guide_coil_current'}, {dbname:'hv_monitor_1', classname:'hv1'}, {dbname:'hv_monitor_2', classname:'hv2'}, {dbname:'hv_leakage_monitor', classname:'leakage_current'}];
 
 //    var run_clock = function() {
 //        var time_diff = Math.round(((new Date()) - last_sync)/1000);
@@ -255,8 +255,8 @@
     function update_vars(vars) {
         return function(recent_vars) {
             for (var v in vars) {
-              var obj = recent_vars[v.value];
-              $('.' + v.name).val(obj.value);
+              var obj = recent_vars[v.dbname];
+              $('.' + v.classname).val(obj.value);
             }
         };
     }
@@ -364,25 +364,43 @@
         });
     });
 
-    var check_laser_status = function(e, o){
-        if (o.val() == '0'){
-            $('.status_light').removeClass('control_status nedm-status-g');
-            $('.status_light').addClass('control_status nedm-status-r');
-        }
-        if (o.val() == '1'){
-            $('.status_light').removeClass('control_status nedm-status-r');
-            $('.status_light').addClass( 'control_status nedm-status-g');
-		}
-    };
+//    var check_laser_status = function(e, o){
+//        if (o.val() == '0'){
+//            $('.status_light').removeClass('control_status nedm-status-g');
+//            $('.status_light').addClass('control_status nedm-status-r');
+//        }
+//        if (o.val() == '1'){
+//            $('.status_light').removeClass('control_status nedm-status-r');
+//            $('.status_light').addClass( 'control_status nedm-status-g');
+//		}
+//    };
 
-    var check_for_changes = function(obj){
-        if (obj.db == 'hexe_edm' && obj.type == 'data') {
-            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('laser_status', check_laser_status);
-        }
-    };
+//    var check_for_changes = function(obj){
+//        if (obj.db == 'hexe_edm' && obj.type == 'data') {
+//            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('laser_status', check_laser_status);
+//        }
+//    };
 
-    $(function () {
-        nedm.on_db_updates(check_for_changes);
+//    $(function () {
+//        nedm.on_db_updates(check_for_changes);
+//    });
+
+    function check_laser_status() {
+        return function(recent_vars) {
+              var obj = recent_vars.laser_status;
+              if (obj.value === 0){
+                  $('.status_light').removeClass('control_status nedm-status-g');
+                  $('.status_light').addClass('control_status nedm-status-r');
+              }
+              if (obj.value == 1){
+                  $('.status_light').removeClass('control_status nedm-status-r');
+                  $('.status_light').addClass( 'control_status nedm-status-g');
+              }
+        };
+    }
+
+    $(function() {
+        nedm.get_database('nedm%2Fhexe_edm').on("latest", check_laser_status());
     });
 
     $('.setMin').on('click', function () {
