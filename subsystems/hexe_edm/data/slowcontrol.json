@@ -8,15 +8,22 @@
 <h2>Slow Control</h2>
 <div>
     <div class='overview' data-role='content'>
-        <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p>
+/*        <p>Refreshed <span style='color:red;' class='last_checked'>0</span> (s) ago.</p>*/
         <div class='ui-grid-c'>
           <div class='ui-block-a'>
-            <p>Oven temp (&#176 C):</p>
+            <p>Set oven temp (&#176 C):</p>
+            <input type='text' size='1' class='output_text oven_settemp' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
           <div class='ui-block-b'>
-            <input type='text' size='1' class='output_text oven_temp1' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            <p>Set oven flow (&#37):</p>
+            <input type='text' size='1' class='output_text oven_flow' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
           <div class='ui-block-c'>
+            <p>Real oven temp (&#176 C):</p>
+            <input type='text' size='1' class='output_text oven_temp1' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+          </div>
+          <div class='ui-block-d'>
+            <p>Real oven temp (&#176 C):</p>
             <input type='text' size='1' class='output_text oven_temp2' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
           </div>
         </div>
@@ -75,25 +82,53 @@
     </div>
     <div class='oven_control'>
         <h3>Oven control</h3>
-        <div data-role='controlgroup' data-type='horizontal'>
-            <button class='set_value_class oven_heat'>Heat</button>
-            <button class='set_value_class oven_cool'>Cool</button>
+        <div class='ui-grid-a'>
+          <div class='ui-block-a'>
+            <div data-role='fieldcontain'>
+                <fieldset data-role='controlgroup' data-type='horizontal'>
+                    <button class='set_value_class setTemp'>Set Temp</button>
+                    <input type='text' class='input_val temp_val' size='1' value='130' data-wrapper-class='controlgroup-textinput ui-btn'>
+                    <select required class='unit'>
+                      <option value='C'>&#176 C</option>
+                      <option value='V'>V</option>
+                    </select>
+                </fieldset>
+            </div>
+          </div>
+          <div class='ui-block-b'>
+            <div data-role='controlgroup' data-type='horizontal'>
+              <button class='set_value_class oven_heat'>Heat</button>
+              <button class='set_value_class oven_cool'>Cool</button>
+            </div>
+          </div>
         </div>
     </div>
     <div class='laser_control'>
         <h3>Laser control</h3>
-            <div data-role='controlgroup' data-type='horizontal'>
+          <div class='ui-grid-a'>
+            <div class='ui-block-a' data-role='controlgroup' data-type='horizontal'>
                 <h4>Laser Status</h4>
-                <button class='set_laser_status' value='1'>ON</button>
-                <button class='set_laser_status' value='0'>OFF</button>
+                <select style="margin-left : auto; margin-right : auto;" class="set_laser_status" data-role="slider">
+                    <option value="0">OFF</option>
+                    <option value="1">ON</option>
+                </select>
                 <div style='float:left' class='status_light control_status nedm-status-r'> </div>
             </div>
-            <div data-role='controlgroup' data-type='horizontal'>
+            <div class='ui-block-b' data-role='controlgroup'>
                 <h4>Laser Power</h4>
-                <button class='set_min'>Off (0 A)</button>
-                <button class='set_med'>Adjust (30 A)</button>
-                <button class='set_max'>Full (70 A)</button>
+                <div class='ui-grid-b'>
+                  <div class='ui-block-a'>
+                  <button class='set_min'>Off (0A)</button>
+                  </div>
+                  <div class='ui-block-b'>
+                  <button class='set_med'>Adjust (30A)</button>
+                  </div>
+                  <div class='ui-block-c'>
+                  <button class='set_max'>Full (70A)</button>
+                  </div>
+                </div>
             </div>
+          </div>
     </div>
     <div class='coil_control'>
         <h3>Polarizer and Transport coils control</h3>
@@ -142,23 +177,6 @@
                       </div>
                     </div>
                 </div>
-        <div data-role='fieldcontain'>
-            <div class='ui-grid-b'>
-              <div class='ui-block-a'>
-                <select required class='get_which_coil'>
-                  <option value='pol'>Polarizer coils</option>
-                  <option value='trans'>Transport coil</option>
-                  <option value='guide'>Guide coil</option>
-                </select>
-              </div>
-              <div class='ui-block-b'>
-                <button class='get_value_class'>Get coil current (A)</button>
-              </div>
-              <div class='ui-block-c'>
-                <input type='text' size='5' class='output_text' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
-              </div>
-            </div>
-        </div>
         </div>
     </div>
 </div>
@@ -168,15 +186,6 @@
         <div class='oven_control'>
             <h3>Oven control</h3>
             <div data-role='fieldcontain'>
-                <fieldset data-role='controlgroup' data-type='horizontal'>
-                    <button class='set_value_class setTemp'>Set Temp</button>
-                    <input type='text' class='input_val temp_val' data-wrapper-class='controlgroup-textinput ui-btn'>
-                    <select required class='unit'>
-                      <option value='C'>&#176 C</option>
-                      <option value='V'>V</option>
-                    </select>
-                </fieldset>
-                <p style='text-align:left'>(standard values: ??)</p>
                 <div data-role='controlgroup' data-type='horizontal'>
                     <button class='set_value_class setFlow'>Set Flow (&#37)</button>
                     <input type='text' class='input_val flow_val' data-wrapper-class='controlgroup-textinput ui-btn'>
@@ -209,48 +218,63 @@
     var last_sync = new Date();
     var clock_text = $('.last_checked');
     var time_out = null;
-    var vars = [{value:'oven_temp1', name:'oven_temp1'}, {value:'oven_temp2', name:'oven_temp2'}, {value:'laser_current', name:'laser_current'}, {value:'gas_system_pressure', name:'gas_pres'}, {value:'pol_coil_current', name:'pol_coil_current'}, {value:'trans_coil_current', name:'trans_coil_current'}, {value:'guide_coil_current', name:'guide_coil_current'}, {value:'hv_monitor_1', name:'hv1'}, {value:'hv_monitor_2', name:'hv2'}, {value:'hv_leakage_monitor', name:'leakage_current'}];
+    var vars = [{value:'oven_temp1', name:'oven_temp1'}, {value:'oven_temp2', name:'oven_temp2'}, {value:'heater_power', name:'oven_settemp'}, {value:'heater_flow', name:'oven_flow'}, {value:'laser_current', name:'laser_current'}, {value:'gas_system_pressure', name:'gas_pres'}, {value:'pol_coil_current', name:'pol_coil_current'}, {value:'trans_coil_current', name:'trans_coil_current'}, {value:'guide_coil_current', name:'guide_coil_current'}, {value:'hv_monitor_1', name:'hv1'}, {value:'hv_monitor_2', name:'hv2'}, {value:'hv_leakage_monitor', name:'leakage_current'}];
 
-    var run_clock = function() {
-        var time_diff = Math.round(((new Date()) - last_sync)/1000);
-        clock_text.text(Math.round(time_diff));
-        setTimeout(run_clock, 1000);
-    };
+//    var run_clock = function() {
+//        var time_diff = Math.round(((new Date()) - last_sync)/1000);
+//        clock_text.text(Math.round(time_diff));
+//        setTimeout(run_clock, 1000);
+//    };
 
-    var post_value = function(x) {
-        return function(e, o) {
-        if (e !== null) {
-          return;}
-        if (o.rows.length != 1) {
-          alert(x.value + " not found");
-          return;
-        }
-        var v = o.rows[0].value;
-        $('.' + x.name).val(v);
-        last_sync = new Date();
+//    var post_value = function(x) {
+//        return function(e, o) {
+//        if (e !== null) {
+//          return;}
+//        if (o.rows.length != 1) {
+//          alert(x.value + " not found");
+//          return;
+//        }
+//        var v = o.rows[0].value;
+//        $('.' + x.name).val(v);
+//        last_sync = new Date();
+//        };
+//    };
+
+//    function sync_vars() {
+//        for (var v in vars) {
+//            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(vars[v].value, post_value(vars[v]));
+//        }
+//        time_out = setTimeout(sync_vars, 2000);
+//    }
+
+//    var refresh_all = function() {
+//      if (time_out) clearTimeout(time_out);
+//      sync_vars();
+//    };
+
+    function update_vars(vars) {
+        return function(recent_vars) {
+            for (var v in vars) {
+              var obj = recent_vars[v.value];
+              $('.' + v.name).val(obj.value);
+            }
         };
-    };
-
-    function sync_vars() {
-        for (var v in vars) {
-            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(vars[v].value, post_value(vars[v]));
-        }
-        time_out = setTimeout(sync_vars, 2000);
     }
 
-    var refresh_all = function() {
-      if (time_out) clearTimeout(time_out);
-      sync_vars();
-    };
-
     $(function() {
-      refresh_all();
-      run_clock();
+        nedm.get_database('nedm%2Fhexe_edm').on("latest", update_vars(vars));
     });
+
+//    $(function() {
+//      refresh_all();
+//      run_clock();
+//    });
+
+    var heat_vals = ['C', '130'];
 
     $('.oven_heat').on('click', function() {
         disable_all();
-        nedm.send_command({cmd_name : 'set_oven_temp', arguments: ['C', '170'], timeout: 5000,
+        nedm.send_command({cmd_name : 'set_oven_temp', arguments: heat_vals, timeout: 5000,
         callback: function(e,o) {
             enable_all();
             }
@@ -281,6 +305,7 @@
         var value = $('.temp_val').val();
         var unit = $('.unit option:selected').val();
         var args = [unit, value];
+        heat_vals = args;
         nedm.send_command( { cmd_name : 'set_oven_temp',
         arguments : args,
         timeout : 5000,
@@ -305,7 +330,7 @@
 
     $('.set_flow_min').on('click', function() {
         disable_all();
-        var args = ['0'];
+        var args = ['5'];
         nedm.send_command( {cmd_name: 'set_oven_flow',
         arguments: args,
         timeout: 5000,
@@ -327,9 +352,9 @@
         });
     });
 
-    $('.set_laser_status').on('click', function() {
+    $('.set_laser_status').on('change', function() {
         disable_all();
-        var args = [$(this).val()];
+        var args = [$('.set_laser_status option:selected').val()];
         nedm.send_command({cmd_name: 'set_laser_status',
         arguments: args,
         timeout: 5000,
@@ -450,7 +475,7 @@
         var value = $(this).val();
         var coil = $('.which_coil option:selected').val();
         var args = [coil, value];
-        nedm.send_command({cmd_name: 'set_laser_status',
+        nedm.send_command({cmd_name: 'set_coil_status',
         arguments: args,
         timeout: 5000,
         callback: function(e, o) {
@@ -469,21 +494,6 @@
         callback: function(e, o) {
             enable_all();
             }
-        });
-    });
-
-    $('.get_value_class').on('click', function() {
-        disable_all();
-        var args = [$('.get_which_coil option:selected').val()];
-        nedm.send_command({cmd_name : 'get_coil_current',
-        arguments: args,
-        timeout: 5000,
-        callback: function(e, o) {
-        if (o && o.ok) {
-        $('.output_text').val(o.return);
-        }
-        enable_all();
-        }
         });
     });
 
