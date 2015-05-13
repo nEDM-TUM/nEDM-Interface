@@ -183,7 +183,7 @@ function($theDiv, anobj) {
         nedm.get_database('nedm%2Fhexe_edm').on("latest", check_squids);
     });
 
-    var init_switches = [{name:'squid_mode', s:'.set_squid_mode'}, {name:'active_coil', s:'.set_coil_switch'}, {name:'magnicon_on', s:'set_coil_res'}, {name:'hv_enable_1', s:'.set_hv1_status'}, {name:'hv_enable_2', s:'set_hv2_status'}];
+    var init_switches = [{name:'squid_mode', s:'.set_squid_mode'}, {name:'active_coil', s:'.set_coil_switch'}, {name:'magnicon_on', s:'.set_coil_res'}, {name:'hv_enable_1', s:'.set_hv1_status'}, {name:'hv_enable_2', s:'.set_hv2_status'}];
 
     function init_switch(switchname) {
         return function(e,o) {
