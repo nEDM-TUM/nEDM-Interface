@@ -71,10 +71,16 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         <div data-role='collapsible' class='fft_window'>
             <h4>FFT</h4>
             <div class="show_fft"></div>
-            <div class="show_amp"></div>
-	    <div class="show_frq"></div>
+			
+       	    <div data-role='collapsible' class='amp_window'>
+                     <h4>AMPLITUDE</h4>
+                     <div class="show_amp"></div>
+	             <div class="show_frq"></div>
+	    </div>
 	</div>
-        <div class='adv_options'>
+ 	       
+
+	<div class='adv_options'>
           <div data-role='collapsible' class='measurement_options'>
             <h4>Measurement (save) options</h4>
             <div data-role='fieldcontain'>
@@ -153,6 +159,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var data = [];
       var fft_data = [];
       var labels = ["time", "ch0"];
+      var labels_amp = ["time", "He_amp" , "Xe_amp"];
       var g = new nedm.Dygraph($(".show_plot", $(thediv))[0], data, {
           drawPoints: false,
           showRoller: false,
@@ -193,7 +200,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var settings;
       var has_waited = false;
       var the_fft;
-      var amp_arr = [[],[], []];
+      var amp_arr = [[] , [] , []  ];
       var counter = 0;
 
       function showFFT(the_data) {
@@ -211,7 +218,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         var nyquist_freq = settings.current_frequency_khz/2.0;
         var freq_step = nyquist_freq/(power_of_2/2);
         var len_of_fft = power_of_2/2 ;
-        var timestep = the_fft.bufferSize / nyquist_freq * 2.0;
+        var timestep = the_fft.bufferSize / nyquist_freq / 1000.0 * 2.0;
         var arr = [_.range(0, freq_step*(len_of_fft), freq_step)];
         arr[0].length = len_of_fft;
 	
@@ -239,37 +246,32 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 		var data_fft = new Int32Array(b.concat(zeroArray));
                 the_fft.forward(data_fft);
                 arr[arr.length] = new Float32Array(the_fft.spectrum);
+
         }
+        showAmp(arr , timestep, len_of_fft , nyquist_freq);	
+        appendFFTData(_.zip.apply(this, arr)); 
+      }
+	
+      function showAmp(arr , timestep , len_of_fft , nyquist_freq) {
+        if (!should_show_amp) return;
+	
+        var amp_arr_out = [_.range(0, timestep *(counter +1), timestep)];
 	var He_arr = Array.prototype.slice.call(arr[1]);
 	var Xe_arr = Array.prototype.slice.call(arr[1]);
-	var He_min = Math.floor( 35 * nyquist_freq / len_of_fft);
-	var He_max = Math.floor(45 * nyquist_freq / len_of_fft) + 1;
-	var Xe_min = Math.floor(11 * nyquist_freq / len_of_fft);
-	var Xe_max = Math.floor(20 * nyquist_freq / len_of_fft) + 1;
-	He_arr.slice(He_min , He_max);
-	Xe_arr.slice(He_min , He_max);
+	var He_min = Math.floor(36 * len_of_fft / nyquist_freq / 1000.0);
+	var He_max = Math.floor(43 * len_of_fft / nyquist_freq / 1000.0) + 1;
+	var Xe_min = Math.floor(10 * len_of_fft / nyquist_freq / 1000.0);
+	var Xe_max = Math.floor(17 * len_of_fft / nyquist_freq / 1000.0) + 1;
+	He_arr = He_arr.slice(He_min , He_max);
+	Xe_arr = Xe_arr.slice(Xe_min , Xe_max);
         amp_arr[0].push(counter * timestep);
 	amp_arr[1].push(_.max(He_arr));
 	amp_arr[2].push(_.max(Xe_arr));
-        appendFFTData(_.zip.apply(this, arr)); 
-        appendAmp(_.zip.apply(this,amp_arr));
+	amp_arr_out[amp_arr_out.length] = new Float32Array(amp_arr[1]);
+	amp_arr_out[amp_arr_out.length] = new Float32Array(amp_arr[2]);
+        appendAmp(_.zip.apply(this, amp_arr_out));
 	counter++;
       }
-
-/*	
-      function showAmp(amp_arr) {
-        if (!should_show_amp) return;
-	var len = amp_arr.length;
-	var time_max = 10;
-	var timestep = time_max / len;
-        var arr2 = [_.range(0, time_max , timestep)];
-	
-        for (i = 1; i < 2; i++) {
-		arr2[arr2.length] = amp_arr;
-        }
-        appendAmp(_.zip.apply(this, arr2));
-	
-      }*/
 
       function showNewData(obj) {
           if (obj.header.error) return;
@@ -469,9 +471,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       function appendAmp(dat) {
           amp_data = dat;
           ampg.updateOptions({
-              'file': amp_data,
-              labels: labels
+              'file': amp_data ,
+              labels: labels_amp 
           });
+	  ampg.resize();
       }
 
       function startReadout(obj) {
@@ -557,6 +560,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                        channel_list : ssc,
                            mod_list : mods }
           });
+	  amp_arr = [[],[],[]];
       });
 
       $('.stopButton', $(thediv)).on("click", function () {
@@ -795,14 +799,21 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       $('.fft_window', $(thediv)).on("collapsibleexpand", function() {
         should_show_fft = true;
-        should_show_amp = true;
 
         fftg.resize();
+      });
+
+      $('.amp_window', $(thediv)).on("collapsibleexpand", function() {
+        should_show_amp = true;
+
         ampg.resize(); 
       });
 
       $('.fft_window', $(thediv)).on("collapsiblecollapse", function() {
         should_show_fft = false;
+      });
+
+      $('.amp_window', $(thediv)).on("collapsiblecollapse", function() {
         should_show_amp = false;
       });
 
