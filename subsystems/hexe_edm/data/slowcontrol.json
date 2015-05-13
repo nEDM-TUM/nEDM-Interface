@@ -103,12 +103,8 @@
           <div class='ui-block-a'>
             <div data-role='fieldcontain'>
                 <fieldset data-role='controlgroup' data-type='horizontal'>
-                    <button class='set_value_class setTemp'>Set Temp</button>
-                    <input type='text' class='input_val temp_val' size='1' value='130' data-wrapper-class='controlgroup-textinput ui-btn'>
-                    <select required class='unit'>
-                      <option value='C'>&#176 C</option>
-                      <option value='V'>V</option>
-                    </select>
+                    <button class='set_value_class setTemp'>Set Temp (V)</button>
+                    <input type='text' class='input_val temp_val' size='1' value='2.9' data-wrapper-class='controlgroup-textinput ui-btn'>
                 </fieldset>
             </div>
           </div>
@@ -286,7 +282,7 @@
 //      run_clock();
 //    });
 
-    var heat_vals = ['C', '130'];
+    var heat_vals = ['V', '2.9'];
 
     $('.oven_heat').on('click', function() {
         disable_all();
@@ -319,8 +315,7 @@
     $('.setTemp').on('click', function () {
         disable_all();
         var value = $('.temp_val').val();
-        var unit = $('.unit option:selected').val();
-        var args = [unit, value];
+        var args = ['V', value];
         heat_vals = args;
         nedm.send_command( { cmd_name : 'set_oven_temp',
         arguments : args,
