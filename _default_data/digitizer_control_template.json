@@ -71,11 +71,12 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         <div data-role='collapsible' class='fft_window'>
             <h4>FFT</h4>
             <div class="show_fft"></div>
-			
+	    <input type="button" value="Log Scale X" class="x_log">
+	    <input type="button" value="Log Scale Y" class="y_log">
        	    <div data-role='collapsible' class='amp_window'>
-                     <h4>AMPLITUDE</h4>
-                     <div class="show_amp"></div>
-	             <div class="show_frq"></div>
+            <h4>AMPLITUDE</h4>
+                 <div class="show_amp"></div>
+                 <div class="show_frq"></div>
 	    </div>
 	</div>
  	       
@@ -133,6 +134,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 </div>
 """,
 "script" : """
+
     function(thediv, docobj) {
       // Add logging...
       var cmt = $('.comment', $(thediv));
@@ -152,6 +154,8 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         setDefaults = eval( '(' + docobj.defaults + ')' );
         /* jshint ignore:end */
       }
+
+      nedm.Dygraph.prototype.DEBUG = true;
 
       // Do the reset
       var toastr = require("toastr");
@@ -202,7 +206,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var the_fft;
       var amp_arr = [[] , [] , []  ];
       var counter = 0;
-
+      var x_log_on = false;
       function showFFT(the_data) {
         if (!should_show_fft) return;
         // All should be already a factor of 2.
@@ -219,9 +223,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         var freq_step = nyquist_freq/(power_of_2/2);
         var len_of_fft = power_of_2/2 ;
         var timestep = the_fft.bufferSize / nyquist_freq / 1000.0 * 2.0;
-        var arr = [_.range(0, freq_step*(len_of_fft), freq_step)];
+        var arr = [_.range(0 , freq_step*(len_of_fft), freq_step)];
         arr[0].length = len_of_fft;
-	
+        arr[0] = _.rest(arr[0]);
+	arr[0] = _.map(arr[0] , Math.log);	
 	function Parabel(value , index) {
 		return value / len /len * 4 * (index *index - len * index );
 	}
@@ -245,7 +250,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 		var b = _.map(data_4_fft , Hanning); 
 		var data_fft = new Int32Array(b.concat(zeroArray));
                 the_fft.forward(data_fft);
-                arr[arr.length] = new Float32Array(the_fft.spectrum);
+		var the_spectrum = the_fft.spectrum;
+		the_spectrum = _.rest(the_spectrum);
+	//	the_spectrum = _.map(the_spectrum , Math.log);
+                arr[arr.length] = new Float32Array(the_spectrum);
 
         }
         showAmp(arr , timestep, len_of_fft , nyquist_freq);	
@@ -272,7 +280,22 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         appendAmp(_.zip.apply(this, amp_arr_out));
 	counter++;
       }
+      
+      function setLogScale(axis, val, graph) {
+        if (axis === 'y') {
+              graph.updateOptions({ logscale: val });
+          } else {
+            graph.updateOptions({ axes : { x : {  logscale : val } } });
+        }
+      }
 
+      // setLogScale('y', true, ampg); 
+
+
+
+
+
+          
       function showNewData(obj) {
           if (obj.header.error) return;
           var read_size = settings.readout_size;
@@ -571,7 +594,25 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           $('.stopButton', $(thediv)).button("option", "disabled", true);
       });
 
-      function performCmd(obj) {
+      $('.x_log', $(thediv)).on("click", function () {
+      		x_log_on = true; 
+      });
+
+ /*     $('.x_log', $(thediv)).off("click", function () {
+      		setLogScale('x', false, ampg); 
+      });
+*/
+
+      $('.y_log', $(thediv)).on("click", function () {
+      		setLogScale('y', true, fftg); 
+      });
+
+/*
+      $('.y_log', $(thediv)).off("click", function () {
+      		setLogScale('y', false, ampg); 
+      });
+*/
+     function performCmd(obj) {
         if ("ok" in obj.header) {
            toastr.info("Command succeeded");
         } else {
