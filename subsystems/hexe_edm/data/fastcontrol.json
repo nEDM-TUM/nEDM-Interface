@@ -163,7 +163,7 @@ function($theDiv, anobj) {
                   $('.' + squid_stati[v] + ' status_light').removeClass('control_status nedm-status-g');
                   $('.' + squid_stati[v] + ' status_light').addClass('control_status nedm-status-r');
               }
-              if (obj.value == 1){
+              if (stat.value == 1){
                   $('.' + squid_stati[v] + ' status_light').removeClass('control_status nedm-status-r');
                   $('.' + squid_stati[v] + ' status_light').addClass( 'control_status nedm-status-g');
               }
