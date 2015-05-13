@@ -371,7 +371,7 @@ function($theDiv, anobj) {
             timeout: 5000
             });
             var newstart = start + step;
-            time_out = setTimeout(ramp_up, 1000, newstart, step, end, no);
+            time_out = setTimeout(ramp_up, 500, newstart, step, end, no);
         }
         else {
             args = [no, end];
@@ -408,7 +408,7 @@ function($theDiv, anobj) {
               timeout: 5000
               });
               var newstart = start - step;
-              time_out = setTimeout(ramp_up, 1000, newstart, step, no);
+              time_out = setTimeout(ramp_up, 500, newstart, step, no);
           }
           else {
               args = [no, 0];
@@ -426,12 +426,12 @@ function($theDiv, anobj) {
         var hv_supply = false;
         var fin = false;
         if ($(this).hasClass('hv1')) {
-          step_size = hv_value[0]/hv_ramptime[0];
+          step_size = hv_value[0]/(2*hv_ramptime[0]);
           hv_supply = '1';
           fin = hv_value[0];
         }
         else {
-          step_size = hv_value[1]/hv_ramptime[1];
+          step_size = hv_value[1]/(2*hv_ramptime[1]);
           hv_supply = '2';
           fin = hv_value[1];
         }
