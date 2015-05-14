@@ -425,7 +425,7 @@
         nedm.get_database('nedm%2Fhexe_edm').on("latest", check_laser_status);
     });
 
-    $('.setMin').on('click', function () {
+    $('.set_min').on('click', function () {
         disable_all();
         nedm.send_command( { cmd_name : 'set_laser_current',
         arguments : ['0'],
@@ -436,7 +436,7 @@
         });
     });
 
-    $('.setMed').on('click', function () {
+    $('.set_med').on('click', function () {
         disable_all();
         nedm.send_command( { cmd_name : 'set_laser_current',
         arguments : ['30'],
@@ -447,7 +447,7 @@
         });
     });
 
-    $('.setMax').on('click', function () {
+    $('.set_max').on('click', function () {
         disable_all();
         nedm.send_command( { cmd_name : 'set_laser_current',
         arguments : ['70'],
