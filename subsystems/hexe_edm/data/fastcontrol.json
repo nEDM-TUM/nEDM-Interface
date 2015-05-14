@@ -20,12 +20,12 @@
             <td>Z2</td>
           </tr>
           <tr>
-            <td class='X1 status_light control_status nedm-status-r'></td>
-            <td class='Y1 status_light control_status nedm-status-r'></td>
-            <td class='Z1 status_light control_status nedm-status-r'></td>
-            <td class='X2 status_light control_status nedm-status-r'></td>
-            <td class='Y2 status_light control_status nedm-status-r'></td>
-            <td class='Z2 status_light control_status nedm-status-r'></td>
+            <td class='X1 squid_status_light control_status nedm-status-r'></td>
+            <td class='Y1 squid_status_light control_status nedm-status-r'></td>
+            <td class='Z1 squid_status_light control_status nedm-status-r'></td>
+            <td class='X2 squid_status_light control_status nedm-status-r'></td>
+            <td class='Y2 squid_status_light control_status nedm-status-r'></td>
+            <td class='Z2 squid_status_light control_status nedm-status-r'></td>
           </tr>
           <tr>
             <td><input type='text' size='1' class='output_text X1' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
@@ -96,7 +96,7 @@
                 <option value="0">OFF</option>
                 <option value="1">ON</option>
             </select>
-            <div style='float:left' class='status_light hv1 control_status nedm-status-r'> </div>
+            <div style='float:left' class='hv_status_light hv1 control_status nedm-status-r'> </div>
         </div>
       </div>
       <div class='hv_2_control ui-block-b'>
@@ -106,7 +106,7 @@
                 <option value="0">OFF</option>
                 <option value="1">ON</option>
             </select>
-            <div style='float:left' class='status_light hv2 control_status nedm-status-r'> </div>
+            <div style='float:left' class='hv_status_light hv2 control_status nedm-status-r'> </div>
         </div>
       </div>
     </div>
@@ -160,19 +160,19 @@ function($theDiv, anobj) {
             if (squid_stati[v]) {
               var stat = recent_vars[v];
               if (stat.value === 0){
-                  $('.' + squid_stati[v] + ' status_light').removeClass('control_status nedm-status-g');
-                  $('.' + squid_stati[v] + ' status_light').addClass('control_status nedm-status-r');
+                  $('.' + squid_stati[v] + ' squid_status_light').removeClass('control_status nedm-status-g');
+                  $('.' + squid_stati[v] + ' squid_status_light').addClass('control_status nedm-status-r');
               }
               if (stat.value == 1){
-                  $('.' + squid_stati[v] + ' status_light').removeClass('control_status nedm-status-r');
-                  $('.' + squid_stati[v] + ' status_light').addClass( 'control_status nedm-status-g');
+                  $('.' + squid_stati[v] + ' squid_status_light').removeClass('control_status nedm-status-r');
+                  $('.' + squid_stati[v] + ' squid_status_light').addClass( 'control_status nedm-status-g');
               }
             }
             if (squid_voltages[v]) {
               var obj = recent_vars[v];
               if (obj.value > 10.0) {
-                  $('.' + squid_voltages[v] + ' status_light').removeClass('control_status nedm-status-g');
-                  $('.' + squid_voltages[v] + ' status_light').addClass('control_status nedm-status-r');
+                  $('.' + squid_voltages[v] + ' squid_status_light').removeClass('control_status nedm-status-g');
+                  $('.' + squid_voltages[v] + ' squid_status_light').addClass('control_status nedm-status-r');
               }
               $('.output_text ' + squid_voltages[v]).val(obj.value);
             }
@@ -286,12 +286,12 @@ function($theDiv, anobj) {
             if (recent_vars[v]) {
                 var stat = recent_vars[v];
                 if (stat.value === 0){
-                  $('.status_light ' + hv_stati[v]).removeClass('control_status nedm-status-g');
-                  $('.status_light ' + hv_stati[v]).addClass('control_status nedm-status-r');
+                  $('.hv_status_light ' + hv_stati[v]).removeClass('control_status nedm-status-g');
+                  $('.hv_status_light ' + hv_stati[v]).addClass('control_status nedm-status-r');
                 }
                 if (obj.value == 1){
-                  $('.status_light ' + hv_stati[v]).removeClass('control_status nedm-status-r');
-                  $('.status_light ' + hv_stati[v]).addClass( 'control_status nedm-status-g');
+                  $('.hv_status_light ' + hv_stati[v]).removeClass('control_status nedm-status-r');
+                  $('.hv_status_light ' + hv_stati[v]).addClass( 'control_status nedm-status-g');
                 }
             }
         }
