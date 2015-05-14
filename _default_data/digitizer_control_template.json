@@ -58,6 +58,9 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         <input type="button" value="Request digitizer" class="reqDigi" disabled>
         <input type="button" value="Release digitizer" class="relDigi" disabled>
     </div>
+    <div data-role="controlgroup" data-type="horizontal">
+        <input type="button" value="Reboot digitizer" class="rebootDigi" disabled>
+    </div>
     <div class="digitizerControl ui-disabled">
         <div class="show_plot"></div>
         <div data-role="controlgroup" data-type="horizontal">
@@ -369,7 +372,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       function enableIPSelection() {
           $(".reqDigi", $(thediv)).button("option", "disabled", false);
-          $(".relDigi", $(thediv)).button("option", "disabled", true);
+          $(".relDigi,.rebootDigi", $(thediv)).button("option", "disabled", true);
           $('.selectIPAddress', $(thediv)).filter(':input').selectmenu("enable");
       }
 
@@ -378,7 +381,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               // re-enable interface
               enableIPSelection();
           } else {
-              $(".relDigi", $(thediv)).button("option", "disabled", false);
+              $(".relDigi,.rebootDigi", $(thediv)).button("option", "disabled", false);
               x.sendObj({
                   cmd: "getChannels",
                   embed: true
@@ -403,11 +406,15 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           x.sendObj({ cmd : 'requestDigitizerControl', args : { ip_addr : ip } }, true);
       });
 
-       $('.relDigi', $(thediv)).on("click", function (ev) {
+      $('.relDigi', $(thediv)).on("click", function (ev) {
           $(ev.currentTarget).button("option", "disabled", true);
           x.sendObj({ cmd : 'releaseDigitizerControl' }, true);
       });
 
+      $('.rebootDigi', $(thediv)).on("click", function (ev) {
+          $(ev.currentTarget).button("option", "disabled", true);
+          x.sendObj({ cmd : 'rebootCard' }, true);
+      });
       function appendData(dat) {
           data = dat;
           g.updateOptions({
