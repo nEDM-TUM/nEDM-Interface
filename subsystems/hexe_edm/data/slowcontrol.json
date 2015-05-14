@@ -125,7 +125,7 @@
                     <option value=0>OFF</option>
                     <option value=1>ON</option>
                 </select>
-                <div style='float:left' class='status_light control_status nedm-status-r'> </div>
+                <div style='float:left' class='laser_status_light control_status nedm-status-r'> </div>
             </div>
             <div class='ui-block-b'>
                 <h4>Laser Power</h4>
@@ -411,12 +411,12 @@
         if (recent_vars.laser_status) {
           var obj = recent_vars.laser_status;
           if (obj.value === 0){
-              $('.status_light').removeClass('control_status nedm-status-g');
-              $('.status_light').addClass('control_status nedm-status-r');
+              $('.laser_status_light').removeClass('control_status nedm-status-g');
+              $('.laser_status_light').addClass('control_status nedm-status-r');
           }
           if (obj.value == 1){
-              $('.status_light').removeClass('control_status nedm-status-r');
-              $('.status_light').addClass( 'control_status nedm-status-g');
+              $('.laser_status_light').removeClass('control_status nedm-status-r');
+              $('.laser_status_light').addClass( 'control_status nedm-status-g');
           }
         }
     }
