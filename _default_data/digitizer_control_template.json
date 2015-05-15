@@ -413,7 +413,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       $('.rebootDigi', $(thediv)).on("click", function (ev) {
           $(ev.currentTarget).button("option", "disabled", true);
-          x.sendObj({ cmd : 'rebootCard' }, true);
+          x.sendObj({ cmd : 'rebootCard' });
       });
       function appendData(dat) {
           data = dat;
