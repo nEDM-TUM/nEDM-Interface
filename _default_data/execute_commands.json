@@ -29,6 +29,15 @@
           emit([doc.execute, doc._id], 1); 
       }""",
       "reduce" : "_sum"
+    },
+    "export_commands" : {
+      "map" : """function(doc) {
+          if (!doc.type || doc.type != 'export_commands') return;
+          for (var k in doc.keys) {
+            emit(k, [doc.keys[k].Info, doc.uuid]);
+          }
+      }""",
+      "reduce" : "_count"
     }
 
   } 
