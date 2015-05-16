@@ -96,6 +96,13 @@ th.db_name {
 .db-status-blink {
     background-color: rgb(192,192,192);
 }
+.center {
+  text-align: center;
+}
+.left {
+  text-align: left;
+}
+
 .sub_li_header,.measurement_name,.measurement_status  {
   font-style:italic;
   text-overflow: ellipsis;
