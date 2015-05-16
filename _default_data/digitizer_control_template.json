@@ -44,15 +44,15 @@ menu.  If you wish to save channels, these can be selected in the pull-down
 menu to the right of this.
 <br><br>
 
-Example scripts on how to readout: <a href="https://gist.github.com/6033a49c60771e7dd16f">python</a>, <a href="https://gist.github.com/de7b3621ed14ee559662">C/C++<a/>.
+Example scripts on how to readout: <a href="https://gist.github.com/6033a49c60771e7dd16f">python</a>, <a href="https://gist.github.com/de7b3621ed14ee559662">C/C++</a>.
 """,
   "html" : """
 <div data-role="controlgroup" data-type="horizontal">
     <input type="button" value="Connect" class="connectBtn">
 </div>
-<div class="fullDigitizerPage" class="ui-disabled">
+<div class="fullDigitizerPage ui-disabled">
     <div data-role="controlgroup" data-type="horizontal">
-        <select class='selectIPAddress' data-native-menu='false' class="ui-disabled">
+        <select class='selectIPAddress ui-disabled' data-native-menu='false'>
             <option>Select IP:</option>
         </select>
         <input type="button" value="Request digitizer" class="reqDigi" disabled>
@@ -69,7 +69,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
                 <option>Select channels:</option>
             </select>
-            <progress class="progressBar" value="0" max="100"/>
+            <progress class="progressBar" value="0" max="100"></progress>
         </div>
         <div data-role='collapsible' class='fft_window'>
             <h4>FFT</h4>
@@ -82,13 +82,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           <div data-role='collapsible' class='measurement_options'>
             <h4>Measurement (save) options</h4>
             <div data-role='fieldcontain'>
-              <div align="left" class="ui-body ui-body-a ui-corner-all">
+              <div class="left ui-body ui-body-a ui-corner-all">
                 <h3>Measurement name:</h3>
                 <input type='text' class="meas_name">
                 <h3>Measurement comment:</h3>
                 <div class="comment code_editor"></div>
               </div>
-              <div align="left" class="ui-body ui-body-a ui-corner-all">
+              <div class="left ui-body ui-body-a ui-corner-all">
                 <h3>Additional header info:</h3>
                 <div class="header code_editor"></div>
               </div>
