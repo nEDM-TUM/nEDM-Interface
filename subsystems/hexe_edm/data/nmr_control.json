@@ -1,0 +1,24 @@
+{
+    "_id" : "nmr_control",
+    "type" : "control",
+    "title" : "NMR Controls",
+    "description" : "Send trigger for NMR system",
+    "html" : """
+<div data-role="controlgroup" data-type="horizontal">
+    <input type="button" value="Trigger Pulse" class="triggerPulse">
+</div>
+""",
+    "script" : """
+function($theDiv, anobj) {
+  $('.triggerPulse', $($theDiv)).on('click', function(ev, ui) {
+    $(ev.currentTarget).button("option", "disabled", true);
+    nedm.get_database("nedm%2Fnmr_system").send_command({
+      cmd_name : "send_trigger",
+      callback : function() {
+        $(ev.currentTarget).button("option", "disabled", false);
+      }
+    });
+  });
+}
+"""
+}
