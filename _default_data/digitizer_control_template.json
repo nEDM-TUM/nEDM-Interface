@@ -71,8 +71,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         <div data-role='collapsible' class='fft_window'>
             <h4>FFT</h4>
             <div class="show_fft"></div>
+
+        <div data-role="controlgroup" data-type="horizontal">
 	    <input type="button" value="Log Scale X" class="x_log">
-	    <input type="button" value="Log Scale Y" class="y_log">
+	    <input type="button" value="Lin Scale X" class="x_lin">
+	    <input type="button" value="Log Scale X" class="y_log">
+	    <input type="button" value="Lin Scale Y" class="y_lin">
+        </div>
        	    <div data-role='collapsible' class='amp_window'>
             <h4>AMPLITUDE</h4>
                  <div class="show_amp"></div>
@@ -226,7 +231,6 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         var arr = [_.range(0 , freq_step*(len_of_fft), freq_step)];
         arr[0].length = len_of_fft;
         arr[0] = _.rest(arr[0]);
-	arr[0] = _.map(arr[0] , Math.log);	
 	function Parabel(value , index) {
 		return value / len /len * 4 * (index *index - len * index );
 	}
@@ -595,23 +599,21 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.x_log', $(thediv)).on("click", function () {
-      		x_log_on = true; 
+       		setLogScale('x', true, fftg); 
       });
 
- /*     $('.x_log', $(thediv)).off("click", function () {
-      		setLogScale('x', false, ampg); 
+      $('.x_lin', $(thediv)).off("click", function () {
+      		setLogScale('x', false, fftg); 
       });
-*/
 
       $('.y_log', $(thediv)).on("click", function () {
       		setLogScale('y', true, fftg); 
       });
 
-/*
-      $('.y_log', $(thediv)).off("click", function () {
-      		setLogScale('y', false, ampg); 
+      $('.y_lin', $(thediv)).off("click", function () {
+      		setLogScale('y', false, fftg); 
       });
-*/
+
      function performCmd(obj) {
         if ("ok" in obj.header) {
            toastr.info("Command succeeded");
