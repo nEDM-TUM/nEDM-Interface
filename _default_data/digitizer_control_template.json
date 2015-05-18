@@ -610,9 +610,15 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 		if (frq_axis){
 			amp_arr[2] = _.map(amp_arr[2] , He_B_nu);
 			amp_arr[3] = _.map(amp_arr[3] , Xe_B_nu);
+			fftg.updateOptions({
+				 ylabel : "Precession Freq Hz"
+			});
 		}else{
 			amp_arr[2] = _.map(amp_arr[2] , He_nu_B);
 			amp_arr[3] = _.map(amp_arr[3] , Xe_nu_B);     
+			fftg.updateOptions({
+				 ylabel : "Magnetic Field uT"
+			});
 		}
       });
 
@@ -671,6 +677,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                            mod_list : mods }
           });
 	  amp_arr =[[],[],[],[]];
+          counter = 0;
       });
 
       $('.stopButton', $(thediv)).on("click", function () {
