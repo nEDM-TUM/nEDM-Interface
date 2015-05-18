@@ -78,7 +78,12 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               <label><input type='checkbox' class='log_scale'/>Log scale</label>
             </div>
         </div>
-        <div class='adv_options'>
+       	    <div data-role='collapsible' class='amp_window'>
+            <h4>AMPLITUDE</h4>
+                 <div class="show_amp"></div>
+                 <div class="show_frq"></div>
+	    </div>
+	<div class='adv_options'>
           <div data-role='collapsible' class='measurement_options'>
             <h4>Measurement (save) options</h4>
             <div data-role='fieldcontain'>
@@ -282,6 +287,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         }
       }
 
+      // setLogScale('y', true, ampg); 
       function showNewData(obj) {
           if (obj.header.error) return;
           var read_size = settings.readout_size;
