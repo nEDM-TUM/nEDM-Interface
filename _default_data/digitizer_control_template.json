@@ -58,9 +58,6 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         <input type="button" value="Request digitizer" class="reqDigi" disabled>
         <input type="button" value="Release digitizer" class="relDigi" disabled>
     </div>
-    <div data-role="controlgroup" data-type="horizontal">
-        <input type="button" value="Reboot digitizer" class="rebootDigi" disabled>
-    </div>
     <div class="digitizerControl ui-disabled">
         <div class="show_plot"></div>
         <div data-role="controlgroup" data-type="horizontal">
@@ -69,26 +66,28 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
                 <option>Select channels:</option>
             </select>
-            <progress class="progressBar" value="0" max="100"></progress>
+            <progress class="progressBar" value="0" max="100"/>
         </div>
         <div data-role='collapsible' class='fft_window'>
             <h4>FFT</h4>
             <div class="show_fft"></div>
-            <div data-role="controlgroup" data-type="horizontal">
-              <label><input type='checkbox' class='log_scale'/>Log scale</label>
-            </div>
+
+        <div data-role="controlgroup" data-type="horizontal">
+	    <input type="button" value="Log Scale X" class="x_log">
+	    <input type="button" value="Lin Scale X" class="x_lin">
+	    <input type="button" value="Log Scale X" class="y_log">
+	    <input type="button" value="Lin Scale Y" class="y_lin">
         </div>
-        <div class='adv_options'>
           <div data-role='collapsible' class='measurement_options'>
             <h4>Measurement (save) options</h4>
             <div data-role='fieldcontain'>
-              <div class="left ui-body ui-body-a ui-corner-all">
+              <div align="left" class="ui-body ui-body-a ui-corner-all">
                 <h3>Measurement name:</h3>
                 <input type='text' class="meas_name">
                 <h3>Measurement comment:</h3>
                 <div class="comment code_editor"></div>
               </div>
-              <div class="left ui-body ui-body-a ui-corner-all">
+              <div align="left" class="ui-body ui-body-a ui-corner-all">
                 <h3>Additional header info:</h3>
                 <div class="header code_editor"></div>
               </div>
@@ -122,7 +121,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               <input type="button" value="Send to card" class="sendGainsToCard">
             </fieldset>
             <div class="ui-grid-c allChannelsGain"><div class="ui-block-a"></div><div class="ui-block-b"></div><div class="ui-block-c"></div><div class="ui-block-d"></div></div>
-          Log scale</div>
+          </div>
         </div>
     </div>
     <div>
@@ -131,6 +130,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 </div>
 """,
 "script" : """
+
     function(thediv, docobj) {
       // Add logging...
       var cmt = $('.comment', $(thediv));
@@ -150,6 +150,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         setDefaults = eval( '(' + docobj.defaults + ')' );
         /* jshint ignore:end */
       }
+
 
       // Do the reset
       var toastr = require("toastr");
@@ -282,6 +283,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         }
       }
 
+      // setLogScale('y', true, ampg); 
+
+
+
+
+
+          
       function showNewData(obj) {
           if (obj.header.error) return;
           var read_size = settings.readout_size;
@@ -324,6 +332,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                   arr[arr.length] = new arr_type(thedat, headerSize + i * length_per_ch, length_per_ch / read_size);
               }
               showFFT(arr);
+              //showAmp(arr);	
               appendData(_.zip.apply(this, arr));
               sendAndReceive();
           }
@@ -421,7 +430,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       function enableIPSelection() {
           $(".reqDigi", $(thediv)).button("option", "disabled", false);
-          $(".relDigi,.rebootDigi", $(thediv)).button("option", "disabled", true);
+          $(".relDigi", $(thediv)).button("option", "disabled", true);
           $('.selectIPAddress', $(thediv)).filter(':input').selectmenu("enable");
       }
 
@@ -455,15 +464,11 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           x.sendObj({ cmd : 'requestDigitizerControl', args : { ip_addr : ip } }, true);
       });
 
-      $('.relDigi', $(thediv)).on("click", function (ev) {
+       $('.relDigi', $(thediv)).on("click", function (ev) {
           $(ev.currentTarget).button("option", "disabled", true);
           x.sendObj({ cmd : 'releaseDigitizerControl' }, true);
       });
 
-      $('.rebootDigi', $(thediv)).on("click", function (ev) {
-          $(ev.currentTarget).button("option", "disabled", true);
-          x.sendObj({ cmd : 'rebootCard' });
-      });
       function appendData(dat) {
           data = dat;
           g.updateOptions({
@@ -525,11 +530,6 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         var upload = $(ev.currentTarget).is(':checked');
         $('.save_data').checkboxradio("option", "disabled", !upload);
       });
-      $('.log_scale', $(thediv)).on("change", function (ev) {
-        fftg.updateOptions( {
-          logscale : $(ev.currentTarget).is(':checked')
-        });
-      });
 
       $('.save_data', $(thediv)).on("change", function (ev) {
         var save = $(ev.currentTarget).is(':checked');
@@ -550,14 +550,6 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.startButton', $(thediv)).on("click", function () {
-          var add_header;
-          try {
-            add_header = hdr_editor.get();
-          } catch (e) {
-            nedm.show_error_window("Formatting error", "Header information improperly formatted.");
-            return;
-          }
-
           $('.startButton', $(thediv)).button("option", "disabled", true);
           $('.relDigi', $(thediv)).button("option", "disabled", true);
           var upload_data = $('.upload_data', $(thediv)).is(':checked');
@@ -580,7 +572,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                         should_save : save_data,
                    measurement_name : meas_name,
                                 log : com,
-                           logitems : add_header,
+                           logitems : hdr_editor.get(),
                         buffer_size : buf_size,
                        channel_list : ssc,
                            mod_list : mods }
