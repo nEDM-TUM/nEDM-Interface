@@ -79,8 +79,12 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             </div>
        	    <div data-role='collapsible' class='amp_window'>
             <h4>AMPLITUDE</h4>
-                 <div class="show_amp"></div>
-                 <div class="show_frq"></div>
+                <div class="show_amp"></div>
+                <div class="show_frq"></div>
+
+            <div data-role="controlgroup" data-type="horizontal">
+                <label><input type='checkbox' class='frq_scale'/>Freq Scale</label>
+	    </div>
 	    </div>
         </div>
 	<div class='adv_options'>
@@ -157,12 +161,14 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       }
 
       // Do the reset
+      var frq_axis = false;
       var toastr = require("toastr");
       var _ = require("underscore");
       var data = [];
       var fft_data = [];
       var labels = ["time", "ch0"];
       var labels_amp = ["time", "He_amp" , "Xe_amp"];
+      var labels_frq = ["time", "He_Field" , "Xe_Field"];
       var g = new nedm.Dygraph($(".show_plot", $(thediv))[0], data, {
           drawPoints: false,
           showRoller: false,
@@ -188,12 +194,20 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
      var ampg = new nedm.Dygraph($(".show_amp", $(thediv))[0], [], {
           drawPoints: false,
           showRoller: false,
-          xlabel : "Time",
+          xlabel : "Time [s]",
           ylabel : "ADC units",
-          labels: ["seconds maybe"]
+          labels: ["Time"]
       });
-      var should_show_fft = false;
 
+     var frqg = new nedm.Dygraph($(".show_frq", $(thediv))[0], [], {
+          drawPoints: false,
+          showRoller: false,
+          xlabel : "Time [s]",
+          ylabel : "Magnetic Field [uT]",
+          labels: ["Magnetic Field uT"]
+      });
+
+      var should_show_fft = false;
       var should_show_amp = false;
 
       $(".show_plot", $(thediv)).data({plot : g});
@@ -203,25 +217,27 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var settings;
       var has_waited = false;
       var the_fft;
-      var amp_arr = [[] , [] , []  ];
+      var amp_arr = [[],[], [] , []  ];
       var counter = 0;
       var x_log_on = false;
-      function showFFT(the_data) {
+      function showFFT(the_data, length_channel) {
         if (!should_show_fft) return;
         // All should be already a factor of 2.
 	var len = the_data[0].length;
 	var power_of_2 = Math.exp(Math.floor(Math.log(len) / Math.log(2) +0.999999999) * Math.log(2));
-        if (!the_fft) {
+        if (!the_fft || the_fft.bufferSize !== power_of_2) {
           var dsp = require("dsp");
           the_fft = new dsp.FFT(power_of_2, settings.current_frequency_khz*1000);
         }
         // The following can happen on the last buffer call...
-        if (the_fft.bufferSize !== power_of_2) return;
+        if (the_fft.bufferSize !== power_of_2) {
+	  return;
+        }
 
         var nyquist_freq = settings.current_frequency_khz/2.0;
         var freq_step = nyquist_freq/(power_of_2/2);
         var len_of_fft = power_of_2/2 ;
-        var timestep = the_fft.bufferSize / nyquist_freq / 1000.0 * 2.0;
+        var timestep = length_channel / nyquist_freq / 1000.0 * 2.0;
         var arr = [_.range(0 , freq_step*(len_of_fft), freq_step)];
         arr[0].length = len_of_fft;
         arr[0] = _.rest(arr[0]);
@@ -254,15 +270,17 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                 arr[arr.length] = new Float32Array(the_spectrum);
 
         }
-        showAmp(arr , timestep, len_of_fft , nyquist_freq);	
+        showAmpFrq(arr , timestep, len_of_fft , nyquist_freq);	
         appendFFTData(_.zip.apply(this, arr)); 
       }
 	
-      function showAmp(arr , timestep , len_of_fft , nyquist_freq) {
+      function showAmpFrq(arr , timestep , len_of_fft , nyquist_freq) {
         if (!should_show_amp) return;
 	
         var amp_arr_out = [_.range(0, timestep *(counter +1), timestep)];
-	var He_arr = Array.prototype.slice.call(arr[1]);
+        var frq_arr_out = [_.range(0, timestep *(counter +1), timestep)];
+	var Frq_arr = Array.prototype.slice.call(arr[0]);
+	var He_arr = Array.prototype.slice.call(arr[1]); //Here one might add a channel selector
 	var Xe_arr = Array.prototype.slice.call(arr[1]);
 	var He_min = Math.floor(36 * len_of_fft / nyquist_freq / 1000.0);
 	var He_max = Math.floor(43 * len_of_fft / nyquist_freq / 1000.0) + 1;
@@ -270,12 +288,27 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 	var Xe_max = Math.floor(17 * len_of_fft / nyquist_freq / 1000.0) + 1;
 	He_arr = He_arr.slice(He_min , He_max);
 	Xe_arr = Xe_arr.slice(Xe_min , Xe_max);
-        amp_arr[0].push(counter * timestep);
-	amp_arr[1].push(_.max(He_arr));
-	amp_arr[2].push(_.max(Xe_arr));
+	
+
+	amp_arr[0].push(_.max(He_arr));
+	amp_arr[1].push(_.max(Xe_arr));
+	
+	if (frq_axis){
+		amp_arr[2].push(Frq_arr[findMaxIndex(He_arr) + He_min] * 1000.0 ); // 32.43410084);
+		amp_arr[3].push(Frq_arr[findMaxIndex(Xe_arr) + Xe_min] * 1000.0 ); // / 11.77717);
+	}
+	else{
+		amp_arr[2].push(Frq_arr[findMaxIndex(He_arr) + He_min] * 1000.0 / 32.43410084); // 32.43410084);
+		amp_arr[3].push(Frq_arr[findMaxIndex(Xe_arr) + Xe_min] * 1000.0 / 11.77717 ); // / 11.77717);
+	}
+	amp_arr_out[amp_arr_out.length] = new Float32Array(amp_arr[0]);
 	amp_arr_out[amp_arr_out.length] = new Float32Array(amp_arr[1]);
-	amp_arr_out[amp_arr_out.length] = new Float32Array(amp_arr[2]);
+
+	frq_arr_out[frq_arr_out.length] = new Float32Array(amp_arr[2]);
+	frq_arr_out[frq_arr_out.length] = new Float32Array(amp_arr[3]);
+	
         appendAmp(_.zip.apply(this, amp_arr_out));
+        appendFrq(_.zip.apply(this, frq_arr_out));
 	counter++;
       }
       
@@ -287,7 +320,33 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         }
       }
 
-      // setLogScale('y', true, ampg); 
+      function findMaxIndex(array){
+	var max = array[0];
+	var maxIndex = 0;
+
+	for (var i = 1; i < array.length; i++) {
+    		if (array[i] > max) {
+        		maxIndex = i;
+        		max = array[i];
+    		}
+	}
+        return maxIndex ;
+      }
+
+      function Xe_nu_B(value){
+	return value / 11.77717 ;
+      }
+      function He_nu_B(value){
+	return value / 32.43410;
+      } 
+
+      function Xe_B_nu(value){
+	return value * 11.77717 ;
+      }
+      function He_B_nu(value){
+	return value * 32.43410;
+      } 
+ 
       function showNewData(obj) {
           if (obj.header.error) return;
           var read_size = settings.readout_size;
@@ -329,7 +388,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               for (i = 0; i < numChannels; i++) {
                   arr[arr.length] = new arr_type(thedat, headerSize + i * length_per_ch, length_per_ch / read_size);
               }
-              showFFT(arr);
+              showFFT(arr, length_per_ch/ read_size);
               appendData(_.zip.apply(this, arr));
               sendAndReceive();
           }
@@ -436,7 +495,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               // re-enable interface
               enableIPSelection();
           } else {
-              $(".relDigi", $(thediv)).button("option", "disabled", false);
+              $(".relDigi,.rebootDigi", $(thediv)).button("option", "disabled", false);
               x.sendObj({
                   cmd: "getChannels",
                   embed: true
@@ -495,6 +554,15 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 	  ampg.resize();
       }
 
+      function appendFrq(dat) {
+          frq_data = dat;
+          frqg.updateOptions({
+              'file': frq_data ,
+              labels: labels_frq 
+          });
+	  frqg.resize();
+      }
+
       function startReadout(obj) {
           if ("error" in obj.header) {
             stopReadout(obj);
@@ -535,6 +603,17 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         fftg.updateOptions( {
           logscale : $(ev.currentTarget).is(':checked')
         });
+      });
+
+      $('.frq_scale', $(thediv)).on("change", function (ev) {
+		frq_axis = $(ev.currentTarget).is(':checked');
+		if (frq_axis){
+			amp_arr[2] = _.map(amp_arr[2] , He_B_nu);
+			amp_arr[3] = _.map(amp_arr[3] , Xe_B_nu);
+		}else{
+			amp_arr[2] = _.map(amp_arr[2] , He_nu_B);
+			amp_arr[3] = _.map(amp_arr[3] , Xe_nu_B);     
+		}
       });
 
       $('.save_data', $(thediv)).on("change", function (ev) {
@@ -591,7 +670,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                        channel_list : ssc,
                            mod_list : mods }
           });
-	  amp_arr = [[],[],[]];
+	  amp_arr =[[],[],[],[]];
       });
 
       $('.stopButton', $(thediv)).on("click", function () {
@@ -814,7 +893,9 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                 clkdiv: clkdiv
             }
         });
-
+	fftg.resize();
+        ampg.resize();
+	frqg.resize();
       });
 
       $('.connectBtn', $(thediv)).on("click", connect);
@@ -852,7 +933,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       $('.amp_window', $(thediv)).on("collapsibleexpand", function() {
         should_show_amp = true;
-
+        frqg.resize();
         ampg.resize(); 
       });
 
@@ -866,6 +947,9 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       $('.selectSaveModules', $(thediv)).on("change", function() {
         checkModuleSelectEnable();
+	fftg.resize();
+	ampg.resize();
+	frqg.resize();
       });
       connect();
 }"""
