@@ -1,0 +1,97 @@
+{
+  "_id" : "throttle_control",
+  "type" : "control",
+  "title" : "Throttle Control",
+  "description" : "Control the temperature throttling",
+  "order" : 0,
+  "available_channels" : [
+    0,
+    1,
+    62,
+    63
+  ],
+  "one_control" : """
+<div class="chan_top ui-body ui-body-a ui-corner-all">
+  <h3>Channel <span class="chan_num"></span></h3>
+  <div class="not_yet_saved nedm-status-g"></div>
+  <input type="range" value="50" min="0", max="100" step="1">
+</div>
+""",
+  "maximum" : {
+    "integer" : 0x800,
+    "volts" : 10,
+    "current" : 20
+  },
+  "html" : """
+<div class='all_temperature_controls'>
+   <div class="ui-field-contain">
+     <button class='set_function'>Set</button>
+   </div>
+</div>
+ """,
+ "script" : """
+    function( avar, anobj ) {
+       var sent_values = {};
+       var submit_btn = $('.set_function', $(avar));
+       var toastr = require("toastr");
+
+       anobj.available_channels.forEach( function(o) {
+          var j = $.parseHTML(anobj.one_control.trim());
+          sent_values[o] = 50;
+          $(".chan_num", j).text(o);
+          $(":input", j).attr( { "data-chan" : o });
+          $('.all_temperature_controls', $(avar)).append(j);
+       });
+       $(".all_temperature_controls", $(avar)).trigger('create');
+
+       function submit_command() {
+           var updating_list = $(':data(needs_update)', $(avar));
+           var scale = anobj.maximum.integer;
+           var objs = updating_list.map( function() {
+             return { chan : $(this).data('chan'),
+                       raw : $(this).val(),
+                       val : parseInt($(this).val()*scale/100)
+                    };
+           }).toArray();
+           if (objs.length === 0) {
+             toastr.info("No changes", "");
+             return;
+           }
+           objs.forEach(function(o) { sent_values[o.chan] = o.raw; });
+           $('.all_temperature_controls', $(avar)).addClass("ui-disabled");
+           nedm.send_command({
+                              cmd_name: "setADCForChan",
+                             arguments: [objs],
+                               timeout: 5000,
+                              callback: function(err, obj) {
+                                $('.all_temperature_controls', $(avar)).removeClass("ui-disabled");
+                                if (err || !obj.ok) return;
+                                updating_list.each( function() {
+                                  var $me = $(this);
+                                  $me.removeData("needs_update");
+                                  $me.parents('.ui-body')
+                                     .children(".not_yet_saved")
+                                     .removeClass('nedm-status-y')
+                                     .addClass('nedm-status-g');
+                                });
+                              }
+                             });
+       }
+       $('.all_temperature_controls :input[type=number]', $(avar)).on("slidestop", function(ev) {
+         var $me = $(ev.currentTarget);
+         var chan = $me.data('chan');
+         var val = $me.val();
+         var stat = $me.parents('.ui-body').children(".not_yet_saved");
+         if (!sent_values[chan] || val !== sent_values[chan]) {
+           stat.removeClass('nedm-status-g').addClass('nedm-status-y');
+           $me.data('needs_update', true);
+         } else {
+           stat.removeClass('nedm-status-y').addClass('nedm-status-g');
+           $me.removeData('needs_update');
+         }
+       });
+       submit_btn.on("click", submit_command);
+    }
+"""
+
+}

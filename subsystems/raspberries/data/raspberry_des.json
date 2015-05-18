@@ -10,17 +10,17 @@
                 doc._id = req.id;
             }
         }
-        
-      
+
+
         // For documents without uuids
         if (!doc._id) doc._id = req.uuid;
         if (!doc.log) doc.log = [];
-        
+
         // This would be odd, there should always be a body
         if (!req.body) {
             return [null, JSON.stringify({msg : 'No document to insert', error : true})];
         }
-        
+
         // Pull the information from the body, insert into current document
         doc.log = doc.log.concat(JSON.parse(req.body).log);
         doc.log.sort(function( a, b) { return a[0] > b[0]; });
@@ -37,31 +37,59 @@
             var dist = l.length;
             var step;
             while (dist > 0) {
-                step = (dist / 2) | 0; 
+                step = (dist / 2) | 0;
                 var cEl = l[minIndex + step][0];
                 if (cEl < remove_since_date) {
                     minIndex += (step + 1);
-                    dist -= ( step + 1); 
+                    dist -= ( step + 1);
                 }
                 else {
                     dist = step;
-                }                
+                }
             }
-            // minIndex is now the entry which is less than or equal to remove_since_date  
+            // minIndex is now the entry which is less than or equal to remove_since_date
             doc.log.splice(0, minIndex);
             removed_number = minIndex;
         }
-        
+
         var ts  = new Date().toUTCString();
         var user = req.userCtx.name;
         var message = 'insert with user (time): ' + user +
-                      ' (' + ts + ')'; 
-        
+                      ' (' + ts + ')';
+
         // Always update the created_by and timestamp
         doc.created_by = user;
         doc.timestamp  = ts;
         doc.type = doc._id;
-        return [doc, JSON.stringify({msg : message, id : doc._id, ok : true, removed : removed_number})]; 
+        return [doc, JSON.stringify({msg : message, id : doc._id, ok : true, removed : removed_number})];
       }"""
-  }
+  },
+  "validate_doc_update" : """function(newDoc, oldDoc, userCtx, secObj) {
+   if(~ userCtx.roles.indexOf('_admin')) {
+     return;
+   }
+   // The nedm_default validation will reject changes if not a DB      writer
+   if(~ userCtx.roles.indexOf('raspberry_lmtd')) {
+     var at = newDoc.type;
+     if (newDoc._deleted) {
+       at = oldDoc.type;
+     }
+     if (!at) {
+       throw { 'forbidden' : 'Limited raspberry user, must have doc type' };
+     }
+     at = at.toString();
+     if (oldDoc && oldDoc.type.toString() !== at) {
+       throw { 'forbidden' : 'Limited raspberry user, cannot change type' };
+     }
+     var macid = parseInt(at.split('_')[0]);
+     if (isNaN(macid)) {
+       throw { 'forbidden' : 'Limited raspberry user, only submit mac id documents' };
+     }
+     if(userCtx.roles.indexOf(macid.toString()) < 0) {
+       throw { 'forbidden' : 'Limited raspberry user, no permissions' };
+     }
+   }
+}
+"""
+
 }

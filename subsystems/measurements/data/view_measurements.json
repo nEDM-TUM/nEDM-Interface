@@ -3,7 +3,7 @@
   "type" : "control",
   "title" : "Past/Saved Measurements",
   "description" : "Measurements that have been run",
-  "order" : 1,
+  "order" : 0,
   "single_measurement" : {
     "html" : """
 <div>
@@ -104,14 +104,11 @@
       the_cal.addClass('ui-disabled');
       var tmp  = {  opts : {
                          reduce : false,
-                         endkey : ['measurement'],
-                       startkey : ['measurement'],
-                   include_docs : true
+                         endkey : nedm.keyFromDate(end),
+                       startkey : nedm.keyFromDate(begin)
                               }
                  };
-      Array.prototype.push.apply(tmp.opts.endkey, nedm.keyFromDate(end));
-      Array.prototype.push.apply(tmp.opts.startkey, nedm.keyFromDate(begin));
-      this_db.getView('document_type', 'document_type', tmp,
+      this_db.getView('measurements', 'measurements_label', tmp,
          function(err, obj) {
            the_cal.removeClass('ui-disabled');
            var proc = [];
@@ -120,9 +117,9 @@
            } else {
              proc = $.map( obj.rows, function(o) {
                  var d = nedm.dateFromKey(o.key);
-                 var nm = o.doc.measurement_name || "(Unnamed)";
+                 var nm = o.key[o.key.length-1];
                  return {
-                   summary : nm + " : <span class='sub_li_header'>" + o.doc.log + "</span>",
+                   summary : nm + " : <span class='sub_li_header'>" + o.value + "</span>",
                    doc_id  : o.id,
                    begin : d,
                    end : d
@@ -161,20 +158,16 @@
     var check_for_type = "measurements";
 
     // Handle away transitions
-    $(document).on("pagecontainerhide", function (ev, ui) {
-       var o = $(ui.prevPage).data("url").split("/");
-       if (o[o.length-1] === check_for_type) {
-         if (changes_listener) changes_listener.abort();
-         changes_listener = null;
-       }
+    $( ":mobile-pagecontainer" ).on( "pagecontainershow", function( ev, ui ) {
+       if (ui.toPage[0] !== theCurrentPage[0]) return;
+       if (changes_listener) changes_listener.abort();
+       changes_listener = null;
     });
     // Handle away transitions
-    $(document).on("pagecontainershow", function (ev, ui) {
-       var o = $(ui.toPage).data("url").split("/");
-       if (o[o.length-1] === check_for_type) {
-         if (changes_listener) changes_listener.abort();
-         changes_listener = changes_since_rev();
-       }
+    $( ":mobile-pagecontainer" ).on( "pagecontainershow", function( ev, ui ) {
+       if (ui.toPage[0] !== theCurrentPage[0]) return;
+       if (changes_listener) changes_listener.abort();
+       changes_listener = changes_since_rev();
     });
   }
 """

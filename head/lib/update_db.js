@@ -680,6 +680,8 @@ function UpdateDBInterface(db) {
       }
       if (type === "latest") {
         this.on("data", CallbackLatestValue);
+        // Force the call
+        CallbackLatestValue();
       }
       _callback_emitters.removeListener(type, callback);
       _callback_emitters.addListener(type, callback);

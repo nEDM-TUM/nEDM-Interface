@@ -3,8 +3,14 @@
   "language" : "javascript",
   "filters"  : {
     "execute_commands" : """function(doc, req) {
-           if (doc.type && doc.type == 'command' && !doc.response) { return true; }
-           return false;
+           if (!doc.type || doc.type !== 'command') return false;
+           if (doc.response) { return false; }
+           var l = req.query.only_commands;
+           if (l) {
+             if (l.indexOf(doc.execute) >= 0) return true; 
+             else return false;
+           }
+           return true;
     }"""
   },
   "views" : {
@@ -23,6 +29,15 @@
           emit([doc.execute, doc._id], 1); 
       }""",
       "reduce" : "_sum"
+    },
+    "export_commands" : {
+      "map" : """function(doc) {
+          if (!doc.type || doc.type != 'export_commands') return;
+          for (var k in doc.keys) {
+            emit(k, [doc.keys[k].Info, doc.uuid]);
+          }
+      }""",
+      "reduce" : "_count"
     }
 
   } 

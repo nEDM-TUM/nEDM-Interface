@@ -210,9 +210,9 @@
                     $(this).remove();
                     return;
                 }
-                var loaded = objs.progress.position;
+                var loaded = objs.progress.loaded;
                 if (objs.progress.lengthComputable) {
-                  loaded /= objs.progress.totalSize;
+                  loaded /= objs.progress.total;
                 }
                 $(this).find('.loading_view')
                 .text(o.varname + ' loaded: ' +

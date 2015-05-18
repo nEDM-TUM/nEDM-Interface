@@ -77,6 +77,10 @@ th.db_name {
 	}
 }
 
+.text_box_bad_input {
+    background-color: rgb(255, 125, 115) !important;
+}
+
 .code_editor {
     height: 275px;
     border: 1px solid #DDD;
@@ -92,6 +96,13 @@ th.db_name {
 .db-status-blink {
     background-color: rgb(192,192,192);
 }
+.center {
+  text-align: center;
+}
+.left {
+  text-align: left;
+}
+
 .sub_li_header,.measurement_name,.measurement_status  {
   font-style:italic;
   text-overflow: ellipsis;
