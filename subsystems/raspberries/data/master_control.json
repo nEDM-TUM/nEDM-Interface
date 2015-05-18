@@ -2,7 +2,12 @@
   "_id"  : "master_control",
   "type" : "control",
   "title" : "Raspberry Controls",
-  "description" : "Control the Rasp Pis",
+  "description" : """
+Control the Rasp Pis
+<br><br>
+For more information on writing the code, see the relevant section
+of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub page</a>.
+""",
   "predef_cmds" : {
     "Shutdown" : [ "halt" ],
     "Restart" : [ "shutdown", "-r", "now" ],

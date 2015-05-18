@@ -44,6 +44,9 @@ npm install -g jshint
 
 ## Notes for developers
 
+For a general overview, see the
+[presentation](https://www.dropbox.com/s/8xfayj9zi67o3ao/GroupMeeting_23Oct2014.pdf?dl=0)
+describing the basic functionality of the system.
 
 *Note:*  The best mechanism for testing your interface is setting up a local
 server and pushing to it.  You will also need to set your configuration to
@@ -116,15 +119,13 @@ and input it into your replication `since_seq`.
 ```
 
 
-
-
-
 ## Dealing with Commands
 
 
 Every interface will in principal have controls.  To facilitate this, the nEDM
 interface looks for documents of type "control", e.g.:
 
+```
     doc = {
         "_id": "name_of_control",         # Required
         "type" : "control",               # Required
@@ -143,6 +144,7 @@ interface looks for documents of type "control", e.g.:
     }
 """
 }
+```
 
 
 There are several templates that one can derive from by using

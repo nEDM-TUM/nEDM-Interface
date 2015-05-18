@@ -1,0 +1,33 @@
+{
+  "_id" : "_design/measurements",
+  "language" : "javascript",
+  "views" : {
+     "measurements" : {
+       "map" : """function(doc) {
+           if (!doc.type || !doc.timestamp) return;
+           if (doc.type !== "measurement") return;
+           var then = new Date(Date.parse(doc.timestamp));
+           var the_log = doc.log || "No log";
+           emit([doc.measurement_name || "Unknown", 
+                 then.getUTCFullYear(), then.getUTCMonth(), 
+                 then.getUTCDate(), then.getUTCHours(), 
+                 then.getUTCMinutes(), then.getUTCSeconds()], the_log.trim());
+        }""",
+        "reduce" : "_count"
+     },
+     "measurements_label" : {
+       "map" : """function(doc) {
+           if (!doc.type || !doc.timestamp) return;
+           if (doc.type !== "measurement") return;
+           var then = new Date(Date.parse(doc.timestamp));
+           var the_log = doc.log || "No log";
+           emit([then.getUTCFullYear(), then.getUTCMonth(), 
+                 then.getUTCDate(), then.getUTCHours(), 
+                 then.getUTCMinutes(), then.getUTCSeconds(),
+                 doc.measurement_name || "Unknown"], the_log.trim());
+        }""",
+        "reduce" : "_count"
+     }
+
+  }
+}

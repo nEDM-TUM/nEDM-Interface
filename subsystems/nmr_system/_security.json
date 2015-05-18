@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["nmr_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["nmr_reader"]
+  }
+}
