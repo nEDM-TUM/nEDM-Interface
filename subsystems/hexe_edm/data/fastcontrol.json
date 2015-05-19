@@ -224,7 +224,7 @@ function($theDiv, anobj) {
 
     $('.pulse', $($theDiv)).on('click', function() {
         disable_all();
-        nedm.send_command({cmd_name: 'send_pulse',
+        nedm.get_database("nedm%2Fnmr_system").send_command({cmd_name: 'send_trigger',
         timeout: 5000,
         callback: function(e,o){
             enable_all();
@@ -256,7 +256,7 @@ function($theDiv, anobj) {
         var args = [];
         if (coil_or_resistor == '1') args = [coil_switch_select];
         else args = ['0'];
-        nedm.send_command({cmd_name: 'magnicon_to',
+        nedm.send_command({cmd_name: 'field_switch',
         arguments: args,
         timout:5000,
         callback: function(e,o) {
@@ -289,7 +289,7 @@ function($theDiv, anobj) {
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-g');
                   $('.' + hv_stati[v] + '_status_light ').addClass('control_status nedm-status-r');
                 }
-                if (obj.value == 1){
+                if (stat.value == 1){
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-r');
                   $('.' + hv_stati[v] + '_status_light ').addClass( 'control_status nedm-status-g');
                 }
