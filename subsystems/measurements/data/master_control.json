@@ -41,12 +41,10 @@
               if (dat && dat.Info) cmd_info.text(dat.Info);
             });
             database_cache.get_db(db_name).get_commands(function(all_cmds) {
-              if (all_cmds.keys) {
-                  for (var k in all_cmds.keys) {
-                      var o = all_cmds.keys[k];
-                      cmds.append($('<option/>').val(k).text(k).data({ obj : o }));
-                  }
-              }
+              all_cmds.forEach( function(o) {
+                  var j = o.key;
+                  cmds.append($('<option/>').val(j).text(j).data({ obj : { Info : o.value[0] } }));
+              });
               cmds.removeClass('ui-disabled');
               cmds.selectmenu('refresh', true);
               cmds.trigger('change');
@@ -169,6 +167,22 @@
       """
     }
   },
+  "protocol_clone" : """
+    <div data-role="collapsible">
+        <h2><span class="current_title">(No name)</span> <span class='current_status'></span></h2>
+        <div data-role='controlgroup' data-type='horizontal'>
+            <input type="text" class='step_name' value="(No name)">
+            <select class='all_dbs'></select>
+            <select class='protocol_type'></select>
+            <button class='ui-btn ui-icon-delete ui-btn-icon-notext protocol_remove'>Remove
+            </button>
+        </div>
+        <div class='protocol_settings'></div>
+        <div>
+          <span class="bolded_font">Status: </span><pre class="status_output"></pre>
+        </div>
+    </div>
+""",
   "html" : """
 <div>
     <div class='entire_protocol'>
@@ -182,20 +196,6 @@
       <div>
          <div class='current_protocol ui-disabled'>
             <div class='protocol_table'>
-              <div data-role="collapsible" style='display:none;' class='protocol_clone'>
-                  <h2><span class="current_title">(No name)</span> <span class='current_status'></span></h2>
-                  <div data-role='controlgroup' data-type='horizontal'>
-                      <input type="text" class='step_name' value="(No name)">
-                      <select class='all_dbs'></select>
-                      <select class='protocol_type'></select>
-                      <button class='ui-btn ui-icon-delete ui-btn-icon-notext protocol_remove'>Remove
-                      </button>
-                  </div>
-                  <div class='protocol_settings'></div>
-                  <div>
-                    <span class="bolded_font">Status: </span><pre class="status_output"></pre>
-                  </div>
-              </div>
             </div>
             <div data-role='controlgroup' data-type='horizontal'>
               <button class="ui-btn ui-icon-plus ui-btn-icon-left add_protocol_line">Add protocol line</button>
@@ -267,7 +267,7 @@
 "script" : """
     function(thediv, docobj) {
       // Grab the line to clone before jquery mobile changes it
-      var line_clone = $('.protocol_clone', $(thediv)).clone();
+      var line_clone = $.parseHTML(docobj.protocol_clone.trim());
       var prot_sel = $('.protocol_type', $(line_clone));
       var command_obj = {};
       var this_db = nedm.get_database();
@@ -333,19 +333,19 @@
 
       var handle_type_change = function(e) {
         var affected_div = $(e.currentTarget).closest(".protocol_clone_act");
-        $('.protocol_settings', $(affected_div)).children().each(function() {
+        $('.protocol_settings', affected_div).children().each(function() {
           $(this).hide();
         });
-        var cl = $('.protocol_type', $(affected_div)).find(":selected").val();
-        $('.protocol_settings .' + cl + '_class', $(affected_div)).show();
+        var cl = $('.protocol_type', affected_div).find(":selected").val();
+        $('.protocol_settings .' + cl + '_class', affected_div).show();
         if (command_obj[cl].setup_function) {
-          command_obj[cl].setup_function($(affected_div), central_cache);
+          command_obj[cl].setup_function(affected_div, central_cache);
         }
       };
 
 
       var add_protocol_line_fn = function(obj) {
-         var nc = line_clone.clone();
+         var nc = $(line_clone).clone();
          nc.removeClass('protocol_clone').addClass('protocol_clone_act');
          nc.show();
          var curr_number = $(".protocol_table").children(".protocol_clone_act").length;
@@ -376,10 +376,14 @@
       });
       var load_database_info = function(adb) {
           var my_db = central_cache.get_db(adb);
-          nedm.get_database(adb).getDoc("commands", function(e, o) {
-            var set_obj = {};
-            if (!e) set_obj = o;
-            my_db.set_commands(set_obj);
+          nedm.get_database(adb).getView("execute_commands", "export_commands",
+            { opts : {
+              reduce : false
+            }},
+            function(e, o) {
+              var set_obj = {};
+              if (!e) set_obj = o.rows;
+              my_db.set_commands(set_obj);
           });
           nedm.get_database(adb).getView(
             "slow_control_time", "slow_control_time",

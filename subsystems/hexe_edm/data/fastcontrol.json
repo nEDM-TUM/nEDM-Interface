@@ -66,19 +66,19 @@
           <div class='ui-block-c'>
             <select style='margin-left:auto; margin-right:auto' class='set_coil_res' data-role='slider'>
               <option value='1'>Coil</option>
-              <option value='0'>&#937</option>
+              <option value='0'>&#937;</option>
             </select>
           </div>
         </div>
         <div data-role='fieldcontain'>
           <div data-role='controlgroup' data-type='horizontal'>
             <select required class='msr_coil'>
-              <option value='x'>B<sub>x</sub></option>
-              <option value='y'>B<sub>y</sub></option>
-              <option value='z'>B<sub>z</sub></option>
+              <option value='x'>Bx</option>
+              <option value='y'>By</option>
+              <option value='z'>Bz</option>
             </select>
             <input type='text' class='input_val msr_curr' size='1' data-wrapper-class='controlgroup-textinput ui-btn'>
-            <button class='set_msr_field'>Set I (&#956A)</button>
+            <button class='set_msr_field'>Set I (&#956;A)</button>
           </div>
         </div>
       </div>
