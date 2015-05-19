@@ -270,13 +270,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                 arr[arr.length] = new Float32Array(the_spectrum);
 
         }
-        showAmpFrq(arr , timestep, len_of_fft , nyquist_freq);	
-        appendFFTData(_.zip.apply(this, arr)); 
+        showAmpFrq(arr , timestep, len_of_fft , nyquist_freq);
+        appendFFTData(_.zip.apply(this, arr));
       }
-	
+
       function showAmpFrq(arr , timestep , len_of_fft , nyquist_freq) {
         if (!should_show_amp) return;
-	
+
         var amp_arr_out = [_.range(0, timestep *(counter +1), timestep)];
         var frq_arr_out = [_.range(0, timestep *(counter +1), timestep)];
 	var Frq_arr = Array.prototype.slice.call(arr[0]);
@@ -288,11 +288,11 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 	var Xe_max = Math.floor(17 * len_of_fft / nyquist_freq / 1000.0) + 1;
 	He_arr = He_arr.slice(He_min , He_max);
 	Xe_arr = Xe_arr.slice(Xe_min , Xe_max);
-	
+
 
 	amp_arr[0].push(_.max(He_arr));
 	amp_arr[1].push(_.max(Xe_arr));
-	
+
 	if (frq_axis){
 		amp_arr[2].push(Frq_arr[findMaxIndex(He_arr) + He_min] * 1000.0 ); // 32.43410084);
 		amp_arr[3].push(Frq_arr[findMaxIndex(Xe_arr) + Xe_min] * 1000.0 ); // / 11.77717);
@@ -306,12 +306,12 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
 	frq_arr_out[frq_arr_out.length] = new Float32Array(amp_arr[2]);
 	frq_arr_out[frq_arr_out.length] = new Float32Array(amp_arr[3]);
-	
+
         appendAmp(_.zip.apply(this, amp_arr_out));
         appendFrq(_.zip.apply(this, frq_arr_out));
 	counter++;
       }
-      
+
       function setLogScale(axis, val, graph) {
         if (axis === 'y') {
               graph.updateOptions({ logscale: val });
@@ -338,15 +338,15 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       }
       function He_nu_B(value){
 	return value / 32.43410;
-      } 
+      }
 
       function Xe_B_nu(value){
 	return value * 11.77717 ;
       }
       function He_B_nu(value){
 	return value * 32.43410;
-      } 
- 
+      }
+
       function showNewData(obj) {
           if (obj.header.error) return;
           var read_size = settings.readout_size;
@@ -549,7 +549,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           amp_data = dat;
           ampg.updateOptions({
               'file': amp_data ,
-              labels: labels_amp 
+              labels: labels_amp
           });
 	  ampg.resize();
       }
@@ -558,7 +558,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           frq_data = dat;
           frqg.updateOptions({
               'file': frq_data ,
-              labels: labels_frq 
+              labels: labels_frq
           });
 	  frqg.resize();
       }
@@ -615,7 +615,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 			});
 		}else{
 			amp_arr[2] = _.map(amp_arr[2] , He_nu_B);
-			amp_arr[3] = _.map(amp_arr[3] , Xe_nu_B);     
+			amp_arr[3] = _.map(amp_arr[3] , Xe_nu_B);
 			fftg.updateOptions({
 				 ylabel : "Magnetic Field uT"
 			});
@@ -689,19 +689,19 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.x_log', $(thediv)).on("click", function () {
-       		setLogScale('x', true, fftg); 
+       		setLogScale('x', true, fftg);
       });
 
       $('.x_lin', $(thediv)).off("click", function () {
-      		setLogScale('x', false, fftg); 
+      		setLogScale('x', false, fftg);
       });
 
       $('.y_log', $(thediv)).on("click", function () {
-      		setLogScale('y', true, fftg); 
+      		setLogScale('y', true, fftg);
       });
 
       $('.y_lin', $(thediv)).off("click", function () {
-      		setLogScale('y', false, fftg); 
+      		setLogScale('y', false, fftg);
       });
 
      function performCmd(obj) {
@@ -940,7 +940,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       $('.amp_window', $(thediv)).on("collapsibleexpand", function() {
         should_show_amp = true;
         frqg.resize();
-        ampg.resize(); 
+        ampg.resize();
       });
 
       $('.fft_window', $(thediv)).on("collapsiblecollapse", function() {
