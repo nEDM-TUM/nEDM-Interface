@@ -184,8 +184,11 @@ def main(db):
         an_obj.emails = $('.adv_options .alarm_emails').val().split(',').map(
           function(j) { return $.trim(j); });
         an_obj.code = $('.adv_options .alarm_code').text();
-        console.log(an_obj);
-        console.log(the_db);
+        the_db.updateDoc(an_obj, "nedm_default", "insert_with_timestamp",
+          function(err, obj) {
+            if(err) toastr.error("Document wasn't writting", JSON.stringify(err));
+            else toastr.info("Success");
+        });
     };
     var editor = null;
     $(document).on('pageinit', function(ev) {

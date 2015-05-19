@@ -5,15 +5,21 @@
      "log" : {
        "map" : """function(doc) {
            if (!doc.type) return;
+           var i;
            if (doc.type === "log") {
-             emit([doc._id, "log"], 0);
+             emit([doc._id, "log"], null);
+             if (doc.dataids) {
+               for(i = 0;i<doc.dataids.length;i++) {
+                 emit([doc._id, "data"], {_id : doc.dataids[i]});
+               }
+             }
            }
            if (!doc.logids) return;
-           for(var i = 0;i<doc.logids.length;i++) {
-             emit([doc.logids[i], doc.type], 1);
+           for(i = 0;i<doc.logids.length;i++) {
+             emit([doc.logids[i], doc.type], null);
            }
         }""",
-        "reduce" : "_sum"
+        "reduce" : "_count"
      }
   }
 }

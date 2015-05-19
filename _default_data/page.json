@@ -12,7 +12,6 @@
   <link rel='stylesheet' href='/nedm_head/_design/nedm_head/css/nedm.css'/>
   <script src='/nedm_head/_design/nedm_head/modules.js' type='text/javascript'></script>
   <script src='/nedm_head/_design/nedm_head/scripts/nedm-base.js' type='text/javascript'></script>
-  <style> .center { text-align: center; } </style>
   </head>
 """,
   "define" : """
@@ -60,7 +59,7 @@
   "primary_content" : """
     <div class='headerChild'>
     </div>
-    <div align='center' data-role='content' id='contentConfirmation' name='contentConfirmation'>
+    <div data-role='content' id='contentConfirmation' class='center'>
         <div class='content-primary'>
 """,
   "secondary_content" : """
