@@ -662,6 +662,7 @@
         var tthis = $(ev.currentTarget);
         var get_information = function(astep) {
           var as = $(astep);
+          if (as.length === 0) return;
           var cl = $('.protocol_type', as).find(":selected").val();
           if (!check_protocol(as)) {
             nedm.show_error_window('Errors in ' + $('.step_name', as).val(), "Not saved");
