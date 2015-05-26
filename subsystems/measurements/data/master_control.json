@@ -492,8 +492,9 @@
 
           if (file_obj.data('uploaded')) {
             // Try to delete it...
+            var id = $(thediv).data('current_doc');
             this_db.removeAttachment(
-              { _id : $(thediv).data('current_doc') },
+              { _id : id },
               file_obj.text(),
               function(err, obj) {
                 if (err) {
@@ -502,6 +503,7 @@
                 } else {
                   remove_and_delete();
                 }
+                load_with_docid(id);
             });
           } else {
             remove_and_delete();
@@ -579,6 +581,7 @@
         cncl_btn.removeClass('ui-disabled');
         upload_btn.addClass('ui-disabled');
         var reset_disabled_state = function() {
+          load_with_docid(the_doc._id);
           file_setup.removeClass('ui-disabled');
           cncl_btn.addClass('ui-disabled');
           upload_btn.removeClass('ui-disabled');
@@ -689,31 +692,28 @@
             if ($(".overwrite_doc", $(thediv)).prop("checked")) {
               // Try to post it
               call_func = function(thed, cbck) {
-                var callback = function(e, o) {
-                  return cbck(e, o[0]);
-                };
-                return this_db.bulkSave([ thed ], callback);
+                return this_db.saveDoc(thed, cbck);
               };
             } else {
               // Remove id info from *this* document
-              ["_id", "_rev"].forEach(function(o) {
+              ["_id", "_rev", "created_by"].forEach(function(o) {
                 if (adoc[o]) delete adoc[o];
               });
             }
             call_func(adoc, function(err, obj) {
                   $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
                   if (err) {
-                    toastr.error("Save doc error", JSON.stringify(err));
+                    toastr.error(JSON.stringify(err), "Save doc error");
                     return;
                   }
                   if (obj.error) {
-                    toastr.error("Save doc error", JSON.stringify(obj[0].error));
+                    toastr.error(JSON.stringify(obj.error), "Save doc error");
                     return;
                   }
                   this_db.getDoc(obj.id,
                     function(e, o) {
                       if (e) {
-                        toastr.error("Error reloading document", JSON.stringify(err));
+                        toastr.error(JSON.stringify(err), "Error reloading document");
                         return;
                       }
                       load_from_object(o);
