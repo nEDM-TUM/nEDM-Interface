@@ -77,6 +77,7 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                       <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_cmd'>
                       <button class='ui-btn ui-corner-all send_cmd'>Send</button>
                       <button class='ui-btn ui-corner-all stop_wait'>Stop waiting</button>
+                      <p style='color:blue;' class='last_heartbeat'></p>
                     </fieldset>
                   </div>
                   <div align='left'>
@@ -286,8 +287,19 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                               tag : tag || $('.arduino_select :selected').val() });
           update_div_with_code( new_code, adoc);
       };
+      function update_timestamp() {
+        var selected_option = $(':selected', $('.arduino_select'));
+        var lh = selected_option.data('last_update');
+        if (!lh) {
+          $('.last_heartbeat', $(thediv)).text('');
+        } else {
+          $('.last_heartbeat', $(thediv)).text('Last updated: ' + lh.toUTCString());
+        }
+      }
+
       var update_current_code = function(ev) {
           var selected_val = $(':selected', $(ev.currentTarget)).val();
+          update_timestamp();
           $('.all_avail_code').addClass('ui-disabled');
           $('.code_sample', $(ac)).each( function() {
               var o = $(this);
@@ -370,10 +382,10 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
               if (o.name === 'main') {
                 submit_doc.code = o.code;
               } else {
-                submit_doc.modules[o.name] = o.code; 
+                submit_doc.modules[o.name] = o.code;
               }
             });
-          } 
+          }
           var call_func = function(thedoc, cbck) {
             return this_db.updateDoc(thedoc,
                 'nedm_default',
@@ -581,6 +593,51 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
       ['cancel', 'delete'].forEach(function(o) {
          $('.' + o + '_button', $('#arduinosConfirm')).on('click', button_func(o));
       });
+      var run_status_running = false;
+      function update_run_status() {
+        if (run_status_running) return;
+        run_status_running = true;
+        this_db.getView("raspberry_def",
+                        "running_processes",
+                        { opts : { reduce : false } },
+                        function(err, obj) {
+                          if (err) {
+                            run_status_running = false;
+                            return;
+                          }
+                          var all_rasp = {};
+                          var running_ids = obj.rows.map( function(o) {
+                            var mac = o.id.split('_')[0];
+                            if (!all_rasp[mac]) {
+                              all_rasp[mac] = { count: 0, ts : new Date(o.key[1]) };
+                            }
+                            all_rasp[mac].count += 1;
+                            return o.key[2];
+                          });
+                          $('.doc_name', $(thediv)).each( function() {
+                            var d = $(this).parents('.code_sample').data('doc');
+                            if (!d) return;
+                            if (running_ids.indexOf(d._id) >= 0) {
+                              $(this).removeClass('red_text').addClass('green_text');
+                            } else {
+                              $(this).addClass('red_text').removeClass('green_text');
+                            }
+                          });
+                          for (var k in all_rasp) {
+                            var ct = all_rasp[k].count;
+                            var opt = $('.arduino_select option[value="' + k + '"]', $(thediv));
+                            opt.text( opt.text().split(' : ')[0] + ' : ' + ct + ' running' );
+                            opt.data('last_update', all_rasp[k].ts);
+                          }
+                          $('.arduino_select', $(thediv)).filter(':input').selectmenu('refresh', true);
+                          update_timestamp();
+                          run_status_running = false;
+                        }
+        );
+      }
+      this_db.on("heartbeat", update_run_status);
+
       update_log();
+      update_run_status();
   }"""
 }
