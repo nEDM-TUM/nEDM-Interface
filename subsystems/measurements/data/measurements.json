@@ -29,5 +29,39 @@
         "reduce" : "_count"
      }
 
-  }
+  },
+  "validate_doc_update" : """function(newDoc, oldDoc, userCtx, secObj) {
+   if(~ userCtx.roles.indexOf('_admin')) {
+     return;
+   }
+   // The nedm_default validation will reject changes if not a DB writer
+   if(~ userCtx.roles.indexOf('measurements_lmtd')) {
+     var at = newDoc.measurement_type;
+     if (newDoc._deleted) {
+       at = oldDoc.measurement_type;
+     }
+     if (!at) {
+       throw { 'forbidden' : 'Limited measurement user, must have measurement_type field' };
+     }
+     at = at.toString();
+     if (oldDoc && (!oldDoc.measurement_type || oldDoc.measurement_type.toString() !== at)) {
+       throw { 'forbidden' : 'Limited measurement user, cannot change measurement_type' };
+     }
+     var ms_type = "meas_type_" + at;
+     if(userCtx.roles.indexOf(ms_type.toString()) < 0) {
+       // Output measure types that can be submitted.
+       var avail_meas = userCtx.roles
+           .filter( function(o) {
+                      if (o.slice(0, 10) === "meas_type_") return true;
+                      return false;
+                    })
+           .map(    function(o) {
+                      return o.slice(10);
+                    });
+       throw { 'forbidden' : 'Limited measurement user, no permissions.  Available types: ' + avail_meas.join(', ') };
+     }
+   }
+}
+"""
+
 }
