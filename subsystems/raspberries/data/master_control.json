@@ -9,10 +9,9 @@ For more information on writing the code, see the relevant section
 of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub page</a>.
 """,
   "predef_cmds" : {
-    "Shutdown" : [ "halt" ],
+    "Shutdown" : [ "poweroff" ],
     "Restart" : [ "shutdown", "-r", "now" ],
-    "Reload" : [ "service", "rspby", "install" ],
-    "Restart dmn" : [ "service", "rspby", "restart" ],
+    "Reload dmn" : [ "service", "rspby", "reload" ],
     "User def" : ""
   },
   "code_template" : """
@@ -20,7 +19,26 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
        <h3><span class='doc_name'>(Not saved)</span></h3>
        <h5>Name:</h5>
        <input type='text' class='code_name' value='Unique name'>
+       <h5>Saved: <span class='code_status'>(Not saved)</span></h5>
        <h5>Code:</h5>
+       <div data-role='ui-field-contiain'>
+         <div data-role='controlgroup' data-type='horizontal'>
+           <select class='module_select'></select>
+           <button class='remove_module'>Remove module</button>
+         </div>
+       </div>
+       <div data-role='ui-field-contiain'>
+         <div data-role='controlgroup' data-type='horizontal'>
+           <button class='new_module'>New module with name:</button>
+           <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_val'/>
+         </div>
+       </div>
+       <div data-role='ui-field-contiain'>
+         <div data-role='controlgroup' data-type='horizontal'>
+           <label><input type='checkbox' class='global_export'/>Export modules globally</label>
+         </div>
+       </div>
+
        <div class='code_editor'># Fill the following with python code</div>
        <div data-role='fieldcontain'>
          <fieldset data-role='controlgroup' data-type='horizontal'>
@@ -107,23 +125,53 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
 "script" : """
     function(thediv, docobj) {
       var toastr = require("toastr");
-      var to_clone = docobj.code_template; 
+      var to_clone = docobj.code_template.trim();
       var ac = $('.all_avail_code', $(thediv));
       var ard_select = $('.arduino_select', $(thediv)).filter(':input');
       var update_timeout;
       var submit_cmd_timeout;
       var this_db = nedm.get_database();
+
+      function add_code_to_sel(sel, aname, code) {
+         sel.append(
+           $('<option/>').val(aname).text(aname).data( { code : code } ));
+      }
+
       var update_div_with_code = function(new_code, adoc) {
+          var sel = $('.module_select', $(new_code)).filter(':input');
+          var k;
           if (adoc) {
              $('.code_name', $(new_code)).val(adoc.name);
+             sel.empty();
+             if (adoc.code) {
+                add_code_to_sel(sel, "main", adoc.code);
+             }
+             if (adoc.global_modules) {
+                $('.global_export', $(new_code)).prop("checked", true).checkboxradio("refresh");
+                for (k in adoc.global_modules) {
+                  add_code_to_sel(sel, k, adoc.global_modules[k]);
+                }
+             } else {
+                $('.global_export', $(new_code)).prop("checked", false).checkboxradio("refresh");
+             }
+             if (adoc.modules) {
+                for (k in adoc.modules) {
+                  add_code_to_sel(sel, k, adoc.modules[k]);
+                }
+             }
              if ($(new_code).data('editor')) {
                $(new_code).data('editor').getSession().setValue(adoc.code);
              } else {
                $('.code_editor', $(new_code)).text(adoc.code);
              }
-             $('.doc_name', $(new_code)).text("Saved: (" + adoc._id + ", " + adoc._rev + ")");
+             $('.doc_name', $(new_code)).text(adoc.name || "Not defined");
+             $('.code_status', $(new_code)).text("(id: " + adoc._id + ", rev: " + adoc._rev + ")");
              $(new_code).data({ doc : adoc });
+          } else {
+             // Make sure we have a main
+             add_code_to_sel(sel, "main", "");
           }
+          sel.val("main").trigger("change");
       };
 
       var submit_cmd = function(acmd, macid) {
@@ -176,20 +224,67 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
          submit_cmd(the_cmd, mid);
 
       };
+      function add_module(ev) {
+          var par = $(ev.currentTarget).parents('.code_sample');
+          var module_name = $('.input_val', par).val().trim();
+          var sel = $('.module_select', par);
+          if (module_name.length === 0) {
+            toastr.error("Name must have non-zero length", "Invalid name");
+            return;
+          }
+          if (/\s/g.test(module_name)) {
+            toastr.error("Name must not have whitespace", "Invalid name");
+            return;
+          }
+          add_code_to_sel(sel, module_name, "");
+          sel.val(module_name).trigger("change");
+          $('.input_val', par).val('');
+      }
+      function remove_module(ev) {
+
+      }
+      function global_export_change(ev) {
+          var par = $(ev.currentTarget).parents('.code_sample');
+          if ($(ev.currentTarget).prop("checked") &&
+              $(".module_select option[value='main']", par).length > 0) {
+             toastr.warning("You have a 'main' module, this will be ignored if you wish to globally export the modules",
+                            "Global export warning");
+          }
+      }
+      function update_code_selection(ev) {
+          var ct = $(ev.currentTarget);
+          var par = ct.parents('.code_sample');
+          var current_data = par.data('editor').getSession().getValue();
+          var this_option = $(':selected', ct);
+          if (ct.data('previous')) {
+            ct.data('previous').data( { code : current_data } );
+          }
+          ct.data( { previous : this_option });
+          par.data('editor').getSession().setValue( this_option.data('code') );
+      }
+      function focus_code_selection(ev) {
+        var c = $(ev.currentTarget);
+        c.data({ previous : $(':selected', $(c)) });
+      }
       var add_new_code = function(ev, adoc, tag) {
-          var new_code = $.parseHTML(to_clone.trim());
-          update_div_with_code( new_code, adoc);
+          var new_code = $.parseHTML(to_clone);
+          ac.append(new_code);
+          ac.trigger('create');
+          ac.collapsibleset('refresh');
           editor = ace.edit($('.code_editor', $(new_code))[0]);
           editor.getSession().setMode('ace/mode/python');
           editor.setTheme('ace/theme/xcode');
 
           $('.remove_code', $(new_code)).on('click', remove_code);
           $('.save_code', $(new_code)).on('click', save_code);
+          $('.new_module', $(new_code)).on('click', add_module);
+          $('.remove_module', $(new_code)).on('click', remove_module);
+          $('.global_export', $(new_code)).on('change', global_export_change);
+          $('.module_select', $(new_code)).on('change', update_code_selection);
+          $('.module_select', $(new_code)).on('focus', focus_code_selection);
           $(new_code).data( { editor : editor,
                               tag : tag || $('.arduino_select :selected').val() });
-          ac.append(new_code);
-          ac.trigger('create');
-          ac.collapsibleset('refresh');
+          update_div_with_code( new_code, adoc);
       };
       var update_current_code = function(ev) {
           var selected_val = $(':selected', $(ev.currentTarget)).val();
@@ -237,21 +332,61 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
           };
           $('#arduinosConfirm').data( { callback : cbck }).popup('open');
       };
+      function save_current_code_to_option(ev) {
+          var ct = $(ev.currentTarget);
+          var par = ct.parents('.code_sample');
+          var current_data = par.data('editor').getSession().getValue();
+          var this_option = $(':selected', par);
+          this_option.data( { code : current_data } );
+      }
       var save_code = function(ev) {
+          save_current_code_to_option(ev);
           var par = $(ev.currentTarget).parents('.code_sample');
-          var submit_doc = {
-            name : $('.code_name', $(par)).val(),
-            code : par.data('editor').getSession().getValue(),
-            type : parseInt(par.data('tag'))
+          var global_export = $('.global_export', par).prop('checked');
+          var all_code = $('.module_select > option', par).map( function() {
+            return { name : $(this).val(), code : $(this).data('code') };
+          }).toArray();
+          var submit_doc = {};
+          if (par.data('doc')) {
+            submit_doc = JSON.parse(JSON.stringify(par.data('doc')));
+          }
+          submit_doc.name = $('.code_name', $(par)).val();
+          submit_doc.type = parseInt(par.data('tag'));
+          if (global_export) {
+            ["code", "modules"].forEach(function(o) {
+              if (submit_doc[o]) delete submit_doc[o];
+            });
+            submit_doc.global_modules = {};
+            all_code.forEach(function(o) {
+              if (o.name === 'main') return;
+              submit_doc.global_modules[o.name] = o.code;
+            });
+          } else {
+            ["global_modules"].forEach(function(o) {
+              if (submit_doc[o]) delete submit_doc[o];
+            });
+            submit_doc.modules = {};
+            all_code.forEach(function(o) {
+              if (o.name === 'main') {
+                submit_doc.code = o.code;
+              } else {
+                submit_doc.modules[o.name] = o.code; 
+              }
+            });
+          } 
+          var call_func = function(thedoc, cbck) {
+            return this_db.updateDoc(thedoc,
+                'nedm_default',
+                'insert_with_timestamp',
+                cbck);
           };
           if (par.data('doc')) {
-            submit_doc._id = par.data('doc')._id;
+            call_func = function(thedoc, cbck) {
+              return this_db.saveDoc(thedoc, cbck);
+            };
           }
           par.addClass('ui-disabled');
-          this_db.
-            updateDoc(submit_doc,
-              'nedm_default',
-              'insert_with_timestamp',
+          call_func(submit_doc,
               function(e,o) {
                 if (e) {
                     nedm.show_error_window("Server error",
