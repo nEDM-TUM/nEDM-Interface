@@ -696,7 +696,7 @@
               };
             } else {
               // Remove id info from *this* document
-              ["_id", "_rev", "created_by"].forEach(function(o) {
+              ["_id", "_rev", "created_by", "_attachments"].forEach(function(o) {
                 if (adoc[o]) delete adoc[o];
               });
             }
