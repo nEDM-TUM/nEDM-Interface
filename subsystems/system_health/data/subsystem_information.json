@@ -3,5 +3,6 @@
   "prettyname" : "System Health",
   "pages" : {
         "Monitor" : "monitor.html"
-  }
+  },
+  "no_control" : True
 }

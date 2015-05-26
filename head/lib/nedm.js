@@ -445,6 +445,12 @@ function DatabaseStatus() {
                                     .append($('<th/>').append(
                                       $('<div/>').addClass("nedm-status-y write_status")))
                                     .append($('<th/>').append($('<div/>').addClass("nedm-status-y control_status")));
+           if (o.no_write) {
+             $('.write_status', new_line).css('visibility', 'hidden');
+           }
+           if (o.no_control) {
+             $('.control_status', new_line).css('visibility', 'hidden');
+           }
            tbody.append(new_line);
            track_dbs[adb] = {
              data : setTimeout(ResetToRed($('.' + adb + ' .write_status')), 10000),
