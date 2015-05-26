@@ -3,5 +3,6 @@
   "prettyname" : "Raspberry Pis",
   "pages" : {
         "Control" : "control.html"
-  }
+  },
+  "no_write" : True
 }
