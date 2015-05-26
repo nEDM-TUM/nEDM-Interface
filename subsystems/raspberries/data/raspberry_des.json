@@ -1,6 +1,18 @@
 {
   "_id" : "_design/raspberry_def",
   "language" : "javascript",
+  "views" : {
+    "running_processes" : {
+      "map" : """function(doc) {
+  if (!doc.running_ids) return;
+  doc.running_ids.forEach( function(o) {
+    emit([doc.created_by, doc.timestamp, o], { _id : o });
+  });
+}
+""",
+      "reduce" : "_count"
+    }
+  },
   "updates" : {
     "update_log" : """function(doc, req) {
         // If it doesn't exist, we are making a new one
@@ -68,7 +80,7 @@
    if(~ userCtx.roles.indexOf('_admin')) {
      return;
    }
-   // The nedm_default validation will reject changes if not a DB      writer
+   // The nedm_default validation will reject changes if not a DB writer
    if(~ userCtx.roles.indexOf('raspberry_lmtd')) {
      var at = newDoc.type;
      if (newDoc._deleted) {
