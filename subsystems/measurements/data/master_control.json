@@ -254,7 +254,7 @@
     </div>
     <div>
       <div data-role='controlgroup' class='save_div' data-type='horizontal'>
-        <label><input type='checkbox'/>Overwrite</label>
+        <label><input type='checkbox' class="overwrite_doc">Overwrite</label>
         <button class="ui-btn save_measurement">Save Measurement</button>
       </div>
       <p>
@@ -269,6 +269,7 @@
       // Grab the line to clone before jquery mobile changes it
       var line_clone = $.parseHTML(docobj.protocol_clone.trim());
       var prot_sel = $('.protocol_type', $(line_clone));
+      var toastr = require("toastr");
       var command_obj = {};
       var this_db = nedm.get_database();
 
@@ -660,57 +661,78 @@
       $('.save_measurement').on('click', function(ev) {
         var protocol_list = [];
         var tthis = $(ev.currentTarget);
-        var get_information = function(astep) {
+        function get_information(astep) {
           var as = $(astep);
-          if (as.length === 0) return;
-          var cl = $('.protocol_type', as).find(":selected").val();
-          if (!check_protocol(as)) {
-            nedm.show_error_window('Errors in ' + $('.step_name', as).val(), "Not saved");
-            return;
-          }
-          var obj = {};
-          obj[cl] = command_obj[cl].save(as);
-          obj[cl].name = $('.step_name', as).val();
-          obj[cl].status = $('.status_output', as).text();
-          protocol_list[protocol_list.length] = obj;
-          var nxt = $(as).next(".protocol_clone_act");
-          if (nxt.length > 0) {
-            get_information(nxt);
-          } else {
+          if (as.length === 0) {
             $('.entire_protocol', $(thediv)).addClass('ui-disabled');
-            var adoc = {
+            var adoc;
+            try {
+              adoc = alldoc_editor.get();
+            } catch (e) {
+              toastr.error("JSON in 'All information' improperly formatted.", "Formatting error");
+              $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
+              return;
+            }
+
+            var newdoc = {
               type : "measurement",
               log : cmt.data('editor').getSession().getValue(),
               protocol : protocol_list,
               measurement_name : $('.set_measurement_name', $(thediv)).val()
             };
-
-            if ($(thediv).data('current_doc') &&
-              tthis.siblings('.ui-checkbox').find(':input').is(':checked')) {
-              adoc._id = $(thediv).data('current_doc');
+            for (var k in newdoc) {
+              adoc[k] = newdoc[k];
             }
-            this_db.updateDoc(adoc,
-              'nedm_default', 'insert_with_timestamp',
-              {
-                success : function(err, obj) {
+            var call_func = function(thed, cbck) {
+              return this_db.updateDoc(thed, "nedm_default", "insert_with_timestamp", cbck);
+            };
+            if ($(".overwrite_doc", $(thediv)).prop("checked")) {
+              // Try to post it
+              call_func = function(thed, cbck) {
+                var callback = function(e, o) {
+                  return cbck(e, o[0]);
+                };
+                return this_db.bulkSave([ thed ], callback);
+              };
+            } else {
+              // Remove id info from *this* document
+              ["_id", "_rev"].forEach(function(o) {
+                if (adoc[o]) delete adoc[o];
+              });
+            }
+            call_func(adoc, function(err, obj) {
                   $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
                   if (err) {
-                    nedm.show_error_window("Error loading document");
+                    toastr.error("Save doc error", JSON.stringify(err));
+                    return;
+                  }
+                  if (obj.error) {
+                    toastr.error("Save doc error", JSON.stringify(obj[0].error));
                     return;
                   }
                   this_db.getDoc(obj.id,
                     function(e, o) {
                       if (e) {
-                        nedm.show_error_window("Error reloading document");
+                        toastr.error("Error reloading document", JSON.stringify(err));
                         return;
                       }
                       load_from_object(o);
                   });
-                }
-              }
-            );
+            });
+          } else {
+            var cl = $('.protocol_type', as).find(":selected").val();
+            if (!check_protocol(as)) {
+              nedm.show_error_window('Errors in ' + $('.step_name', as).val(), "Not saved");
+              return;
+            }
+            var obj = {};
+            obj[cl] = command_obj[cl].save(as);
+            obj[cl].name = $('.step_name', as).val();
+            obj[cl].status = $('.status_output', as).text();
+            protocol_list[protocol_list.length] = obj;
+            get_information($(as).next(".protocol_clone_act"));
           }
-        };
+        }
         var process_list = $('.protocol_table');
         get_information($(process_list).children(".protocol_clone_act")[0]);
       });
