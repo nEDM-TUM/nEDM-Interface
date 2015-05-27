@@ -1,0 +1,15 @@
+{
+  "_id" : "_design/attachments",
+  "language" : "javascript",
+  "views" : {
+     "all" : {
+       "map" : """function(doc) {
+           if (!doc._attachments) return;
+           for (var k in doc._attachments) {
+             emit([doc._id, k], doc._attachments[k].length);
+           }
+        }""",
+        "reduce" : "_stats"
+     }
+  }
+}
