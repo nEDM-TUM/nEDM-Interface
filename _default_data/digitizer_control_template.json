@@ -822,6 +822,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       function setClkDiv(obj) {
            var msg = obj.header.result;
+           if (!msg) return;
            settings.current_clk_div = msg;
            toastr.info("ClkDiv: " + msg.toString());
            setFrequency();
@@ -829,6 +830,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       function useExternalClock(obj) {
            var msg = obj.header.result;
+           if (!msg) return;
            settings.ext_frequency = msg;
            toastr.info("External clock: " + msg);
            setFrequency();
