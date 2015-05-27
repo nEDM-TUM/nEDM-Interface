@@ -122,6 +122,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                     <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class="frequency_set">
                     <button class='set_frequency'>Set Freq (kHz)</button>
                 </div>
+                <div data-role='controlgroup' data-type='horizontal'>
+                    <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class="external_freq">
+                    <label><input type="checkbox" class='set_freq_ext'>Use ext clk (give input in Hz)</label>
+                </div>
             </div>
             <label><input type="range" value="50" min="0" max="100" class="timeWindow"/>Time window (ms)</label>
           </div>
@@ -770,8 +774,16 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       }
 
       function setFrequency() {
-          settings.current_frequency_khz = settings.sysclk / settings.divide / (settings.current_clk_div * 1000);
-          $('.frequency_set').val(settings.current_frequency_khz.toPrecision(3));
+          if (settings.ext_frequency !== 0) {
+              settings.current_frequency_khz = settings.ext_frequency / settings.divide / (settings.current_clk_div * 1000);
+              $('.external_freq', $(thediv)).addClass("ui-disabled");
+          } else {
+              settings.current_frequency_khz = settings.sysclk / settings.divide / (settings.current_clk_div * 1000);
+              $('.external_freq', $(thediv)).removeClass("ui-disabled");
+          }
+          $('.frequency_set', $(thediv)).val(settings.current_frequency_khz.toPrecision(3));
+          $('.external_freq', $(thediv)).val(settings.ext_frequency);
+          $('.set_freq_ext', $(thediv)).prop("checked", settings.ext_frequency !==0).checkboxradio("refresh");
           updateTimeRange();
       }
 
@@ -815,6 +827,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
            setFrequency();
       }
 
+      function useExternalClock(obj) {
+           var msg = obj.header.result;
+           settings.ext_frequency = msg;
+           toastr.info("External clock: " + msg);
+           setFrequency();
+      }
+
       var responseObj = {
           readBuffer: showNewData,
           startReadout: startReadout,
@@ -825,6 +844,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           announce: announce,
           performCmd: performCmd,
           setClkDiv: setClkDiv,
+          useExternalClock: useExternalClock,
           initializeWebPage: initializeWebPage
       };
 
@@ -892,7 +912,11 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       }
       $('.set_frequency', $(thediv)).on("click", function() {
         var clkdiv = parseFloat($('.frequency_set', $(thediv)).val());
-        clkdiv = settings.sysclk / settings.divide / (clkdiv*1000);
+        if (settings.ext_frequency !== 0) {
+          clkdiv = settings.ext_frequency / settings.divide / (clkdiv*1000);
+        } else {
+          clkdiv = settings.sysclk / settings.divide / (clkdiv*1000);
+        }
         x.sendObj({
             cmd: "setClkDiv",
             embed: true,
@@ -906,6 +930,20 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.connectBtn', $(thediv)).on("click", connect);
+      $('.set_freq_ext', $(thediv)).on("click", function(ev) {
+        var is_checked = $(ev.currentTarget).is(":checked");
+        var freq = null;
+        if (is_checked) {
+          freq = parseFloat($('.external_freq', $(thediv)).val());
+        }
+        x.sendObj({
+            cmd: "useExternalClock",
+            embed: true,
+            args: {
+                freq_in_hz: freq
+            }
+        });
+      });
       $('.sendGainsToCard', $(thediv)).on("click", function() {
           var all_vals =
           $.makeArray(
