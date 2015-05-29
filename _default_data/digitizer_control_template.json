@@ -77,15 +77,18 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <div data-role="controlgroup" data-type="horizontal">
               <label><input type='checkbox' class='log_scale'/>Log scale</label>
             </div>
-                   <div data-role='collapsible' class='amp_window'>
-            <h4>AMPLITUDE</h4>
+            <div data-role='collapsible' class='amp_window'>
+                <h4>AMPLITUDE</h4>
                 <div class="show_amp"></div>
                 <div class="show_frq"></div>
 
-              <div data-role="controlgroup" data-type="horizontal">
-                <label><input type='checkbox' class='frq_scale'/>Freq Scale</label>
-                  </div>
+                <div data-role="controlgroup" data-type="horizontal">
+                  <select class="channel_show">
+                    <option value="1">Default</option>
+                  </select>
+                  <label><input type='checkbox' class='frq_scale'/>Freq Scale</label>
                 </div>
+            </div>
         </div>
         <div class='adv_options'>
           <div data-role='collapsible' class='measurement_options'>
@@ -284,8 +287,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         var amp_arr_out = [_.range(0, timestep *(counter +1), timestep)];
         var frq_arr_out = [_.range(0, timestep *(counter +1), timestep)];
         var Frq_arr = Array.prototype.slice.call(arr[0]);
-        var He_arr = Array.prototype.slice.call(arr[1]); //Here one might add a channel selector
-        var Xe_arr = Array.prototype.slice.call(arr[1]);
+        var arrayShow = parseInt($('.channel_show', $(thediv)).filter(":input").val());
+
+        var He_arr = Array.prototype.slice.call(arr[arrayShow]); //Here one might add a channel selector
+        var Xe_arr = Array.prototype.slice.call(arr[arrayShow]);
         var He_min = Math.floor(36 * len_of_fft / nyquist_freq / 1000.0);
         var He_max = Math.floor(43 * len_of_fft / nyquist_freq / 1000.0) + 1;
         var Xe_min = Math.floor(10 * len_of_fft / nyquist_freq / 1000.0);

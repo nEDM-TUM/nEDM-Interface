@@ -41,11 +41,15 @@
       var save_chan = $('.selectSaveChannels', $(thediv)).filter(':input');
 
       // Channel names
+      var sel = $('.channel_show', $(thediv)).filter(':input');
+      sel.empty();
       for (var k in docobj.default_header_info.channel_names) {
         var n = docobj.default_header_info.channel_names[k];
         view_chan.find('option[value="' + k + '"]').text(n);
         save_chan.find('option[value="' + k + '"]').text(n);
+        sel.append($('<option/>').val(parseInt(k) + 1).text(n));
       }
+      sel.selectmenu("refresh");
 
       for (var i=0;i<docobj.view_channels.length;i++) {
         view_chan.find('option[value="' + docobj.view_channels[i] + '"]').attr('selected', 'selected');
