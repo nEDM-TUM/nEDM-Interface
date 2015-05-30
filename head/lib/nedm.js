@@ -213,6 +213,61 @@ function BuildDBList(ev, id) {
 // Event handling for nedm
 //////////////////////////
 
+var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+var aggregate_db;
+var useLocalStorage = false;
+var iAmActiveListener = false;
+
+function OpenLockDatabase(callback) {
+  if ( typeof indexedDB !== 'undefined' ) {
+    // We can use indexedDB
+    if ( typeof aggregate_db !== 'undefined' ) {
+      // We've already opened, callback
+      callback();
+    } else {
+      // Initiate the open
+      var request = indexedDB.open("nedm_aggregate");
+      request.onupgradeneeded = function(ev) {
+        aggregate_db = ev.target.result;
+        var objectStore = aggregate_db.createObjectStore("listener", { listening : 1 });
+        toastr.info("Local Aggregate DB created", _agg_msg_title);
+      };
+      request.onsuccess = function(ev) {
+        toastr.info("Local Aggregate DB opened", _agg_msg_title);
+        aggregate_db = ev.target.result;
+        useLocalStorage = true;
+        callback();
+      };
+    }
+  } else {
+    callback();
+  }
+}
+
+function RequestLockDatabase(callback) {
+  // We rely on the transaction lock in IndexedDB to serialize readwrite calls
+  // On a successful acquisition of the lock, we check if
+  // aggregate_feed_running is set in localStorage.  If not, it means we should
+  // become the listener.
+  var trans = aggregate_db.transaction(["listener"], "readwrite");
+  var os = trans.objectStore('listener');
+
+  // We simply get the dummy variable since the 'success' function will be
+  // called while we have the transaction lock.
+  var req = os.get('listening');
+  req.onsuccess = function(ev) {
+    if (localStorage.aggregate_feed_running) {
+      callback(false);
+    } else {
+      callback(true);
+    }
+  };
+  req.onerror = function(ev) {
+    // FixME, can we recover?
+    toastr.error("Unexpected Local DB error", "Suggest browser restart!");
+  };
+}
+
 // Internal EventEmitter object
 var _emitter = new events.EventEmitter();
 
@@ -224,9 +279,12 @@ var _emitter = new events.EventEmitter();
  * @api private
  */
 
-function HandleDatabaseChanges(msg) {
+function HandleDatabaseChanges(msg, isLocalHandler) {
     var dat = JSON.parse(msg.data);
     if (!dat.id) return;
+    if (useLocalStorage && !isLocalHandler) {
+      localStorage.nedm_aggregate = msg.data;
+    }
     var id = dat.id.split(':');
     _emitter.emit("db_update", { db  : id[0].split('/')[1],
                                 type : id[1] });
@@ -239,11 +297,71 @@ function HandleDatabaseChanges(msg) {
  * @api private
  */
 
+function HandleLocalStorage(ev) {
+  if (useLocalStorage && !localStorage.aggregate_feed_running) {
+    // Means another tab died
+    window.removeEventListener('storage', HandleLocalStorage);
+    ListenToDBChanges();
+  }
+  if (ev.key !== "nedm_aggregate") return;
+  HandleDatabaseChanges( { data : ev.newValue }, true );
+}
+
+/**
+ * Starts an actual feed
+ *
+ * @api private
+ */
+
+function StartFeed() {
+  var aggr = get_database('nedm%2Faggregate');
+  aggr.cancel_changes_feed( HandleDatabaseChanges );
+  aggr.listen_to_changes_feed(HandleDatabaseChanges, { since : "now" });
+}
+
+function ResetLocalStorage(shutdown) {
+   if (iAmActiveListener) {
+     localStorage.removeItem('aggregate_feed_running');
+     iAmActiveListener = false;
+     if (shutdown) {
+       get_database('nedm%2Faggregate').cancel_changes_feed( HandleDatabaseChanges );
+     }
+   }
+}
+
+var _agg_msg_title = "Agg Listener Message";
+
+window.onunload = function() {
+  ResetLocalStorage(false);
+};
+
 function ListenToDBChanges() {
-    if (!logged_in_as) return;
-    var aggr = get_database('nedm%2Faggregate');
-    aggr.cancel_changes_feed( HandleDatabaseChanges );
-    aggr.listen_to_changes_feed(HandleDatabaseChanges, { since : "now" });
+    if (!logged_in_as) {
+      ResetLocalStorage(true);
+      return;
+    }
+    OpenLockDatabase( function() {
+      if (useLocalStorage) {
+        if (localStorage.aggregate_feed_running) {
+           // Means the feed is already running, just consume
+           window.addEventListener('storage', HandleLocalStorage);
+        } else {
+           RequestLockDatabase( function( should_listen ) {
+             if (should_listen) {
+               localStorage.aggregate_feed_running = "true";
+               iAmActiveListener = true;
+               toastr.info("This window is now the master aggregate listener", _agg_msg_title);
+               StartFeed();
+             } else {
+               // Call again, it will just listen to storage events
+               ListenToDBChanges();
+             }
+           });
+        }
+      } else {
+        StartFeed();
+      }
+    });
 }
 
 /**
@@ -738,7 +856,6 @@ $(document).on('mobileinit', function() {
     if (cIndex < stck.length - 1 && /error\.html/.exec(stck[cIndex + 1].pageUrl) !== null) {
         // Ok, we moved back successfully after an error, Pop this page out
         stck.splice(cIndex+1, 1);
-
     }
   });
 
