@@ -491,8 +491,6 @@
             );
           }
         }
-        $('select', $(new_obj)).selectmenu();
-        $('[data-role="controlgroup"]', $(new_obj)).controlgroup();
         function exec_download(uri) {
           $.ajax( {
             url: uri,
@@ -535,6 +533,9 @@
         $('.file_name_class', $(new_obj)).data(thefile.params)
                                          .on('click', download_file);
         $('.actual_file_list', $(thediv)).append(new_obj);
+        $('select', $(new_obj)).selectmenu();
+        $('select.downsample', $(new_obj)).val(1).selectmenu("refresh");
+        $('[data-role="controlgroup"]', $(new_obj)).controlgroup();
       };
       $('.file_remove', $(thediv)).on("click", function(ev) {
           var tgt = $(ev.currentTarget).closest(".add_one_file_class");
