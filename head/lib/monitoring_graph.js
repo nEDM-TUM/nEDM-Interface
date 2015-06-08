@@ -93,7 +93,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
           t.unshift(k);
           arr[arr.length] = { key: t, value: { sum : msg[k].value, count : 1 } };
         }
-        var all_data = arr.map(DateFromKeyVal, tthis).filter( function(o) {
+        var all_data = arr.map(DateFromKeyVal(graph.getOption("customBars")), tthis).filter( function(o) {
             if (o !== null) return true;
             return false;
         });
@@ -198,18 +198,36 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      * @api private
      */
 
-    function DateFromKeyVal(obj) {
-         var outp = [ nedm.dateFromKey(obj.key) ];
-         var seen = false;
-         var data_name = name;
-         for (var i=0;i<data_name.length;i++) {
-             if (data_name[i] == obj.key[0]) {
-                 outp.push(obj.value.sum/obj.value.count);
-                 seen = true;
-             } else outp.push(null);
-         }
-         if (!seen) return null;
-         return outp;
+    function DateFromKeyVal(hasCustomBars) {
+       if (!hasCustomBars) {
+         return function(obj) {
+           var outp = [ nedm.dateFromKey(obj.key) ];
+           var seen = false;
+           var data_name = name;
+           for (var i=0;i<data_name.length;i++) {
+               if (data_name[i] == obj.key[0]) {
+                   outp.push(obj.value.sum/obj.value.count);
+                   seen = true;
+               } else outp.push(null);
+           }
+           if (!seen) return null;
+           return outp;
+         };
+       } else {
+         return function(obj) {
+          var outp = [ nedm.dateFromKey(obj.key) ];
+          var seen = false;
+          var data_name = name;
+          for (var i=0;i<data_name.length;i++) {
+              if (data_name[i] == obj.key[0]) {
+                  outp.push([obj.value.min, obj.value.sum/obj.value.count, obj.value.max]);
+                  seen = true;
+              } else outp.push(null);
+          }
+          if (!seen) return null;
+          return outp;
+        };
+      }
     }
 
     /**
@@ -264,7 +282,14 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      * @api public
      */
 
-    this.setGroupLevel = function(gl) { group_level = gl; };
+    this.setGroupLevel = function(gl) {
+      group_level = gl;
+      if (gl <= 6) {
+        graph.updateOptions( { customBars : true }, true );
+      } else {
+        graph.updateOptions( { customBars : false }, true );
+      }
+    };
 
     /**
 	 * Update the graph with current data, settings, etc.
@@ -343,7 +368,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
               names_to_check -= 1;
               var ret_obj = { variable : cr_name, done : true };
               if (e === null) {
-                var all_data = o.rows.map(DateFromKeyVal, tthis).filter( function(o) {
+                var all_data = o.rows.map(DateFromKeyVal(graph.getOption("customBars")), tthis).filter( function(o) {
                     if (o !== null) return true;
                     return false;
                 });
