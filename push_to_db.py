@@ -260,6 +260,8 @@ current folders.
 """
 def main(server = None):
 
+    exclude_dirs = []
+    include_dirs = []
     if os.path.exists(".nedmrc"):
         try:
             obj = yaml.load(open(".nedmrc"))
@@ -267,6 +269,9 @@ def main(server = None):
             if server in obj:
                 sv = obj[server]
                 server = sv["server"]
+                exclude_dirs = sv.get("exclude", [])
+                if "include" in sv:
+                    include_dirs = sv["include"]
                 try:
                     set_username_pw(sv["username"], sv["password"])
                 except KeyError: pass
@@ -276,8 +281,14 @@ def main(server = None):
     elif server is None:
         server = "http://localhost:5984"
 
-    dbnames = [(db, "nedm%2F" + os.path.basename(db)) for db
+    dbnames = [(db, os.path.basename(db)) for db
                  in glob.glob("subsystems/*") if os.path.isdir(db)]
+
+    if len(include_dirs) == 0:
+        include_dirs = [y for _,y in dbnames]
+
+    dbnames = [(x, "nedm%2F" + y) for x,y in dbnames
+                 if (y in include_dirs and y not in exclude_dirs)]
 
     dbnames.append(("head", "nedm_head"))
 
