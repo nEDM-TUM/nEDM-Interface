@@ -3,7 +3,7 @@ import getpass
 import subprocess
 import os
 import glob
-from check_jshint import check_string 
+from check_jshint import check_string
 import re
 try:
     import pexpect
@@ -19,15 +19,15 @@ Above referenced module is required.  Try installing using, e.g.:
 [sudo] pip install [module_name]
 """
     e.args = (msg,)
-    raise 
+    raise
 
 class KansoException(Exception):
     pass
 
 
 _have_tried = False
-_username = None 
-_password = None 
+_username = None
+_password = None
 
 _acct = None
 
@@ -62,15 +62,15 @@ def compare_documents(ondb, topush):
     topush_s = set(topush.keys())
     diffs = ondb_s.symmetric_difference(topush_s)
     if len(diffs.symmetric_difference(ok_differences)) > 0: return False
-     
+
     for k in topush:
-        if ondb[k] != topush[k]: 
+        if ondb[k] != topush[k]:
             return False
     return True
 
 """
 execute_kanso calls the string and deals with any password/username entry.  It
-will save the username and password for further calls to this function. 
+will save the username and password for further calls to this function.
 """
 def execute_kanso(kanso_str):
     global _have_tried
@@ -82,8 +82,8 @@ def execute_kanso(kanso_str):
             child.expect(".*Username:")
             if _have_tried:
                 print "Try password again"
-           
-            un, pw = populate_username_pw() 
+
+            un, pw = populate_username_pw()
             child.sendline(un)
             child.expect(["Password:"])
             child.sendline(pw)
@@ -97,9 +97,9 @@ def execute_kanso(kanso_str):
     child.close()
     if child.exitstatus != 0 or child.signalstatus is not None:
         print "Problem with: "
-        print kanso_str 
-        raise KansoException 
- 
+        print kanso_str
+        raise KansoException
+
 
 """
 Updates the security, this has to be done delicately.
@@ -108,13 +108,13 @@ Updates the security, this has to be done delicately.
 def update_security(host, db_name, folder):
     global _pending_requests
 
-    db = get_current_account(host)[db_name] 
+    db = get_current_account(host)[db_name]
 
-    # We have to explicitly call the server, with un, and pw if it's not yet there... 
+    # We have to explicitly call the server, with un, and pw if it's not yet there...
 
     default_security_doc = json.load(open("_default_data/_security.json"))
 
-    # Search to see if there's a _security document to upload 
+    # Search to see if there's a _security document to upload
     folder_sec_path = os.path.join(folder, "_security.json")
     if os.path.exists(folder_sec_path):
         sec_doc = json.load(open(folder_sec_path))
@@ -131,9 +131,9 @@ def update_security(host, db_name, folder):
     doc = db.document('_security')
     resp = doc.put(params=default_security_doc)
     _pending_requests.append(resp)
-    
-       
-        
+
+
+
 """
 push to a particular database given a certain folder
 
@@ -162,7 +162,7 @@ def push_database(host, db_name, folder="_default", force=False):
 
     execute_kanso("kanso install %s" % folder)
     db_path = "http://" + host + "/" + db_name
-    execute_kanso("kanso push %s %s " % (folder, db_path)) 
+    execute_kanso("kanso push %s %s " % (folder, db_path))
 
 def check_dict(adic):
     for k,v in adic.items():
@@ -184,7 +184,7 @@ def check_javascript(adoc):
         check_dict(adoc)
 
 """
-upload data 
+upload data
 
 """
 def upload_data(host, db_name, folder, check_js):
@@ -192,9 +192,9 @@ def upload_data(host, db_name, folder, check_js):
     global _pending_requests
     # push defaults
 
-    acct = get_current_account(host) 
+    acct = get_current_account(host)
 
-    # We have to explicitly call the server, with un, and pw if it's not yet there... 
+    # We have to explicitly call the server, with un, and pw if it's not yet there...
 
     # Unfortunately, due to a limitation in the kanso upload command, we need
     # to preprocess the files to remove new-lines
@@ -202,10 +202,10 @@ def upload_data(host, db_name, folder, check_js):
     if "error" in db.get().result().json():
         db.put()
 
-    bulk_docs = [] 
+    bulk_docs = []
     for af in glob.iglob(folder + "/*.json"):
         base_n = os.path.basename(af)
-        if base_n == "_security.json" : continue 
+        if base_n == "_security.json" : continue
         try:
             bulk_docs.append(eval(open(af).read()))
         except Exception as e:
@@ -242,15 +242,15 @@ def upload_data(host, db_name, folder, check_js):
         func_name = "_update/insert_with_timestamp"
         func = des.post
         if "_id" in adoc and adoc["_id"] in ids:
-            # We need to use the update handler with name 
+            # We need to use the update handler with name
             theid = adoc["_id"]
             func_name += "/%s?overwrite=true" % theid
             func = des.put
             if theid in all_docs and compare_documents(all_docs[theid], adoc):
-                 continue 
-            print "    Updating: ", adoc['_id'] 
-        if check_js: 
-            check_javascript(adoc) 
+                 continue
+            print "    Updating: ", adoc['_id']
+        if check_js:
+            check_javascript(adoc)
         resp = func(func_name, params=adoc)
         _pending_requests.append(resp)
 
@@ -264,7 +264,7 @@ def main(server = None):
         try:
             obj = yaml.load(open(".nedmrc"))
             if not server: server = obj["default"]
-            if server in obj: 
+            if server in obj:
                 sv = obj[server]
                 server = sv["server"]
                 try:
@@ -299,8 +299,8 @@ def main(server = None):
         response = rqst.result().json()
         if type(response) != type([]):
             response = [response]
-        for a in response: 
-            if "ok" not in a or not a["ok"]: print "Not ok", a 
+        for a in response:
+            if "ok" not in a or not a["ok"]: print "Not ok", a
 
 if __name__ == '__main__':
     serv = None
