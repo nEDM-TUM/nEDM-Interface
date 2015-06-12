@@ -284,13 +284,16 @@ def main(server = None):
     dbnames = [(db, os.path.basename(db)) for db
                  in glob.glob("subsystems/*") if os.path.isdir(db)]
 
+    push_head = False
     if len(include_dirs) == 0:
         include_dirs = [y for _,y in dbnames]
+        push_head = True
 
     dbnames = [(x, "nedm%2F" + y) for x,y in dbnames
                  if (y in include_dirs and y not in exclude_dirs)]
 
-    dbnames.append(("head", "nedm_head"))
+    if push_head:
+        dbnames.append(("head", "nedm_head"))
 
     check_js = True
     for db_path, db_name in dbnames:
