@@ -222,12 +222,13 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.pulse', $($theDiv)).on('click', function() {
-        disable_all();
-        nedm.send_command({cmd_name: 'send_pulse',
+    $('.pulse', $($theDiv)).on('click', function(ev, ui) {
+        $(ev.currentTarget).button("option", "disabled", true);
+        nedm.get_database("nedm%2Fnmr_system").send_command({
+        cmd_name: 'send_trigger',
         timeout: 5000,
         callback: function(e,o){
-            enable_all();
+            $(ev.currentTarget).button("option", "disabled", false);
             }
         });
     });
@@ -256,7 +257,7 @@ function($theDiv, anobj) {
         var args = [];
         if (coil_or_resistor == '1') args = [coil_switch_select];
         else args = ['0'];
-        nedm.send_command({cmd_name: 'magnicon_to',
+        nedm.send_command({cmd_name: 'field_switch',
         arguments: args,
         timout:5000,
         callback: function(e,o) {
@@ -363,6 +364,7 @@ function($theDiv, anobj) {
     var time_out = null;
 
     function ramp_up(start, step, end, no) {
+        toastr.info('Starting ramp')
         var args = [];
         if (start < end) {
             args = [no, start];
@@ -400,6 +402,7 @@ function($theDiv, anobj) {
         }
         var to_check = 'hv_monitor_' + no;
         if (nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(to_check, is_safe)) {
+          toastr.info('Starting ramp')
           var args = [];
           if (start > 0) {
               args = [no, start];
@@ -408,7 +411,7 @@ function($theDiv, anobj) {
               timeout: 5000
               });
               var newstart = start - step;
-              time_out = setTimeout(ramp_up, 500, newstart, step, no);
+              time_out = setTimeout(ramp_down, 500, newstart, step, no);
           }
           else {
               args = [no, 0];
