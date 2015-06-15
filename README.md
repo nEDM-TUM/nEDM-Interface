@@ -24,7 +24,12 @@ It is possible to save setting in a .nedmrc file, e.g.:
   local: {
     username : "myusername",
     password : "mypwd",
-    server   : "localhost:5984"
+    server   : "localhost:5984",
+	include  : ["digitizers", "hexe_edm"],# Use to include only these
+										  # subsystems (optional, [] means
+										  # include all)
+	exclude  : ["cs_laser", "fluxgate"] # Use to exclude particular subsystems
+                                        # (optional, [] means exclude none)
   },
   deployed: {
     username : "mydeployedusername",
@@ -36,7 +41,10 @@ It is possible to save setting in a .nedmrc file, e.g.:
 }
 
 ```
-where the default indicates which will be used normally.  ```jshint``` is an additional dependency:
+where the default indicates which will be used normally.  Note, that
+```include``` and ```exclude``` can be used to deploy _only_ the subsystems you
+wish to your particular database.  This is useful when you only need a subset
+of the nEDM-Interface.  ```jshint``` is an additional dependency:
 
 ```
 npm install -g jshint

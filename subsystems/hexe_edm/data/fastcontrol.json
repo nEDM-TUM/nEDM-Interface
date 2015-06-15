@@ -289,7 +289,7 @@ function($theDiv, anobj) {
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-g');
                   $('.' + hv_stati[v] + '_status_light ').addClass('control_status nedm-status-r');
                 }
-                if (stat.value == 1){
+                else if (stat.value == 1){
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-r');
                   $('.' + hv_stati[v] + '_status_light ').addClass( 'control_status nedm-status-g');
                 }

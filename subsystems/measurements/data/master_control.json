@@ -183,6 +183,30 @@
         </div>
     </div>
 """,
+  "download_clone" : """
+<div>
+  <div class="ui-grid-a">
+    <div class="ui-block-a">
+        <h4>Name: <span class='filename'>(No name)</span></h4>
+        <h4>Size (bytes): <span class='filelength'>(Not saved)</span></h4>
+    </div>
+    <div class="ui-block-b">
+      <div data-role='controlgroup' data-type='horizontal'>
+          <select class='avail_server' data-native-menu="false">
+            <option data-placeholder="true" value="">Server:</option>
+          </select>
+          <select class='downsample' data-native-menu="false">
+            <option data-placeholder="true" value="">Downsample:</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+          </select>
+          <a href="#" class='ui-btn file_name_class'>Download</a>
+      </div>
+    </div>
+</div>
+""",
   "html" : """
 <div>
     <div class='entire_protocol'>
@@ -229,24 +253,8 @@
         </div>
 
         <div data-role="collapsible" class='list_of_files'>
-          <h2>Attach/remove files</h2>
+          <h2>Attached files</h2>
           <div class="actual_file_list">
-            <div class='ui-grid-b add_one_file_class'>
-              <div class='ui-block-a'>
-                <input type="file" class="add_files_class">
-              </div>
-              <div class='ui-block-b'>
-                <button class='ui-btn ui-icon-delete ui-btn-icon-notext file_remove ui-disabled'>Remove
-                </button>
-              </div>
-              <div class='ui-block-c'>
-                <progress style='display:none;' class='progress_bar' value="0" max="100"></progress>
-              </div>
-            </div>
-          </div>
-          <div data-role='controlgroup' data-type='horizontal'>
-            <button class="ui-btn upload_files">Upload Files</button>
-            <button class="ui-btn ui-disabled cancel_upload">Cancel</button>
           </div>
         </div>
 
@@ -254,7 +262,7 @@
     </div>
     <div>
       <div data-role='controlgroup' class='save_div' data-type='horizontal'>
-        <label><input type='checkbox'/>Overwrite</label>
+        <label><input type='checkbox' class="overwrite_doc">Overwrite</label>
         <button class="ui-btn save_measurement">Save Measurement</button>
       </div>
       <p>
@@ -268,7 +276,9 @@
     function(thediv, docobj) {
       // Grab the line to clone before jquery mobile changes it
       var line_clone = $.parseHTML(docobj.protocol_clone.trim());
+      var download_clone = $.parseHTML(docobj.download_clone.trim());
       var prot_sel = $('.protocol_type', $(line_clone));
+      var toastr = require("toastr");
       var command_obj = {};
       var this_db = nedm.get_database();
 
@@ -459,24 +469,74 @@
       //*****************************************************
       // Deal with files
       var set_uploaded = function(obj, url) {
-        $(obj).attr('href', url).data('uploaded', true);
-        $(obj).closest('.add_one_file_class').find('.progress_bar')
+        var o = $('.file_name_class', $(obj));
+        o.attr('href', url).data('uploaded', true);
+        o.closest('.add_one_file_class').find('.progress_bar')
            .replaceWith($('<span/>').text('Uploaded, remove will delete'));
       };
-      var add_file_fn = function(ev, thefile) {
-        var tgt = $(ev.currentTarget);
-        if (!thefile) thefile = ev.target.files[0];
-        tgt.closest('.add_one_file_class').find('.file_remove').removeClass('ui-disabled');
-        var new_obj = $('<a/>').attr('data-ajax', 'false').addClass('file_name_class').text(thefile.name).data({file : thefile});
-        tgt.closest('.actual_file_list').append(file_cloner.clone(true)).trigger('create');
-        tgt.closest('.ui-input-text').replaceWith(new_obj);
-        tgt.remove();
-        if (thefile.href) {
-          set_uploaded(new_obj, thefile.href);
+      var add_file_fn = function(thefile) {
+        var new_obj = $(download_clone).clone();
+        $('.filename', $(new_obj)).text(thefile.name);
+        $('.filelength', $(new_obj)).text(thefile.length);
+        if (!thefile.downsample) {
+          $('.downsample', $(new_obj)).remove();
         }
-
+        if (typeof thefile.params.servers === 'undefined') {
+          $('.avail_server', $(new_obj)).remove();
+        } else {
+          var srv = thefile.params.servers;
+          for (var k in srv) {
+            $('.avail_server', $(new_obj)).append(
+              $('<option/>').val(srv[k]).text(k)
+            );
+          }
+        }
+        function exec_download(uri) {
+          $.ajax( {
+            url: uri,
+         method: "HEAD",
+        success: function() {
+            // download the file
+            toastr.info("Beginning download", "Success");
+            window.location = uri;
+          },
+          error: function(o) {
+            toastr.error("Failed url: " + uri, o.statusText);
+          }
+          });
+        }
+        function download_file(ev) {
+          ev.preventDefault();
+          var dat = $(ev.currentTarget).data();
+          if (dat.href) {
+            exec_download(dat.href);
+          } else {
+            var server = $("select.avail_server", $(ev.currentTarget).parent()).val();
+            var ds = $("select.downsample", $(ev.currentTarget).parent()).val();
+            if (server === "") {
+              toastr.error("select server before downloading", "Server");
+              return;
+            }
+            if (ds === "") {
+              toastr.error("select downsample before downloading", "Downsample");
+              return;
+            }
+            var opts = {
+              id : dat.id,
+              filename : dat.name,
+              db : dat.db
+            };
+            if (typeof ds !== "undefined") opts.downsample = ds;
+            exec_download(server + "?" + $.param(opts));
+          }
+        }
+        $('.file_name_class', $(new_obj)).data(thefile.params)
+                                         .on('click', download_file);
+        $('.actual_file_list', $(thediv)).append(new_obj);
+        $('select', $(new_obj)).selectmenu();
+        $('select.downsample', $(new_obj)).val(1).selectmenu("refresh");
+        $('[data-role="controlgroup"]', $(new_obj)).controlgroup();
       };
-      $('.add_files_class', $(thediv)).on("change", add_file_fn);
       $('.file_remove', $(thediv)).on("click", function(ev) {
           var tgt = $(ev.currentTarget).closest(".add_one_file_class");
           tgt.addClass('ui-disabled');
@@ -491,8 +551,9 @@
 
           if (file_obj.data('uploaded')) {
             // Try to delete it...
+            var id = $(thediv).data('current_doc');
             this_db.removeAttachment(
-              { _id : $(thediv).data('current_doc') },
+              { _id : id },
               file_obj.text(),
               function(err, obj) {
                 if (err) {
@@ -501,6 +562,7 @@
                 } else {
                   remove_and_delete();
                 }
+                load_with_docid(id);
             });
           } else {
             remove_and_delete();
@@ -578,6 +640,7 @@
         cncl_btn.removeClass('ui-disabled');
         upload_btn.addClass('ui-disabled');
         var reset_disabled_state = function() {
+          load_with_docid(the_doc._id);
           file_setup.removeClass('ui-disabled');
           cncl_btn.addClass('ui-disabled');
           upload_btn.removeClass('ui-disabled');
@@ -660,62 +723,82 @@
       $('.save_measurement').on('click', function(ev) {
         var protocol_list = [];
         var tthis = $(ev.currentTarget);
-        var get_information = function(astep) {
+        function get_information(astep) {
           var as = $(astep);
-          var cl = $('.protocol_type', as).find(":selected").val();
-          if (!check_protocol(as)) {
-            nedm.show_error_window('Errors in ' + $('.step_name', as).val(), "Not saved");
-            return;
-          }
-          var obj = {};
-          obj[cl] = command_obj[cl].save(as);
-          obj[cl].name = $('.step_name', as).val();
-          obj[cl].status = $('.status_output', as).text();
-          protocol_list[protocol_list.length] = obj;
-          var nxt = $(as).next(".protocol_clone_act");
-          if (nxt.length > 0) {
-            get_information(nxt);
-          } else {
+          if (as.length === 0) {
             $('.entire_protocol', $(thediv)).addClass('ui-disabled');
-            var adoc = {
+            var adoc;
+            try {
+              adoc = alldoc_editor.get();
+            } catch (e) {
+              toastr.error("JSON in 'All information' improperly formatted.", "Formatting error");
+              $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
+              return;
+            }
+
+            var newdoc = {
               type : "measurement",
               log : cmt.data('editor').getSession().getValue(),
               protocol : protocol_list,
               measurement_name : $('.set_measurement_name', $(thediv)).val()
             };
-
-            if ($(thediv).data('current_doc') &&
-              tthis.siblings('.ui-checkbox').find(':input').is(':checked')) {
-              adoc._id = $(thediv).data('current_doc');
+            for (var k in newdoc) {
+              adoc[k] = newdoc[k];
             }
-            this_db.updateDoc(adoc,
-              'nedm_default', 'insert_with_timestamp',
-              {
-                success : function(err, obj) {
+            var call_func = function(thed, cbck) {
+              return this_db.updateDoc(thed, "nedm_default", "insert_with_timestamp", cbck);
+            };
+            if ($(".overwrite_doc", $(thediv)).prop("checked")) {
+              // Try to post it
+              call_func = function(thed, cbck) {
+                return this_db.saveDoc(thed, cbck);
+              };
+            } else {
+              // Remove id info from *this* document
+              ["_id", "_rev", "created_by", "_attachments"].forEach(function(o) {
+                if (adoc[o]) delete adoc[o];
+              });
+            }
+            call_func(adoc, function(err, obj) {
                   $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
                   if (err) {
-                    nedm.show_error_window("Error loading document");
+                    toastr.error(JSON.stringify(err), "Save doc error");
+                    return;
+                  }
+                  if (obj.error) {
+                    toastr.error(JSON.stringify(obj.error), "Save doc error");
                     return;
                   }
                   this_db.getDoc(obj.id,
                     function(e, o) {
                       if (e) {
-                        nedm.show_error_window("Error reloading document");
+                        toastr.error(JSON.stringify(err), "Error reloading document");
                         return;
                       }
                       load_from_object(o);
                   });
-                }
-              }
-            );
+            });
+          } else {
+            var cl = $('.protocol_type', as).find(":selected").val();
+            if (!check_protocol(as)) {
+              nedm.show_error_window('Errors in ' + $('.step_name', as).val(), "Not saved");
+              return;
+            }
+            var obj = {};
+            obj[cl] = command_obj[cl].save(as);
+            obj[cl].name = $('.step_name', as).val();
+            obj[cl].status = $('.status_output', as).text();
+            protocol_list[protocol_list.length] = obj;
+            get_information($(as).next(".protocol_clone_act"));
           }
-        };
+        }
         var process_list = $('.protocol_table');
         get_information($(process_list).children(".protocol_clone_act")[0]);
       });
       //*****************************************************
       // Load measurement
       var load_from_object = function(obj) {
+        var k, cur;
         cmt.data('editor').getSession().setValue(obj.log);
         alldoc_editor.set(obj);
         // Do protocol
@@ -728,18 +811,35 @@
           }
         }
         // Remove old attachments
-        $('.actual_file_list', $(thediv)).find('.file_name_class').each(
-          function() {
-            $(this).closest('.add_one_file_class').remove();
-        });
+        $('.actual_file_list', $(thediv)).empty();
         if (obj._attachments) {
-          for (var k in obj._attachments) {
-            var cur = $('.add_files_class', $(thediv));
-            add_file_fn( { currentTarget : cur },
+          for (k in obj._attachments) {
+            add_file_fn(
                { name : k,
-                 href : this_db.url+"/" + obj._id+"/"+k });
+               length : obj._attachments[k].length,
+               params : {
+                   href : this_db.url+"/" + obj._id+"/"+k
+               }
+               });
           }
         }
+        var base_obj = {
+          servers : obj.file_servers,
+          id : obj._id,
+          db : "nedm/" + this_db.db_name()
+        };
+        if (obj.external_docs) {
+          for (k in obj.external_docs) {
+            base_obj.name = obj.external_docs[k].ondiskname;
+            add_file_fn(
+               { name : k,
+               length : obj.external_docs[k].size,
+           downsample : k.split('.').pop() === "dig",
+               params : base_obj
+               });
+          }
+        }
+
         $('.set_measurement_name', $(thediv))
                   .val(obj.measurement_name || "(No name)")
                   .trigger('change');

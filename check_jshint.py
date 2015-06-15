@@ -10,6 +10,7 @@ class JSException(Exception):
         Exception.__init__(self, msg)
 
 _re_comp = None
+_context = 9
 def output_line_column(err):
     global _re_comp
     if not _re_comp:
@@ -33,7 +34,9 @@ def check_string(astr, ignore_warnings=[]):
         for err in all_lines:
             if err[:6] != "stdin:": continue 
             l, c = output_line_column(err)
-            amsg += "\n\n   %s\n  %s\n  %s\n" % ( astr_lines[l-1-subtract], "-"*(c-1) + "^", err)
+            pt_of_error = l-1-subtract
+            amsg += "\n\n" + "\n".join(astr_lines[pt_of_error-_context:pt_of_error-1])
+            amsg += "\n   %s\n  %s\n  %s\n" % ( astr_lines[pt_of_error], "-"*(c) + "^", err)
         raise JSException(amsg)
 
 if __name__ == '__main__': 

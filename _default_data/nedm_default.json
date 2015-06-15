@@ -4,6 +4,7 @@
   "access" : {
      "read_only" : False
   },
+  "dbs_allow_user_changes" : ["nedm/measurements"],
   "filters" : {
     "doc_type" : """function(doc, req) {
         var t;
@@ -157,9 +158,11 @@
       if (!IS_SERVER_ADMIN) {
         if (oldDoc) {
           // We are updating an old document...
-          if (oldDoc.created_by !== userCtx.name && !isCommand) {
-            // First ensure that the user is correct, since we're changing
-            throw { 'forbidden' : 'User may not update document from another user' };
+          if (ddoc.dbs_allow_user_changes.indexOf(userCtx.db) < 0) {
+            if (oldDoc.created_by !== userCtx.name && !isCommand) {
+              // First ensure that the user is correct, since we're changing
+              throw { 'forbidden' : 'User may not update document from another user' };
+            }
           }
           if (!newDoc._deleted && !isCommand && newDoc.created_by !== oldDoc.created_by) {
             // If we're not deleting a document, ensure that the names are not changing
