@@ -222,12 +222,13 @@ function($theDiv, anobj) {
         });
     });
 
-    $('.pulse', $($theDiv)).on('click', function() {
-        disable_all();
-        nedm.get_database("nedm%2Fnmr_system").send_command({cmd_name: 'send_trigger',
+    $('.pulse', $($theDiv)).on('click', function(ev, ui) {
+        $(ev.currentTarget).button("option", "disabled", true);
+        nedm.get_database("nedm%2Fnmr_system").send_command({
+        cmd_name: 'send_trigger',
         timeout: 5000,
         callback: function(e,o){
-            enable_all();
+            $(ev.currentTarget).button("option", "disabled", false);
             }
         });
     });
