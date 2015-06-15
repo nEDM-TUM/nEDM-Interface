@@ -2,5 +2,6 @@
   "_id" : "subsystem_information",
   "prettyname" : "NMR System",
   "pages" : {
-  }
+  },
+  "no_write" : True
 }

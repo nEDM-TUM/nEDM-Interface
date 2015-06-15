@@ -4,7 +4,8 @@
   "pages" : {
         "DAQ Control" : "control.html",
         "Monitor" : "monitor.html",
-        "Slowcontrol" : "slowcontrol.html"
+        "Slow control" : "slowcontrol.html",
+        "Analysis" : "analysis.html",
   }
 
 }

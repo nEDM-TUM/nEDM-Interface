@@ -1,7 +1,7 @@
 {
   "admins" : {
     "names" : [],
-    "roles" : ["measurements_writer"]
+    "roles" : ["measurements_writer", "measurements_lmtd"]
   },
   "members" : {
     "names" : [],

@@ -1,7 +1,7 @@
 {
   "admins" : {
     "names" : [],
-    "roles" : ["raspberry_pi_writer"]
+    "roles" : ["raspberry_pi_writer", "raspberry_lmtd"]
   },
   "members" : {
     "names" : [],

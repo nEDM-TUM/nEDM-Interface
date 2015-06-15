@@ -5,27 +5,29 @@
   "template" : "digitizer_control_template",
   "include_only_digitizers" : ["digitizer.2.nedm1"],
   "default_header_info" : {
-  			"full_scale": 20,
-  			"conversion_factor": 0.985e-9,
-  			"external_clock": True,
-  			"channel_names" : {
-    					"0" : "SQUID_X1",
-    					"1" : "SQUID_Y1",
-    					"2" : "SQUID_Z1",
-    					"3" : "SQUID_X2",
-    					"4" : "SQUID_Y2",
-    					"5" : "SQUID_Z2",
-    					"6" : "Lockin_XE",
-    					"7" : "Lockin_HE",
-    					"8" : "CH9",
-    					"9" : "CH10"
-  					}
-  			},
+              "full_scale": 20,
+              "conversion_factor": 0.985e-9,
+              "external_clock": True,
+              "channel_names" : {
+                        "0" : "SQUID_X1",
+                        "1" : "SQUID_Y1",
+                        "2" : "SQUID_Z1",
+                        "3" : "SQUID_X2",
+                        "4" : "SQUID_Y2",
+                        "5" : "SQUID_Z2",
+                        "6" : "Lockin_XE",
+                        "7" : "Lockin_HE",
+                        "8" : "CH9",
+                        "9" : "CH10"
+              },
+              "measurement_type": "hexe_edm",
+  },
+  "ext_frequency" : 10000000,
   "view_channels" : [0,1,2,3,4,5,6,7],
   "save_channels" : [0,1,2,3,4,5,6,7,8,9],
   "defaults" : """
-	function(thediv, docobj) {
-	  // Called when page loaded, we can modify the page, set defaults
+    function(thediv, docobj) {
+      // Called when page loaded, we can modify the page, set defaults
 
       // Select the module
       $('.selectSaveModules',$(thediv)).filter(':input').val(1).change();
@@ -39,11 +41,15 @@
       var save_chan = $('.selectSaveChannels', $(thediv)).filter(':input');
 
       // Channel names
+      var sel = $('.channel_show', $(thediv)).filter(':input');
+      sel.empty();
       for (var k in docobj.default_header_info.channel_names) {
         var n = docobj.default_header_info.channel_names[k];
         view_chan.find('option[value="' + k + '"]').text(n);
         save_chan.find('option[value="' + k + '"]').text(n);
+        sel.append($('<option/>').val(parseInt(k) + 1).text(n));
       }
+      sel.selectmenu("refresh");
 
       for (var i=0;i<docobj.view_channels.length;i++) {
         view_chan.find('option[value="' + docobj.view_channels[i] + '"]').attr('selected', 'selected');
@@ -53,7 +59,13 @@
       }
       view_chan.selectmenu("refresh", true);
       save_chan.selectmenu("refresh", true);
-	}
+
+      $('.external_freq', $(thediv)).val(docobj.ext_frequency);
+      $('.set_freq_ext', $(thediv)).prop("checked", false);
+      if (docobj.ext_frequency !==0 ) {
+        $('.set_freq_ext', $(thediv)).trigger('click');
+      }
+    }
 
 """
 }

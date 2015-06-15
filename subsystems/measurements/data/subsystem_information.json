@@ -3,5 +3,7 @@
   "prettyname" : "Measurements",
   "pages" : {
         "Control" : "control.html"
-  }
+  },
+  "no_write" : True,
+  "no_control" : True
 }

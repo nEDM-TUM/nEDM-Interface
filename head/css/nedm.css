@@ -103,6 +103,13 @@ th.db_name {
   text-align: left;
 }
 
+.red_text {
+  color: red;
+}
+.green_text {
+  color: green;
+}
+
 .sub_li_header,.measurement_name,.measurement_status  {
   font-style:italic;
   text-overflow: ellipsis;
