@@ -363,6 +363,7 @@ function($theDiv, anobj) {
     var time_out = null;
 
     function ramp_up(start, step, end, no) {
+        toastr.info('Starting ramp')
         var args = [];
         if (start < end) {
             args = [no, start];
@@ -400,6 +401,7 @@ function($theDiv, anobj) {
         }
         var to_check = 'hv_monitor_' + no;
         if (nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(to_check, is_safe)) {
+          toastr.info('Starting ramp')
           var args = [];
           if (start > 0) {
               args = [no, start];
@@ -408,7 +410,7 @@ function($theDiv, anobj) {
               timeout: 5000
               });
               var newstart = start - step;
-              time_out = setTimeout(ramp_up, 500, newstart, step, no);
+              time_out = setTimeout(ramp_down, 500, newstart, step, no);
           }
           else {
               args = [no, 0];
