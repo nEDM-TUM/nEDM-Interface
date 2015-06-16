@@ -159,11 +159,11 @@ function($theDiv, anobj) {
         for (var v in recent_vars) {
             if (squid_stati[v]) {
               var stat = recent_vars[v];
-              if (stat.value === 0){
+              if (stat.value == 1.0){
                   $('.' + squid_stati[v] + '_squid_status_light').removeClass('control_status nedm-status-g');
                   $('.' + squid_stati[v] + '_squid_status_light').addClass('control_status nedm-status-r');
               }
-              if (stat.value == 1){
+              if (stat.value === 0.0){
                   $('.' + squid_stati[v] + '_squid_status_light').removeClass('control_status nedm-status-r');
                   $('.' + squid_stati[v] + '_squid_status_light').addClass( 'control_status nedm-status-g');
               }
@@ -286,11 +286,11 @@ function($theDiv, anobj) {
         for (var v in hv_stati) {
             if (recent_vars[v]) {
                 var stat = recent_vars[v];
-                if (stat.value === 0){
+                if (stat.value == 1.0){
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-g');
                   $('.' + hv_stati[v] + '_status_light ').addClass('control_status nedm-status-r');
                 }
-                else if (stat.value == 1){
+                else if (stat.value === 0.0){
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-r');
                   $('.' + hv_stati[v] + '_status_light ').addClass( 'control_status nedm-status-g');
                 }
@@ -364,7 +364,6 @@ function($theDiv, anobj) {
     var time_out = null;
 
     function ramp_up(start, step, end, no) {
-        toastr.info('Starting ramp')
         var args = [];
         if (start < end) {
             args = [no, start];
@@ -394,15 +393,19 @@ function($theDiv, anobj) {
               toastr.error('Not able to retrieve HV value, not safe!');
               return false;
             }
-            if (o.rows[0].value > start) return true;
+            if (o.rows[0].value > start) {
+              toastr.info('ramping down from ' + o.rows[0].value.toString());
+              return true;
+            }
             else {
               toastr.error('HV value smaller than ramp start, not safe!');
               return false;
             }
         }
         var to_check = 'hv_monitor_' + no;
-        if (nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(to_check, is_safe)) {
-          toastr.info('Starting ramp')
+        var recent_val = nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(to_check, is_safe);
+        if (recent_val) {
+          toastr.info('Starting ramp');
           var args = [];
           if (start > 0) {
               args = [no, start];
