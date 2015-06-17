@@ -44,7 +44,7 @@
         if (req.query.overwrite) {
             var remove = [];
             for (var k in doc) {
-                if (k in { _id : null, _rev : null, _revisions : null}) continue;
+                if (k in { _id : null, _rev : null, _revisions : null, created_by: null}) continue;
                 if (!(k in _ref)) remove.push(k);
             }
             for (var i=0;i<remove.length;i++) {
