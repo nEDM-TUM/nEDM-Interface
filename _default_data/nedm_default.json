@@ -119,12 +119,12 @@
       if(~ secObj.admins.names.indexOf(userCtx.name)) {
         IS_DB_WRITER = true;
       }
+      if (~userCtx.roles.indexOf('alarm_writer')) {
+        IS_ALARM_WRITER = true;
+      }
       for(var i = 0; i < userCtx.roles.length; i++) {
         if(~ secObj.admins.roles.indexOf(userCtx.roles[i])) {
           IS_DB_WRITER = true;
-        }
-        if (userCtx.roles[i] == 'alarm_writer') {
-          IS_ALARM_WRITER = true;
         }
       }
 
