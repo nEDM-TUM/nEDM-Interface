@@ -1,10 +1,10 @@
 {
   "admins" : {
     "names" : [],
-    "roles" : ["measurements_writer", "measurements_lmtd"]
+    "roles" : []
   },
   "members" : {
     "names" : [],
-    "roles" : ["measurements_reader"]
+    "roles" : ["measurements_lmtd"]
   }
 }
