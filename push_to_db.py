@@ -33,6 +33,10 @@ _acct = None
 
 _pending_requests = []
 
+def append_request(name, req):
+    global _pending_requests
+    _pending_requests.append((name, req))
+
 def set_username_pw(un, pw):
     global _username, _password
     _username = un
@@ -106,7 +110,6 @@ Updates the security, this has to be done delicately.
 
 """
 def update_security(host, db_name, folder):
-    global _pending_requests
 
     db = get_current_account(host)[db_name]
 
@@ -130,7 +133,7 @@ def update_security(host, db_name, folder):
 
     doc = db.document('_security')
     resp = doc.put(params=default_security_doc)
-    _pending_requests.append(resp)
+    append_request('_security', resp)
 
 
 
@@ -189,7 +192,6 @@ upload data
 """
 def upload_data(host, db_name, folder, check_js):
 
-    global _pending_requests
     # push defaults
 
     acct = get_current_account(host)
@@ -241,6 +243,7 @@ def upload_data(host, db_name, folder, check_js):
     for adoc in bulk_docs:
         func_name = "_update/insert_with_timestamp"
         func = des.post
+        aname = "Unknown id"
         if "_id" in adoc and adoc["_id"] in ids:
             # We need to use the update handler with name
             theid = adoc["_id"]
@@ -249,10 +252,11 @@ def upload_data(host, db_name, folder, check_js):
             if theid in all_docs and compare_documents(all_docs[theid], adoc):
                  continue
             print "    Updating: ", adoc['_id']
+            aname = adoc['_id']
         if check_js:
             check_javascript(adoc)
         resp = func(func_name, params=adoc)
-        _pending_requests.append(resp)
+        append_request(aname, resp)
 
 """
 push to a given server, the databases will be automatically collected from the
@@ -309,12 +313,12 @@ def main(server = None):
         else:
             push_database(server, db_name, db_path)
 
-    for rqst in _pending_requests:
+    for an, rqst in _pending_requests:
         response = rqst.result().json()
         if type(response) != type([]):
             response = [response]
         for a in response:
-            if "ok" not in a or not a["ok"]: print "Not ok", a
+            if "ok" not in a or not a["ok"]: print("Document( id : '{}' ) not saved: {}".format(an, a))
 
 if __name__ == '__main__':
     serv = None
