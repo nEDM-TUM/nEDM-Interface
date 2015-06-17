@@ -118,6 +118,7 @@ def update_security(host, db_name, folder):
     default_security_doc = json.load(open("_default_data/_security.json"))
 
     # Search to see if there's a _security document to upload
+    bn = os.path.basename(folder)
     folder_sec_path = os.path.join(folder, "_security.json")
     if os.path.exists(folder_sec_path):
         sec_doc = json.load(open(folder_sec_path))
@@ -130,6 +131,7 @@ def update_security(host, db_name, folder):
 
                 except KeyError:
                     pass
+    default_security_doc["members"]["roles"].extend([bn + "_writer", bn + "_reader"])
 
     doc = db.document('_security')
     resp = doc.put(params=default_security_doc)
