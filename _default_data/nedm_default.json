@@ -22,6 +22,35 @@
       }"""
   },
   "updates" : {
+    "attachment" : """function(doc, req) {
+        if (!doc) {
+            return [null, JSON.stringify({msg : 'No document', error : true})];
+        }
+        if (!req.body) {
+            return [null, JSON.stringify({msg : 'No request', error : true})];
+        }
+        var _ref = JSON.parse(req.body);
+        var k;
+        if (req.query.remove) {
+          if (!doc.external_docs) {
+            return [null, JSON.stringify({msg : 'No attachments', error : true})];
+          }
+          for (k in _ref) {
+            if (doc.external_docs[k]) {
+              delete doc.external_docs[k];
+            }
+          }
+        } else {
+          if (!doc.external_docs) {
+            doc.external_docs = {};
+          }
+          for (k in _ref) {
+            doc.external_docs[k] = _ref[k];
+          }
+        }
+        return [doc, JSON.stringify({attachments : doc.external_docs, id : doc._id, ok : true})];
+    }
+""",
     "insert_with_timestamp" : """function(doc, req) {
         // If it doesn't exist, we are making a new one
         if (!doc) {
