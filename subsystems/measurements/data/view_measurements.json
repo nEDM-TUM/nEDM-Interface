@@ -2,7 +2,13 @@
   "_id"  : "view_measurements",
   "type" : "control",
   "title" : "Past/Saved Measurements",
-  "description" : "Measurements that have been run",
+  "description" : """Measurements that have been run
+<br>
+<br>
+For an example on how one downloads many measurements see this <a
+href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
+
+""",
   "order" : 0,
   "single_measurement" : {
     "html" : """

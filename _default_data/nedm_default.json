@@ -44,7 +44,7 @@
         if (req.query.overwrite) {
             var remove = [];
             for (var k in doc) {
-                if (k in { _id : null, _rev : null, _revisions : null}) continue;
+                if (k in { _id : null, _rev : null, _revisions : null, created_by: null}) continue;
                 if (!(k in _ref)) remove.push(k);
             }
             for (var i=0;i<remove.length;i++) {
@@ -113,10 +113,13 @@
       var IS_ALARM_WRITER = false;
       var is_alarm_doc = false;
 
+      var db_writer_name = userCtx.db + "_writer";
+      db_writer_name = db_writer_name.replace("nedm/", "");
+
       if(~ userCtx.roles.indexOf('_admin')) {
         IS_SERVER_ADMIN = true;
       }
-      if(~ secObj.admins.names.indexOf(userCtx.name)) {
+      if(~ userCtx.roles.indexOf(db_writer_name)) {
         IS_DB_WRITER = true;
       }
       if (~userCtx.roles.indexOf('alarm_writer')) {

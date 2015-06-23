@@ -57,7 +57,7 @@
       if(~ userCtx.roles.indexOf('_admin')) {
         IS_SERVER_ADMIN = true;
       }
-      if(~ secObj.admins.names.indexOf(userCtx.name)) {
+      if(~ userCtx.roles.indexOf("aggregate_writer")) {
         IS_DB_WRITER = true;
       }
       for(var i = 0; i < userCtx.roles.length; i++) {
