@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["hg_laser_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["hg_laser_reader"]
+  }
+}
