@@ -1,0 +1,55 @@
+import cloudant
+import json
+import numpy
+
+import getpass
+
+class WaveformDB:
+	def __init__(self, url, _un, _pwd):
+		acct = cloudant.Account(uri=url)
+		acct.login(_un, _pwd)
+		self.acct = acct
+		_db = "nedm%2Fwaveform"
+		db = acct[_db]
+		self.db = db
+	def read(self, docname):
+		des = self.db.design(docname)
+		the_view = des.view(docname)
+		
+		results = the_view.get().json()#params=dict(endkey=['Z',{}], startkey=['0'], reduce=False)
+		
+		print results
+		
+		
+		for i in results['rows']:
+			print i
+				
+		
+	def write(self, docname):
+		doc_to_post = {
+		"type": "waveform"
+		#settings
+		}
+		res = self.db.design(docname).post("_update/insert_with_timestamp", params = doc_to_post).json()
+		if "ok" not in res:
+			raise Exception("document not saved!: {}".format(json.dumps(res)))		
+		
+		doc = self.db[res["id"]]
+		rev = doc.get().json()["_rev"]
+		
+		# We can do the following either as a file or as a numpy array
+		#src = open("name_of_file", "b")
+		arr = numpy.array(range(10), dtype=numpy.uint16)
+		
+		print arr
+		src = arr.tostring()
+		res = doc.attachment("waveform?rev="+rev).put(data = src, headers = {'content-type' : 'application/octet-stream'}).json()
+		if "ok" not in res:
+			raise Exception("attachment not saved!: {}".format(json.dumps(res)))
+		
+		print("Document saved: {}".format(json.dumps(res, indent=4)))
+		
+		
+dbtest = WaveformDB("http://127.0.0.1:5984", "Rafael", "myPwdRS7")
+dbtest.write("nedm_default")
+dbtest.read("nedm_default")

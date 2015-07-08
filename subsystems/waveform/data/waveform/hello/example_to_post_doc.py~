@@ -1,0 +1,55 @@
+import cloudant
+import json
+import numpy
+import getpass
+
+_db_url = "http://127.0.0.1:5984"
+_db_name = "nEDM-Interface%2waveform" # Should be the name of an nedm DB
+_un = "Rafael"
+_pw = getpass.getpass()
+
+acct = cloudant.Account(uri=_db_url)
+acct.login(_un, _pw)
+
+db = acct[_db_name]
+
+doc_to_post = {
+  "type" : "waveform", 
+  #"settings" : { ... }, # Insert various setting here 
+}
+
+# First insert document
+res = db.design("nedm_default").post("_update/insert_with_timestamp",
+  params=doc_to_post).json()
+
+if "ok" not in res:
+    raise Exception("document not saved!: {}".format(json.dumps(res)))
+
+#Now insert attachment
+doc = db[res["id"]]
+rev = doc.get().json()["_rev"]
+
+# We can do the following either as a file or as a numpy array
+#src = open("name_of_file", "b")
+src = numpy.array(range(10), dtype=numpy.uint16).tostring()
+
+res = doc.attachment("waveform?rev=" + rev).put(data=src, 
+  headers = {'content-type' : 'application/octet-stream'}).json()
+
+if "ok" not in res:
+    raise Exception("attachment not saved!: {}".format(json.dumps(res)))
+
+print("Document saved: {}".format(json.dumps(res, indent=4)))
+
+# Grab it to test
+anatt = doc.attachment("waveform")
+print("Downloading: waveform")
+r = anatt.get(stream=True)
+astr = ""
+for chunk in r.iter_content(chunk_size=1024): 
+    if chunk: # filter out keep-alive new chunks
+        astr += chunk 
+
+arr = numpy.fromstring(astr, dtype=numpy.uint16)
+
+print("Returned: {}".format(arr))
