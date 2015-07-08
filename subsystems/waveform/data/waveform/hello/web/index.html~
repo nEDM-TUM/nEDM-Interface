@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Waveform Generator</title>
+	</head>
+   <body>
+      <h1>Set Parameters</h1>
+      <table>
+      <tr><th>B0 Field in muT (Float)</th><td><input type="text" id="b0_" size="30" /></td></tr>
+      <tr><th>First Burst Time (Float)</th> <td><input type="text" id="f_b_t" size="30" /></td></tr>   
+      <tr><th>Measuring Time (Float)</th> <td><input type="text" id="m_t" size="30" /></td></tr>   
+      <tr><th>Sigma (Float)</th> <td><input type="text" id="s_" size="30" /></td></tr>
+      <tr><th>Sampling Frequency (Integer)</th> <td><input type="s_f" id="s_f" size="30" /></td></tr>   
+      <tr><th>Length (Integer)</th> <td><input type="text" id="l_" size="30" /> </td></tr>   
+      </table>
+      <br /><br />
+      <button type="button" id="button" size="400">Send</button><br />
+      <button type="button" id="button2" size="400">Restore Defaults</button><br /><br />
+      Name: <input type="text" id="name" size="30" value="Default" />
+      <button type="button" id="savebutton" size="400">Save</button><br />
+      <button type="button" id="loadbutton" size="400">Load</button><br /><br />
+      List of Waveforms:
+      <div id="listOfWF"></div>   
+      Preview:
+      <div id="preview" style="width:600px; height:300px;"></div>
+      
+      
+      <script>AUTOBAHN_DEBUG = true;</script>
+      <script src="http://autobahn.s3.amazonaws.com/autobahnjs/latest/autobahn.min.jgz"></script>
+      <script type="text/javascript" src="dygraph-combined-dev.js"></script>
+      <script>      
+      var wsuri = "ws://127.0.0.1:8080/ws";
+      var send=false;
+      var save=false;
+      var load=false;
+      var measuring_time = "0";
+      var sig = "1";
+      var sampling_freq = "100000";
+      var f_burst_time = "0.5";
+      var len = "40000";
+      var b0 = "1.2";
+      var dataName="Default";
+      
+      //var autobahn = require("autobahn");
+      var connection = new autobahn.Connection({
+      	url: wsuri, 
+      	realm: "realm1"
+      	});
+      connection.onopen = function (session, details) 
+      {
+      	console.log("Connected");
+      	function on_data(args)
+      	{
+      	   args = args[0];
+      		console.log("on_data() event", args[0], args[1], args[2], args[3],args[4], args[5]);
+      		document.getElementById("b0_").value = args[0].toString();
+      		document.getElementById("f_b_t").value = args[1].toString();
+      		document.getElementById("m_t").value = args[4].toString();
+      		document.getElementById("s_").value = args[3].toString();
+      		document.getElementById("s_f").value = args[2].toString();
+      		document.getElementById("l_").value = args[5].toString();
+      	}
+      	session.subscribe('com.on_data', on_data).then(
+      		function (sub) { console.log("subscribed to on_data"); },
+      		function (err) { console.log("failed to subscribe to on_data", err); }
+      		);
+      	
+      	t1 = setInterval(function () 
+      	{
+      		if(send==true)
+      		{
+      			session.publish('com.send_data', [b0, f_burst_time, measuring_time, sig, sampling_freq, len]);
+      			console.log("published to topic 'com.send_data'");
+      			send = false;
+      		}
+      		if(save==true)
+      		{
+      			session.publish('com.save_data', [dataName, b0, f_burst_time, measuring_time, sig, sampling_freq, len]);
+      			console.log("saved data to com.save_data");
+      			save=false;
+      		}
+      		if(load==true)
+      		{
+      			session.publish('com.load_data', [dataName]);
+      			console.log("saved data to com.load_data");
+      			load=false;      		
+      		}
+         }, 1000);
+      	
+      	session.register('com.send_data', send_data).then(
+      		function (reg) {console.log("procedure registered");},
+      		function (err) {console.log("failed to register", err);}
+      		);
+      };
+      connection.onClose = function (reason, details)
+      {
+      	console.log("Connection lost: " + reason);
+      	if (t1) 
+      	{
+          	clearInterval(t1);
+         	t1 = null;
+         }
+      };
+      Restore();
+      connection.open();
+          
+      document.getElementById("button").onclick = OnClick;
+      
+      function OnClick () 
+      {
+      	console.log("button clicked");
+      	
+      	b0 = document.getElementById("b0_").value;
+      	f_burst_time = document.getElementById("f_b_t").value;
+      	measuring_time = document.getElementById("m_t").value;
+      	sig = document.getElementById("s_").value;
+      	sampling_freq = document.getElementById("s_f").value;
+      	len = document.getElementById("l_").value;
+      	send = true;
+      }
+      
+      document.getElementById("button2").onclick = Restore;
+      function Restore() 
+      {
+      	document.getElementById("f_b_t").value = "0.5";
+      	document.getElementById("m_t").value = "2";
+      	document.getElementById("s_").value = "1";
+      	document.getElementById("s_f").value = "100000";
+      	document.getElementById("l_").value = "40000";  
+      	document.getElementById("b0_").value = "1.2";
+      	OnClick(); 
+      	send = false;  	
+      }
+      
+      document.getElementById("savebutton").onclick = Save;
+      function Save()
+      {
+      	dataName = document.getElementById("name").value;
+      	save=true;
+      }
+      
+      document.getElementById("loadbutton").onclick = Load;
+      function Load() 
+      {
+      	dataName = document.getElementById("name").value;
+      	load=true;
+      }
+      
+      
+      var presets = {
+        'id': [ -10, 10, 'function(x) {\n  return x;\n}' ],
+        'sine': [ -10, 10, 'function(x) {\n  return Math.sin(x);\n}' ],
+        'taylor': [ -3, 3, 'function(x) {\n  return [Math.cos(x), 1 - x*x/2 + x*x*x*x/24];\n}' ],
+        'sawtooth': [-10, 10, 'function(x) {\n  var y = 0;\n  for (var i = 1; i < 20; i+=2) {\n    y += Math.sin(i * x)/i;\n  }\n  var final = 1 - 2*(Math.abs(Math.floor(x / Math.PI)) % 2);\n  return [4/Math.PI * y, final];\n}' ]
+      };
+      
+      
+      console.log("drawing");
+      g = new Dygraph(
+      	graph,
+         "Date,Temperature\n" +
+         "2008-05-07,75\n" +
+         "2008-05-08,70\n" +
+         "2008-05-09,80\n"
+      );
+      console.log("ready");
+      
+
+      </script>
+   </body>
+</html>
