@@ -1,9 +1,0 @@
-{
-  "_id" : "subsystem_information",
-  "prettyname" : "Hg Laser",
-  "pages" : {
-        "Control" : "control.html",
-        "Monitor" : "monitor.html"
-  }
-
-}
