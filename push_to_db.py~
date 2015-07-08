@@ -26,8 +26,8 @@ class KansoException(Exception):
 
 
 _have_tried = False
-_username = None
-_password = None
+_username = "Rafael"
+_password = "myPwdRS7"
 
 _acct = None
 
