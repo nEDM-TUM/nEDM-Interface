@@ -1,0 +1,10 @@
+{
+  "admins" : {
+    "names" : [],
+    "roles" : ["waveform_writer"]
+  },
+  "members" : {
+    "names" : [],
+    "roles" : ["waveform_reader"]
+  }
+}
