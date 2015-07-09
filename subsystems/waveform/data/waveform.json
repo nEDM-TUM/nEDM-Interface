@@ -3,6 +3,7 @@
   "type" : "control",
   "title" : "Sending a Waveform",
   "description" : "Sending a Waveform",
+  "wsuri"  : "192.168.1.113:9100",
   "html": """
 <h3>Status</h3>
 <div id="status">Not Connected!</div>
@@ -69,7 +70,7 @@
   "script": """
 function($theDOM, docobj) 
 {
-	var wsuri = "ws://127.0.0.1:9000";
+	var wsuri = "ws://" + docobj.wsuri;
 	
 	var measuring_time = "2";
 	var sig = "1";
