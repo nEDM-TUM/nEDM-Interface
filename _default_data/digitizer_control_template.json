@@ -2,7 +2,7 @@
   "_id"  : "digitizer_control_template",
   "type" : "control_template",
   "title" : "Digitizer Controls",
-  "host_ip" : "192.168.1.113:9000",
+  "host_ip" : "mini.nedm1:9000",
   "include_only_digitizers" : [],
   "default_header_info" : {},
   "description" : """
