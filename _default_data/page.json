@@ -118,10 +118,13 @@ function(head, req) {
       template += " data-inline='true' data-transition='pop' data-icon='info' data-theme='e' data-iconpos='notext'>Help</a>";
       template += "<div data-role='popup' id='help" + tag_name + "'><p>" + obj.description + "</p></div></div>";
       var script = "theCurrentPage.on('pagecreate', function() {";
-      script += "(" + obj.script.trim() + ")($('#control_"+ tag_name + "'),";
-      delete obj.html;
-      delete obj.script;
-      script += JSON.stringify(obj) + ");});";
+      if (obj.script) {
+        script += "(" + obj.script.trim() + ")($('#control_"+ tag_name + "'),";
+        delete obj.html;
+        delete obj.script;
+        script += JSON.stringify(obj) + ");";
+      }
+      script += "});";
       return template + def.define_script(script);
   };
   provides("html", function() {
