@@ -611,8 +611,12 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                             if (!all_rasp[mac]) {
                               all_rasp[mac] = { count: 0, ts : new Date(o.key[1]) };
                             }
+                            if (typeof o.key[2] === "string") {
+                              all_rasp[mac].ip = o.key[2];
+                              return null;
+                            }
                             all_rasp[mac].count += 1;
-                            return o.key[2];
+                            return o.value._id;
                           });
                           $('.doc_name', $(thediv)).each( function() {
                             var d = $(this).parents('.code_sample').data('doc');
