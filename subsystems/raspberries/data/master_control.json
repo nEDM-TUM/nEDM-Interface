@@ -81,14 +81,12 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                     </div>
                 </div>
             </div>
-            <div class='ui-corner-all custom-corners'>
+            <div class='ui-corner-all custom-corners rspy_log'>
                 <div class='ui-bar ui-bar-a'>
                      <h3>Log:</h3>
                 </div>
                 <div class='ui-body ui-body-a'>
-                  <img src='/nedm_head/_design/nedm_head/css/images/light-loader-highres.gif' class='rspy_log_loading'>
-                  <ul class='rspy_log'>
-                  </ul>
+                   <iframe seamless="" style="display:none"></iframe>
                 </div>
             </div>
 
@@ -233,15 +231,24 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
         }
       }
 
+      $('.rspy_log .ui-body').resize( function() {
+         $(".rspy_log iframe")
+            .attr('width', $('.rspy_log .ui-body').css('width'));
+      });
       var update_current_code = function(ev) {
           var selected_val = $(':selected', $(ev.currentTarget)).val();
           var ip = $(':selected', $(ev.currentTarget)).data('ip_addr');
           if (ip) {
             $("#popupRaspberryTerminal iframe").attr('src', 'http://' + ip + ':8765');
             $('.term_launch', $(thediv)).removeClass('ui-disabled');
+            $('.rspy_log .ui-body').resize();
+            $(".rspy_log iframe")
+               .attr('src', 'http://' + ip + ':8766')
+               .show();
           } else {
             $("#popupRaspberryTerminal iframe").attr('src', '');
             $('.term_launch', $(thediv)).addClass('ui-disabled');
+            $(".rspy_log iframe").attr('src', '').hide();
           }
           update_timestamp();
           $('.all_avail_code').addClass('ui-disabled');
@@ -255,12 +262,9 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
               }
           });
           $('.all_avail_code').removeClass('ui-disabled');
-          $('.rspy_log', $(thediv)).empty();
-          $('.rspy_log_loading', $(thediv)).show();
           if (update_timeout) {
             clearTimeout(update_timeout);
           }
-          update_log();
       };
       var remove_code = function(ev) {
           var par = $(ev.currentTarget).parents('.code_sample');
@@ -429,61 +433,6 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
 
       };
 
-      var update_log = function() {
-          var log_name = $('.arduino_select :selected').val();
-          if (log_name) {
-            log_name += '_log';
-            var alog = $('.rspy_log', $(thediv));
-            if ($('li', alog).length === 0) {
-              $('.rspy_log_loading', $(thediv)).show();
-            }
-            this_db.getDoc(log_name,
-              function(e,o) {
-                $('.rspy_log_loading', $(thediv)).hide();
-                if (!e) {
-                  var d = $(':last', $(alog));
-                  if (d) { d = d.text(); }
-                  var remove_since_date = (new Date((new Date()) - 60000))
-                             .toISOString()
-                             .replace('T', ' ')
-                             .replace('Z', '');
-                  o.log.forEach(function(x) {
-                    if (d && d !== "" && x[0] <= d) return;
-                    if (x[0] <= remove_since_date) return;
-                    $('<li/>').html(
-                       '<span class="bolded_font">' + x[0] + '</span>' +
-                       ' [RSPBY] ' + x[1]).hide().appendTo(alog).slideDown('slow');
-                  });
-                  var i = 0;
-                  $("span", $(alog)).each( function() {
-                    if ($(this).text() <= remove_since_date) i += 1;
-                    else return false;
-                  });
-                  // Remove old entries
-                  setTimeout( function(remove_num) {
-                    var i = remove_num;
-                    return function() {
-                      $("li", $(alog)).slice(0, i).animate({
-                                   height: '0px'
-                               }, {
-                                   duration: 500,
-                                   complete: function() {
-                                       $(this).remove();
-                                   }
-                               });
-                  };}(i), 1000);
-                } else {
-                    alog.empty();
-                    alog.append($('<li/>').html(
-                       '<span class="bolded_font" style="color:red;">[ Rasp Pi log not found ]</span>'));
-                }
-                update_timeout = setTimeout(update_log, 5000);
-            });
-          } else {
-            update_timeout = setTimeout(update_log, 5000);
-          }
-      };
-
       var add_macid = function(ev) {
           var ins = $('.input_mac').val();
           if (!append_mac_id(ins)) {
@@ -561,7 +510,6 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
       }
       this_db.on("heartbeat", update_run_status);
 
-      update_log();
       update_run_status();
   }"""
 }
