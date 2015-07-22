@@ -5,8 +5,9 @@
     "running_processes" : {
       "map" : """function(doc) {
   if (!doc.running_ids) return;
+  emit([doc.created_by, doc.timestamp, doc.ip], null);
   doc.running_ids.forEach( function(o) {
-    emit([doc.created_by, doc.timestamp, o], { _id : o });
+    emit([doc.created_by, doc.timestamp, null], { _id : o });
   });
 }
 """,
