@@ -221,10 +221,11 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
       function update_timestamp() {
         var selected_option = $(':selected', $('.arduino_select'));
         var lh = selected_option.data('last_update');
+        var ip = selected_option.data('ip_addr');
         if (!lh) {
-          $('.last_heartbeat', $(thediv)).text('');
+          $('.last_heartbeat', $(thediv)).text('IP: ' + ip);
         } else {
-          $('.last_heartbeat', $(thediv)).text('Last updated: ' + lh.toUTCString());
+          $('.last_heartbeat', $(thediv)).text('Last updated: ' + lh.toUTCString() + ', IP: ' + ip);
         }
       }
 
@@ -538,6 +539,7 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                             var opt = $('.arduino_select option[value="' + k + '"]', $(thediv));
                             opt.text( opt.text().split(' : ')[0] + ' : ' + ct + ' running' );
                             opt.data('last_update', all_rasp[k].ts);
+                            opt.data('ip_addr', all_rasp[k].ip);
                           }
                           $('.arduino_select', $(thediv)).filter(':input').selectmenu('refresh', true);
                           update_timestamp();
