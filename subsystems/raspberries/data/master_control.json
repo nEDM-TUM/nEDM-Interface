@@ -66,6 +66,10 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                 </div>
                 <div class='ui-body ui-body-a'>
                   <p style='color:blue;' class='last_heartbeat'></p>
+                <a href="#popupRaspberryTerminal" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline term_launch">Launch terminal</a>
+                </div>
+                <div data-role="popup" id="popupRaspberryTerminal" data-overlay-theme="b" data-theme="a" data-tolerance="15,15" class="ui-content">
+                    <iframe width="800" height="600" seamless=""></iframe>
                 </div>
             </div>
             <div class='ui-corner-all custom-corners'>
@@ -231,6 +235,14 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
 
       var update_current_code = function(ev) {
           var selected_val = $(':selected', $(ev.currentTarget)).val();
+          var ip = $(':selected', $(ev.currentTarget)).data('ip_addr');
+          if (ip) {
+            $("#popupRaspberryTerminal iframe").attr('src', 'http://' + ip + ':8765');
+            $('.term_launch', $(thediv)).removeClass('ui-disabled');
+          } else {
+            $("#popupRaspberryTerminal iframe").attr('src', '');
+            $('.term_launch', $(thediv)).addClass('ui-disabled');
+          }
           update_timestamp();
           $('.all_avail_code').addClass('ui-disabled');
           $('.code_sample', $(ac)).each( function() {
