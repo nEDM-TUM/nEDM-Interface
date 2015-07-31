@@ -35,9 +35,19 @@
        var devices = $('.temp_device_select', $(avar)).filter(":input");
        var funcs = $('.function_select', $(avar)).filter(":input");
        var setup_func = function(e, o) {
-           if (!o || !o.return) return;
-           for (var k in o.return) {
-               var cmds = o.return[k].cmds;
+           if (!o || !o.rows) return;
+           var cmd_dict = {};
+           o.rows.forEach( function (k) {
+              var par = k.key.split('_');
+              if (!cmd_dict[par[0]]) cmd_dict[par[0]] = { cmds : {} };
+              var obj = k.value[0];
+              if (!cmd_dict[par[0]].cmds[par[1]]) {
+                cmd_dict[par[0]].cmds[par[1]] = obj;
+              }
+              cmd_dict[par[0]].cmds[par[1]][par[2]] = k.key;
+           });
+           for (var k in cmd_dict) {
+               var cmds = cmd_dict[k].cmds;
                var j = $('<option/>').val(k).text(k).data({ cmds : cmds });
                devices.append(j);
            }
@@ -93,10 +103,14 @@
                          };
            nedm.send_command( cmd_doc );
        };
-       nedm.send_command( { cmd_name : "all_keys", 
-                              timeout: 10000,
-                            callback : setup_func
-       } );
+
+       nedm.get_database().getView("execute_commands", "export_commands",
+         { opts : {
+           reduce : false
+         }},
+         setup_func
+       );
+
        ['set', 'get', 'call'].forEach( function(k) {
            $('.' + k + '_function', $(avar)).data({ type : k });
            $('.' + k + '_function', $(avar)).on('click', call_buttons);
