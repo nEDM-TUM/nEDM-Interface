@@ -18,13 +18,13 @@
             </div>
         </div>
         <dl class='description' style='text-align:left;'>
-            <dt>Result:</dt> 
+            <dt>Result:</dt>
             <dd><pre class='result'></pre></dd>
-            <dt>Help information:</dt> 
+            <dt>Help information:</dt>
             <dd><pre class='help_msg'></pre></dd>
-            <dt>Units:</dt> 
+            <dt>Units:</dt>
             <dd><pre class='units'></pre></dd>
-            <dt>Format:</dt> 
+            <dt>Format:</dt>
             <dd><pre class='format'></pre></dd>
         </l>
     </div>
@@ -69,12 +69,12 @@
                var x = $('.' + k, $(avar));
                x.text("");
                if (k in j.obj) {
-                 x.text(j.obj[k]); 
+                 x.text(j.obj[k]);
                }
            });
        };
        var call_buttons = function(o) {
-           var atype = $(o.currentTarget).data().type; 
+           var atype = $(o.currentTarget).data().type;
            var j = $(':selected', $(funcs)).data().obj;
            if (!(atype in j)) return;
            $('.all_functions', $(avar)).addClass('ui-disabled');
@@ -91,7 +91,7 @@
                                $('.result', $(avar)).text(JSON.stringify(o.return));
                            }
                          };
-           nedm.send_command( cmd_doc ); 
+           nedm.send_command( cmd_doc );
        };
        nedm.send_command( { cmd_name : "all_keys", 
                               timeout: 10000,
