@@ -807,8 +807,7 @@ function nEDMDatabase(db_name) {
   * Helper function, gets most recent value of a variable
   *
   * @param {String} var_name - name of variable
-  * @param {Function} callback - Typical callback(err,view) from view, see
-  *   DB.getView
+  * @param {module:lib/update_db.DBRequestCallback} callback 
   *
   * @public
   */
@@ -820,8 +819,7 @@ function nEDMDatabase(db_name) {
   * Helper function, gets most recent value of a variable
   *
   * @param {String} var_name - name of variable
-  * @param {Function} callback - Typical callback(err, view) from view, see
-  *   DB.getView
+  * @param {module:lib/update_db.DBRequestCallback} callback 
   *
   * @public
   */
@@ -832,7 +830,7 @@ function nEDMDatabase(db_name) {
   /**
    * Helper function, sends command to current database
    *
-   * @param {Object} o - command, see DB.send_command
+   * @param {module:lib/update_db.CommandObject} o - command
    * @return {Object}
    * @public
    */

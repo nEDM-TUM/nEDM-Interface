@@ -686,7 +686,7 @@ function nEDMDB(url) {
 
         /**
          * Object sent to command function
-         * @typedef {Object} CommandObject
+         * @typedef {Object} module:lib/update_db.CommandObject
          * @property {String} cmd_name - name of command
          * @property {Array} [arguments] - list of arguments (must be JSON-parseable!)
          * @property {module:lib/update_db.DBRequestCallback} [callback] - callback function
@@ -696,7 +696,7 @@ function nEDMDB(url) {
 
         /**
          * Object returned from command function
-         * @typedef {Object} CommandReturnObject
+         * @typedef {Object} module:lib/update_db.CommandReturnObject
          * @property {object} promise - promise object
          * @property {function} abort - call to request an abort
          */
@@ -707,8 +707,8 @@ function nEDMDB(url) {
          * @function send_command
          * @memberof nEDMDB#
          *
-         * @param {CommandObject} o - information for command
-         * @return {CommandReturnObject}
+         * @param {module:lib/update_db.CommandObject} o - information for command
+         * @return {module:lib/update_db.CommandReturnObject}
          * @public
          */
         db.send_command = function(o) {
