@@ -1,16 +1,21 @@
 /**
+ * Module exporting some helpful math functions
+ * @module lib/math
+ */
+
+/**
  * binary search function to find an index in an array
+ * @function bs
  *
  * @param {Array} haystack
- * @param {Object,Number} needle, key being searched for
+ * @param {Object|Number} needle - key being searched for
  * @param {Function} comparator
  * @param {Number} alow - low guess (index) where the needle is
  * @param {Number} ahigh - high guess (index) where the needle is
- * @returs {Number} index when found, otherwise ~low
- * @api private
+ * @return {Number} index when found, otherwise ~low
+ * @public
  */
-
-function bs(haystack, needle, comparator, alow, ahigh) {
+exports.bs = function (haystack, needle, comparator, alow, ahigh) {
   if(!Array.isArray(haystack))
     throw new TypeError("first argument to binary search is not an array");
 
@@ -50,10 +55,9 @@ function bs(haystack, needle, comparator, alow, ahigh) {
  *
  * @param {Float} x
  * @return {Object} mantissa, exponent
- * @api private
+ * @public
  */
-
-function GetNumberParts(x) {
+exports.GetNumberParts = function(x) {
     var sig = x > 0 ? 1 : -1;
     x = Math.abs(x);
     var exp = Math.floor(Math.log(x)/Math.LN10);
@@ -61,6 +65,3 @@ function GetNumberParts(x) {
     return {mantissa: sig*man, exponent: exp};
 }
 
-
-exports.bs = bs;
-exports.GetNumberParts = GetNumberParts;
