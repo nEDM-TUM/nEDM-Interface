@@ -1,0 +1,17 @@
+{
+  "build_site" : {
+    "title" : "Building site components",
+    "children" : {
+       "build_control" : {
+         "title" : "Building control sites"
+       },
+       "build_page" : {
+         "title" : "Build single pages" 
+       }
+    } 
+  },
+  "couchdb" : {
+    "title" : "CouchDB basics for nEDM",
+    "children" : {}
+  }
+}
