@@ -203,6 +203,409 @@
 
             
                 
+<h4 class="name" id=".CommandObject">CommandObject</h4>
+
+
+
+
+<div class="description">
+    Object sent to command function
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>cmd_name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">name of command</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>arguments</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">list of arguments (must be JSON-parseable!)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-lib_update_db.html#.DBRequestCallback">module:lib/update_db.DBRequestCallback</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">callback function</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>timeout</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">time (in seconds) to wait until timeout.  If not sent, no timeout</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>quiet</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">don't give any toastr messages</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="update_db.js.html">update_db.js</a>, <a href="update_db.js.html#line687">line 687</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id=".CommandReturnObject">CommandReturnObject</h4>
+
+
+
+
+<div class="description">
+    Object returned from command function
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>promise</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">promise object</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>abort</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">call to request an abort</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="update_db.js.html">update_db.js</a>, <a href="update_db.js.html#line697">line 697</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
 
     
 
@@ -877,409 +1280,6 @@
 
 
             
-                
-<h4 class="name" id="~CommandObject">CommandObject</h4>
-
-
-
-
-<div class="description">
-    Object sent to command function
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>cmd_name</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">name of command</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>arguments</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">list of arguments (must be JSON-parseable!)</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>callback</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-lib_update_db.html#.DBRequestCallback">module:lib/update_db.DBRequestCallback</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">callback function</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>timeout</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">time (in seconds) to wait until timeout.  If not sent, no timeout</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>quiet</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">don't give any toastr messages</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="update_db.js.html">update_db.js</a>, <a href="update_db.js.html#line687">line 687</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
-                
-<h4 class="name" id="~CommandReturnObject">CommandReturnObject</h4>
-
-
-
-
-<div class="description">
-    Object returned from command function
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>promise</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">promise object</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>abort</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">call to request an abort</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="update_db.js.html">update_db.js</a>, <a href="update_db.js.html#line697">line 697</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
     
 
     
@@ -1293,13 +1293,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_math.html">lib/math</a></li><li><a href="module-lib_monitoring_graph.html">lib/monitoring_graph</a></li><li><a href="module-lib_nedm.html">lib/nedm</a></li><li><a href="module-lib_update_db.html">lib/update_db</a></li></ul><h3>Externals</h3><ul><li><a href="external-DB.html">DB</a></li><li><a href="module-db.html">db</a></li><li><a href="module-dygraph-combined.html">dygraph-combined</a></li><li><a href="module-events.html">events</a></li><li><a href="module-jquery-mobile.html">jquery-mobile</a></li><li><a href="module-jquery-mobile-datebox.html">jquery-mobile-datebox</a></li><li><a href="module-js-cookie.html">js-cookie</a></li><li><a href="module-session.html">session</a></li><li><a href="module-toastr.html">toastr</a></li></ul><h3>Classes</h3><ul><li><a href="Dygraph.html">Dygraph</a></li><li><a href="module-lib_monitoring_graph.MonitoringGraph.html">MonitoringGraph</a></li><li><a href="module-lib_nedm-nEDMDatabase.html">nEDMDatabase</a></li><li><a href="nEDMDB.html">nEDMDB</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_math.html">lib/math</a></li><li><a href="module-lib_monitoring_graph.html">lib/monitoring_graph</a></li><li><a href="module-lib_nedm.html">lib/nedm</a></li><li><a href="module-lib_update_db.html">lib/update_db</a></li></ul><h3>Externals</h3><ul><li><a href="external-DB.html">DB</a></li><li><a href="module-db.html">db</a></li><li><a href="module-dygraph-combined.html">dygraph-combined</a></li><li><a href="module-events.html">events</a></li><li><a href="module-jquery-mobile.html">jquery-mobile</a></li><li><a href="module-jquery-mobile-datebox.html">jquery-mobile-datebox</a></li><li><a href="module-js-cookie.html">js-cookie</a></li><li><a href="module-session.html">session</a></li><li><a href="module-toastr.html">toastr</a></li></ul><h3>Classes</h3><ul><li><a href="Dygraph.html">Dygraph</a></li><li><a href="module-lib_monitoring_graph.MonitoringGraph.html">MonitoringGraph</a></li><li><a href="module-lib_nedm-nEDMDatabase.html">nEDMDatabase</a></li><li><a href="nEDMDB.html">nEDMDB</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-build_site.html">Building site components</a></li><li><a href="tutorial-couchdb.html">CouchDB basics for nEDM</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta3</a> on Tue Aug 04 2015 18:23:47 GMT+0200 (CEST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Tue Aug 04 2015 22:48:35 GMT+0200 (CEST)
 </footer>
 
 <script> prettyPrint(); </script>
