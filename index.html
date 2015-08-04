@@ -42,6 +42,132 @@
 
 
 
+    <section>
+        <article><h1>nEDM-Interface</h1><p>nEDM User Interface for sub systems, also an interface for slow-control systems</p>
+<p>See the <a href="http://nedm-tum.github.io/nEDM-Interface/">API Documentation</a> for more information.</p>
+<h2>Build instructions</h2><ol>
+<li>Install kanso (http://kan.so/install).</li>
+<li><code>cd head; kanso install</code> (This only needs to be done at the beginning, and when you update kanso packages.</li>
+<li>To push everything to DB, type at the base directory:</li>
+</ol>
+<p><code>python push_to_db.py</code></p>
+<p>This will push to a local coucdhdb server.  It will prompt for
+username/passwords if password protected.  This script wraps various kanso
+commands.</p>
+<p>It is possible to save setting in a .nedmrc file, e.g.:</p>
+<pre class="prettyprint source"><code>% cat .nedmrc
+{
+  local: {
+    username : &quot;myusername&quot;,
+    password : &quot;mypwd&quot;,
+    server   : &quot;localhost:5984&quot;,
+    include  : [&quot;digitizers&quot;, &quot;hexe_edm&quot;],# Use to include only these
+                                          # subsystems (optional, [] means
+                                          # include all)
+    exclude  : [&quot;cs_laser&quot;, &quot;fluxgate&quot;] # Use to exclude particular subsystems
+                                        # (optional, [] means exclude none)
+  },
+  deployed: {
+    username : &quot;mydeployedusername&quot;,
+    password : &quot;mydeployedpwd&quot;,
+    server   : &quot;deployed_host:5984&quot;
+  }
+  ...
+  default : &quot;local&quot;
+}</code></pre><p>where the default indicates which will be used normally.  Note, that
+<code>include</code> and <code>exclude</code> can be used to deploy <em>only</em> the subsystems you
+wish to your particular database.  This is useful when you only need a subset
+of the nEDM-Interface.  <code>jshint</code> is an additional dependency:</p>
+<pre class="prettyprint source"><code>npm install -g jshint</code></pre><h2>Notes for developers</h2><p>For a general overview, see the
+<a href="https://www.dropbox.com/s/8xfayj9zi67o3ao/GroupMeeting_23Oct2014.pdf?dl=0">presentation</a>
+describing the basic functionality of the system.</p>
+<p><em>Note:</em>  The best mechanism for testing your interface is setting up a local
+server and pushing to it.  You will also need to set your configuration to
+allow &quot;insecure&quot; rewrites. At the
+configuration site (http://127.0.0.1:5984/_utils/config.html), make sure that
+<code>httpd : secure_rewrites</code> is set to <code>false</code>.  Once you do this and push
+to the local server, you will be able to reach the main page at:</p>
+<p>http://127.0.0.1:5984/nedm_head/_design/nedm_head/_rewrite</p>
+<p>Each subsystem in the nEDM interface occupies a single database.  In addition,
+each kanso app produces a single design document on the CouchDB server.  Each
+subsystem (e.g. sub-folders in the subsystem directory) automatically receives
+the design document from the _default directory.  This allows general
+interface changes or general views to be added to this directory and
+automatically propagated to the other databases.  Users requiring additional
+modules from kanso, or additional javascript dependencies should add these to
+the head/ directory.</p>
+<h3>Setting up to read from DB</h3><p>Most of the time, you will want to be able to have &quot;real&quot; data on your system,
+as well as see real-time updates.  To do this, you need to set up replication
+with the database server, but <em>please</em> use the secondary server (10.155.59.15),
+which is accessible with the normal TUM VPN.</p>
+<ol>
+<li>Make an aggregate DB if not already on your system (after a push_to_db.py):
+<code>nedm/aggregate</code></li>
+<li><p>Add continuous replication for <code>nedm/aggregate</code>, add the document to the
+<code>_replicate</code> database:</p>
+<pre class="prettyprint source"><code>{
+&quot;owner&quot; : &quot;your_id&quot;,
+&quot;source&quot; : &quot;http://UN:PW@10.155.59.15:5984/nedm%2Faggregate&quot;,
+&quot;target&quot; : &quot;nedm/aggregate&quot;,
+&quot;continuous&quot; : true,
+&quot;user_ctx&quot; : {
+ &quot;name&quot; : &quot;your_id&quot;,
+ &quot;roles&quot; : [ &quot;_admin&quot;]
+}
+}</code></pre><p>Swap out UN and PW (standard nEDM read-only values)</p>
+</li>
+<li><p>Add continuous replication for your DB of choice (e.g. <code>nedm/cs_laser</code>),
+by modifying the above as necessary and submitting a new document.  The filter
+field ensures that only data documents are replicated, which is generally what
+you want.  To get only the results <em>since now</em>, grab the recent <code>update_seq</code>
+number, e.g.: </p>
+<pre class="prettyprint source"><code>> curl  &quot;http://UN:PW@10.155.59.15:5984/nedm%2Fcs_laser&quot; 
+{&quot;db_name&quot;:&quot;nedm/cs_laser&quot;,&quot;doc_count&quot;:4558162,&quot;doc_del_count&quot;:242,&quot;update_seq&quot;:4558974,&quot;purge_seq&quot;:0,&quot;compact_running&quot;:false,&quot;disk_size&quot;:1415667831,&quot;data_size&quot;:1393833154,&quot;instance_start_time&quot;:&quot;1429621582837885&quot;,&quot;disk_format_version&quot;:6,&quot;committed_update_seq&quot;:4558974}</code></pre><p>and input it into your replication <code>since_seq</code>.</p>
+<pre class="prettyprint source"><code>{
+&quot;owner&quot; : &quot;your_id&quot;,
+&quot;source&quot; : &quot;http://UN:PW@10.155.59.15:5984/nedm%2Fcs_laser&quot;,
+&quot;target&quot; : &quot;nedm/cs_laser&quot;,
+&quot;continuous&quot; : true,
+&quot;filter&quot; : &quot;nedm_default/doc_type&quot;,
+&quot;query_params&quot; : {
+ &quot;type&quot; : &quot;data&quot;
+},
+&quot;since_seq&quot; : 4558974,
+&quot;user_ctx&quot; : {
+ &quot;name&quot; : &quot;your_id&quot;,
+ &quot;roles&quot; : [ &quot;_admin&quot;]
+}
+}</code></pre></li>
+</ol>
+<h2>Dealing with Commands</h2><p>Every interface will in principal have controls.  To facilitate this, the nEDM
+interface looks for documents of type &quot;control&quot;, e.g.:</p>
+<pre class="prettyprint source"><code>    doc = {
+        &quot;_id&quot;: &quot;name_of_control&quot;,         # Required
+        &quot;type&quot; : &quot;control&quot;,               # Required
+        &quot;html&quot; : &quot;&quot;&quot;...&quot;&quot;&quot;,               # Optional, gives html that will be
+                                          # used to show control
+
+        &quot;script&quot; : &quot;&quot;&quot;                    # Script that will be run during
+  function($theDOM, docobj) {             # loading of the controls on the
+    ...                                   # webpage (during the jQuery-Mobile
+                                          # event 'pagecreate').  '$theDOM' is
+                                          # the DOM object }&quot;&quot;&quot; where the
+                                          # control is inserted.  'docobj' is
+                                          # the JSON document inserted in to
+                                          # the DB, allowing customization
+                                          # based upon fields in the JSON.
+    }
+&quot;&quot;&quot;
+}</code></pre><p>There are several templates that one can derive from by using</p>
+<pre class="prettyprint source"><code>doc = {
+   ...
+  &quot;template&quot; : &quot;/nedm_head/switch_template&quot;,
+  ...
+}</code></pre><p>This allows users to specify that this is e.g. a switch type.  See the various
+template objects in _default_data/*.json.  There is further documentation in that
+directory.</p></article>
+    </section>
+
 
 
 
@@ -56,7 +182,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta3</a> on Tue Aug 04 2015 18:13:43 GMT+0200 (CEST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta3</a> on Tue Aug 04 2015 18:23:47 GMT+0200 (CEST)
 </footer>
 
 <script> prettyPrint(); </script>
