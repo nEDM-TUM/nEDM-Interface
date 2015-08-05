@@ -268,6 +268,7 @@ def main(server = None):
 
     exclude_dirs = []
     include_dirs = []
+    security_only = False
     if os.path.exists(".nedmrc"):
         try:
             obj = yaml.load(open(".nedmrc"))
@@ -281,6 +282,7 @@ def main(server = None):
                 try:
                     set_username_pw(sv["username"], sv["password"])
                 except KeyError: pass
+                security_only = bool(sv.get("security_only", False))
         except ValueError:
             print ".nedmrc found, but not formatted properly.  Ignoring..."
             pass
@@ -305,15 +307,18 @@ def main(server = None):
     for db_path, db_name in dbnames:
         print "Pushing to: ", db_path
         print "    Checking sec/data"
-        upload_data(server, db_name, "_default_data", check_js)
-        check_js = False
-        data_dir = os.path.join(db_path, "data")
-        if os.path.isdir(data_dir):
-            upload_data(server, db_name, data_dir, True)
-        if db_path != "head":
+        if not security_only:
+            upload_data(server, db_name, "_default_data", check_js)
+            check_js = False
+            data_dir = os.path.join(db_path, "data")
+            if os.path.isdir(data_dir):
+                upload_data(server, db_name, data_dir, True)
+            if db_path != "head":
+                update_security(server, db_name, db_path)
+            else:
+                push_database(server, db_name, db_path)
+        elif db_path != "head":
             update_security(server, db_name, db_path)
-        else:
-            push_database(server, db_name, db_path)
 
     for an, rqst in _pending_requests:
         response = rqst.result().json()

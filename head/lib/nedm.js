@@ -1,3 +1,18 @@
+/**
+ * @module lib/nedm
+ *
+ * @requires module:events
+ * @requires module:dygraph-combined
+ * @requires module:toastr
+ * @requires module:js-cookie
+ * @requires module:session
+ * @requires module:lib/update_db
+ * @requires module:lib/monitoring_graph
+ * @requires module:jquery-mobile
+ * @requires module:jquery-mobile-datebox
+ *
+ */
+
 var events = require("events");
 var dygraphs = require("dygraph-combined");
 var toastr = require("toastr");
@@ -8,9 +23,8 @@ cookie.json = true;
  * Updates the login/logout buttons and user status.  Called during session
  * changes
  *
- * @api private
+ * @private
  */
-
 var using_prefix = "/";
 function UpdateButtons() {
     CheckUserStatus( function(user_status) {
@@ -32,12 +46,11 @@ function UpdateButtons() {
  * Adds DB "flash" button to the header toolbar.  This can be blinked to
  * indicate DB activity.
  *
- * @param {DOM Object} $header_left - header portion on the left side
+ * @param {Object} $header_left - header portion on the left side
  * @return {String} adb - db name
  * @return {String} prettyname - db name, pretty version
- * @api private
+ * @private
  */
-
 function AddDBButtonToHeader( $header_left, adb, prettyname ) {
   if (!prettyname) {
     prettyname = adb;
@@ -63,14 +76,14 @@ var db_status = {
   shown_toastr_status : undefined,
       $toastr_content : undefined
 };
+
 /**
  * Updates showing the DB status as a toastr status
  *
  * @param {Object} ev, jQuery event
  * @param {Object} ui, jQuery info
- * @api private
+ * @private
  */
-
 function UpdateDBStatus(ev, ui) {
   function defineToasterStatus ($new_div) {
     db_status.shown_toastr_status = toastr.info($new_div, "Control Center",
@@ -125,7 +138,7 @@ function UpdateDBStatus(ev, ui) {
  *
  * @param {Object} ev, jQuery event
  * @param {Object} ui, jQuery info
- * @api private
+ * @private
  */
 
 function UpdateHeader(ev, ui) {
@@ -194,7 +207,7 @@ function GetSidebar( dbs, callback) {
  *
  * @param {Object} ev, jQuery event
  * @param {Object} ui, jQuery info
- * @api private
+ * @private
  */
 
 function BuildDBList(ev, id) {
@@ -276,7 +289,7 @@ var _emitter = new events.EventEmitter();
  * emits "db_update" events, which can be listened to (see on_db_updates)
  *
  * @param {Object} msg, Message from EventSource
- * @api private
+ * @private
  */
 
 function HandleDatabaseChanges(msg, isLocalHandler) {
@@ -294,7 +307,7 @@ function HandleDatabaseChanges(msg, isLocalHandler) {
  * Turns on listening to aggregate DB changes.
  * Called by a session change.
  *
- * @api private
+ * @private
  */
 
 function HandleLocalStorage(ev) {
@@ -310,7 +323,7 @@ function HandleLocalStorage(ev) {
 /**
  * Starts an actual feed
  *
- * @api private
+ * @private
  */
 
 function StartFeed() {
@@ -365,12 +378,23 @@ function ListenToDBChanges() {
 }
 
 /**
+ * DB update callback message
+ * @typedef {Object} module:lib/nedm.DBUpdateMessage
+ * @property {String} db - name of database
+ * @property {String} type - type of message
+ */
+
+/**
+ * DB update callback function
+ * @callback module:lib/nedm.OnDBUpdates
+ * @param {module:lib/nedm.DBUpdateMessage} msg
+ */
+
+/**
  * Listen for changes from aggregate database
  *
- * @param {Function} callback(obj) - obj is { db : "db_name", type : "atype" }
- *   'type' can be "data" or "heartbeat".
- *   'db' is the database name *without* the preceding 'nedm%2F'.
- * @api public
+ * @param {module:lib/nedm.OnDBUpdates} callback
+ * @public
  */
 
 function on_db_updates(callback) {
@@ -381,8 +405,9 @@ function on_db_updates(callback) {
 /**
  * Remove changes callback
  *
- * @param {Function} callback(obj) - see on_db_updates
- * @api public
+ * @param {module:lib/nedm.OnDBUpdates} callback
+ * @see on_db_updates
+ * @public
  */
 
 function remove_db_updates(callback) {
@@ -404,7 +429,7 @@ var session = require("session");
  * Check current user status
  *
  * @param {Function} callback(login_name)
- * @api private
+ * @private
  */
 
 function CheckUserStatus(callback) {
@@ -420,7 +445,7 @@ function CheckUserStatus(callback) {
  * @param {String} un - username
  * @param {String} pw - password
  * @param {Function} callback(Boolean) - called with status of login.
- * @api public
+ * @public
  */
 
 function validate(un, pw, callback) {
@@ -439,7 +464,7 @@ function validate(un, pw, callback) {
  * @param {String} pw - password
  * @param {Boolean} tryLogin - try Login when a successful signup
  * @param {Function} callback(Boolean) - called with status of login.
- * @api public
+ * @public
  */
 
 function registerUser(un, pw, tryLogin, callback) {
@@ -476,7 +501,7 @@ session.on('change', function(userCtx) {
  *
  * @param {String} pathname (Optional)
  * @return {String} name of db (e.g. "nedm%2Fraspberries")
- * @api public
+ * @public
  */
 
 function get_current_db_name(pathname) {
@@ -494,10 +519,9 @@ var available_database = {};
  * Get database by name
  *
  * @param {String} name (Optional) - name of database *or* return from get_current_db_name
- * @return {DB} database object (with updated interface)
- * @api public
+ * @return {nEDMDB} database object (with updated interface)
+ * @public
  */
-
 function get_database(name) {
     if (name === undefined) {
       name = get_current_db_name();
@@ -514,7 +538,7 @@ var all_db_listeners = {};
  * DatabaseStatus object.  "Global" object designed to handle updating the
  * interface according to updates to DBs.
  *
- * @api private
+ * @private
  */
 
 function DatabaseStatus() {
@@ -586,9 +610,8 @@ var _db_status = new DatabaseStatus();
 /**
  * Build database status table.  This is called on index.html
  *
- * @api public
+ * @public
  */
-
 function database_status( ) {
     _db_status.build_table();
 }
@@ -605,9 +628,8 @@ function database_status( ) {
  *
  *   which is information stored in the subsystem_information document
  *
- * @api public
+ * @public
  */
-
 var db_info_is_called = false;
 var db_info_cb_list = [];
 var db_info_cookie;
@@ -683,9 +705,8 @@ function get_database_info( callback ) {
  * @param {String} error - Error type
  * @param {String} msg - More detailed message
  *
- * @api public
+ * @public
  */
-
 function show_error_window(error, msg) {
     toastr.error(msg, error);
 }
@@ -694,9 +715,9 @@ function show_error_window(error, msg) {
  * Get Date object from array
  *
  * @param {Array} arr - Array like ["name", YY, MM, DD, H, M, S] or [YY, MM, DD, H, M, S, "name"]
- * @return {Date Object}
+ * @return {Object}
  *
- * @api public
+ * @public
  */
 
 function dateFromKey(arr) {
@@ -710,9 +731,9 @@ function dateFromKey(arr) {
 /**
  * Get Array from Date Object, assumes Date is UTC
  *
- * @param {Date Object} date
+ * @param {Object} date
  * @return {Array} arr - [YY, MM, DD, H, M, S]
- * @api public
+ * @public
  */
 
 function keyFromUTCDate(date) {
@@ -724,9 +745,9 @@ function keyFromUTCDate(date) {
 /**
  * Get Array from Date Object, not UTC
  *
- * @param {Date Object} date
+ * @param {Object} date
  * @return {Array} arr - [YY, MM, DD, H, M, S]
- * @api public
+ * @public
  */
 
 function keyFromDate(date) {
@@ -737,8 +758,13 @@ function keyFromDate(date) {
 
 /**
  * Light wrapper to return a dygraph
+ * @constructs Dygraph
+ * @param {Object} $adiv - DOM object where dygraph should be
+ * @param {Array} data
+ * @param {Object} opts - Options to pass
+ *
+ * @see {@link http://dygraphs.com/jsdoc/symbols/Dygraph.html}
  */
-
 function Dygraph($adiv, data, opts) {
     var o = opts || {};
     if(!o.height) {
@@ -764,11 +790,27 @@ var to_export = {
         MonitoringGraph : require("lib/monitoring_graph").MonitoringGraph
 };
 
+/**
+* Defines an interface for a given database
+* @param {String} db_name - name of database
+*
+* @constructor
+* @public
+*/
 function nEDMDatabase(db_name) {
   var db_name = db_name;
   for (var k in to_export) {
     this[k] = to_export[k];
   }
+
+  /**
+  * Helper function, gets most recent value of a variable
+  *
+  * @param {String} var_name - name of variable
+  * @param {module:lib/update_db.DBRequestCallback} callback 
+  *
+  * @public
+  */
   this.get_database = function(adb) {
     if (!adb) adb = db_name;
     return get_database(adb);
@@ -777,12 +819,10 @@ function nEDMDatabase(db_name) {
   * Helper function, gets most recent value of a variable
   *
   * @param {String} var_name - name of variable
-  * @param {Function} callback(err, obj) - Typical callback from view, see
-  *   DB.getView
+  * @param {module:lib/update_db.DBRequestCallback} callback 
   *
-  * @api public
+  * @public
   */
-
   this.get_most_recent_value = function(var_name, callback) {
     this.get_database().get_most_recent_value(var_name, callback);
   };
@@ -790,11 +830,10 @@ function nEDMDatabase(db_name) {
   /**
    * Helper function, sends command to current database
    *
-   * @param {Object} o - command, see DB.send_command
-   * @return {jqXHR Object}
-   * @api public
+   * @param {module:lib/update_db.CommandObject} o - command
+   * @return {Object}
+   * @public
    */
-
   this.send_command = function(o) {
       return this.get_database().send_command(o);
   };

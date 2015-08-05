@@ -3,6 +3,8 @@ nEDM-Interface
 
 nEDM User Interface for sub systems, also an interface for slow-control systems
 
+See the [API Documentation](http://nedm-tum.github.io/nEDM-Interface/) for more information.
+
 Build instructions
 ------------------
 

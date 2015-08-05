@@ -18,13 +18,13 @@
             </div>
         </div>
         <dl class='description' style='text-align:left;'>
-            <dt>Result:</dt> 
+            <dt>Result:</dt>
             <dd><pre class='result'></pre></dd>
-            <dt>Help information:</dt> 
+            <dt>Help information:</dt>
             <dd><pre class='help_msg'></pre></dd>
-            <dt>Units:</dt> 
+            <dt>Units:</dt>
             <dd><pre class='units'></pre></dd>
-            <dt>Format:</dt> 
+            <dt>Format:</dt>
             <dd><pre class='format'></pre></dd>
         </l>
     </div>
@@ -35,9 +35,19 @@
        var devices = $('.temp_device_select', $(avar)).filter(":input");
        var funcs = $('.function_select', $(avar)).filter(":input");
        var setup_func = function(e, o) {
-           if (!o || !o.return) return;
-           for (var k in o.return) {
-               var cmds = o.return[k].cmds;
+           if (!o || !o.rows) return;
+           var cmd_dict = {};
+           o.rows.forEach( function (k) {
+              var par = k.key.split('_');
+              if (!cmd_dict[par[0]]) cmd_dict[par[0]] = { cmds : {} };
+              var obj = k.value[0];
+              if (!cmd_dict[par[0]].cmds[par[1]]) {
+                cmd_dict[par[0]].cmds[par[1]] = obj;
+              }
+              cmd_dict[par[0]].cmds[par[1]][par[2]] = k.key;
+           });
+           for (var k in cmd_dict) {
+               var cmds = cmd_dict[k].cmds;
                var j = $('<option/>').val(k).text(k).data({ cmds : cmds });
                devices.append(j);
            }
@@ -69,12 +79,12 @@
                var x = $('.' + k, $(avar));
                x.text("");
                if (k in j.obj) {
-                 x.text(j.obj[k]); 
+                 x.text(j.obj[k]);
                }
            });
        };
        var call_buttons = function(o) {
-           var atype = $(o.currentTarget).data().type; 
+           var atype = $(o.currentTarget).data().type;
            var j = $(':selected', $(funcs)).data().obj;
            if (!(atype in j)) return;
            $('.all_functions', $(avar)).addClass('ui-disabled');
@@ -91,12 +101,16 @@
                                $('.result', $(avar)).text(JSON.stringify(o.return));
                            }
                          };
-           nedm.send_command( cmd_doc ); 
+           nedm.send_command( cmd_doc );
        };
-       nedm.send_command( { cmd_name : "all_keys", 
-                              timeout: 10000,
-                            callback : setup_func
-       } );
+
+       nedm.get_database().getView("execute_commands", "export_commands",
+         { opts : {
+           reduce : false
+         }},
+         setup_func
+       );
+
        ['set', 'get', 'call'].forEach( function(k) {
            $('.' + k + '_function', $(avar)).data({ type : k });
            $('.' + k + '_function', $(avar)).on('click', call_buttons);

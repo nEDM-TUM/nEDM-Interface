@@ -8,12 +8,6 @@ Control the Rasp Pis
 For more information on writing the code, see the relevant section
 of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub page</a>.
 """,
-  "predef_cmds" : {
-    "Shutdown" : [ "poweroff" ],
-    "Restart" : [ "shutdown", "-r", "now" ],
-    "Reload dmn" : [ "service", "rspby", "reload" ],
-    "User def" : ""
-  },
   "code_template" : """
     <div align='left' data-role='collapsible' class='code_sample'>
        <h3><span class='doc_name'>(Not saved)</span></h3>
@@ -66,24 +60,16 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
             </fieldset>
           </div>
           <div>
-            <div class='ui-corner-all custom-corners send_cmd_all'>
+            <div class='ui-corner-all custom-corners'>
                 <div class='ui-bar ui-bar-a'>
-                     <h3>Send command:</h3>
+                     <h3>Command:</h3>
                 </div>
                 <div class='ui-body ui-body-a'>
-                  <div data-role='fieldcontain'>
-                    <fieldset data-role='controlgroup' data-type='horizontal'>
-                      <select class='cmd_select'></select>
-                      <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class='input_cmd'>
-                      <button class='ui-btn ui-corner-all send_cmd'>Send</button>
-                      <button class='ui-btn ui-corner-all stop_wait'>Stop waiting</button>
-                      <p style='color:blue;' class='last_heartbeat'></p>
-                    </fieldset>
-                  </div>
-                  <div align='left'>
-                    <span class="bolded_font">Last output: </span><pre class="returned_output"></pre>
-                    <span class="bolded_font">Last error: </span><pre class="returned_error"></pre>
-                  </div>
+                  <p style='color:blue;' class='last_heartbeat'></p>
+                <a href="#popupRaspberryTerminal" data-rel="popup" data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline term_launch">Launch terminal</a>
+                </div>
+                <div data-role="popup" id="popupRaspberryTerminal" data-overlay-theme="b" data-theme="a" data-tolerance="15,15" class="ui-content">
+                    <iframe width="800" height="600" seamless=""></iframe>
                 </div>
             </div>
             <div class='ui-corner-all custom-corners'>
@@ -95,14 +81,12 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                     </div>
                 </div>
             </div>
-            <div class='ui-corner-all custom-corners'>
+            <div class='ui-corner-all custom-corners rspy_log'>
                 <div class='ui-bar ui-bar-a'>
                      <h3>Log:</h3>
                 </div>
                 <div class='ui-body ui-body-a'>
-                  <img src='/nedm_head/_design/nedm_head/css/images/light-loader-highres.gif' class='rspy_log_loading'>
-                  <ul class='rspy_log'>
-                  </ul>
+                   <iframe seamless="" style="display:none"></iframe>
                 </div>
             </div>
 
@@ -130,7 +114,6 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
       var ac = $('.all_avail_code', $(thediv));
       var ard_select = $('.arduino_select', $(thediv)).filter(':input');
       var update_timeout;
-      var submit_cmd_timeout;
       var this_db = nedm.get_database();
 
       function add_code_to_sel(sel, aname, code) {
@@ -175,56 +158,6 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
           sel.val("main").trigger("change");
       };
 
-      var submit_cmd = function(acmd, macid) {
-         var ad = { cmd : acmd, type : macid.toString() + '_cmd' };
-         var timeout = 0;
-         $('.send_cmd', $(thediv)).addClass('ui-disabled');
-         $('.stop_wait', $(thediv)).removeClass('ui-disabled');
-         var check_doc = function(o) {
-             var anid = o.id || o._id;
-             return function() {
-                 this_db.getDoc(anid, function(e, o) {
-                    if (e) return;
-                    if (!o.ret) {
-                        submit_cmd_timeout = setTimeout(check_doc(o), 2000);
-                    } else {
-                        toastr.success("Responded", "Cmd response");
-                        $('.returned_output', $(thediv)).text(o.ret[0]);
-                        $('.returned_error', $(thediv)).text(o.ret[1]);
-                        $('.send_cmd', $(thediv)).removeClass('ui-disabled');
-                        $('.stop_wait', $(thediv)).addClass('ui-disabled');
-                    }
-                 });
-           };
-         };
-         this_db.updateDoc(ad,
-             'nedm_default',
-             'insert_with_timestamp',
-             function(e,o) {
-               if (e) {
-                 nedm.show_error_window("Server error",
-                                          JSON.stringify(e));
-               } else {
-                 check_doc(o)();
-               }
-         });
-
-      };
-      var send_current_command = function(ev) {
-         var mid = $('.arduino_select :selected').val();
-         var the_cmd = $('.input_cmd', $(thediv)).val();
-         try {
-           the_cmd = JSON.parse(the_cmd);
-         } catch(err) {
-           // Ok, here we failed to get parsed
-           the_cmd = the_cmd.split(" ");
-         }
-         if (!Array.isArray(the_cmd)) {
-           the_cmd = [ the_cmd ];
-         }
-         submit_cmd(the_cmd, mid);
-
-      };
       function add_module(ev) {
           var par = $(ev.currentTarget).parents('.code_sample');
           var module_name = $('.input_val', par).val().trim();
@@ -290,15 +223,33 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
       function update_timestamp() {
         var selected_option = $(':selected', $('.arduino_select'));
         var lh = selected_option.data('last_update');
+        var ip = selected_option.data('ip_addr');
         if (!lh) {
-          $('.last_heartbeat', $(thediv)).text('');
+          $('.last_heartbeat', $(thediv)).text('IP: ' + ip);
         } else {
-          $('.last_heartbeat', $(thediv)).text('Last updated: ' + lh.toUTCString());
+          $('.last_heartbeat', $(thediv)).text('Last updated: ' + lh.toUTCString() + ', IP: ' + ip);
         }
       }
 
+      $('.rspy_log .ui-body').resize( function() {
+         $(".rspy_log iframe")
+            .attr('width', $('.rspy_log .ui-body').css('width'));
+      });
       var update_current_code = function(ev) {
           var selected_val = $(':selected', $(ev.currentTarget)).val();
+          var ip = $(':selected', $(ev.currentTarget)).data('ip_addr');
+          if (ip) {
+            $("#popupRaspberryTerminal iframe").attr('src', 'http://' + ip + ':8765');
+            $('.term_launch', $(thediv)).removeClass('ui-disabled');
+            $('.rspy_log .ui-body').resize();
+            $(".rspy_log iframe")
+               .attr('src', 'http://' + ip + ':8766')
+               .show();
+          } else {
+            $("#popupRaspberryTerminal iframe").attr('src', '');
+            $('.term_launch', $(thediv)).addClass('ui-disabled');
+            $(".rspy_log iframe").attr('src', '').hide();
+          }
           update_timestamp();
           $('.all_avail_code').addClass('ui-disabled');
           $('.code_sample', $(ac)).each( function() {
@@ -311,12 +262,9 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
               }
           });
           $('.all_avail_code').removeClass('ui-disabled');
-          $('.rspy_log', $(thediv)).empty();
-          $('.rspy_log_loading', $(thediv)).show();
           if (update_timeout) {
             clearTimeout(update_timeout);
           }
-          update_log();
       };
       var remove_code = function(ev) {
           var par = $(ev.currentTarget).parents('.code_sample');
@@ -485,61 +433,6 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
 
       };
 
-      var update_log = function() {
-          var log_name = $('.arduino_select :selected').val();
-          if (log_name) {
-            log_name += '_log';
-            var alog = $('.rspy_log', $(thediv));
-            if ($('li', alog).length === 0) {
-              $('.rspy_log_loading', $(thediv)).show();
-            }
-            this_db.getDoc(log_name,
-              function(e,o) {
-                $('.rspy_log_loading', $(thediv)).hide();
-                if (!e) {
-                  var d = $(':last', $(alog));
-                  if (d) { d = d.text(); }
-                  var remove_since_date = (new Date((new Date()) - 60000))
-                             .toISOString()
-                             .replace('T', ' ')
-                             .replace('Z', '');
-                  o.log.forEach(function(x) {
-                    if (d && d !== "" && x[0] <= d) return;
-                    if (x[0] <= remove_since_date) return;
-                    $('<li/>').html(
-                       '<span class="bolded_font">' + x[0] + '</span>' +
-                       ' [RSPBY] ' + x[1]).hide().appendTo(alog).slideDown('slow');
-                  });
-                  var i = 0;
-                  $("span", $(alog)).each( function() {
-                    if ($(this).text() <= remove_since_date) i += 1;
-                    else return false;
-                  });
-                  // Remove old entries
-                  setTimeout( function(remove_num) {
-                    var i = remove_num;
-                    return function() {
-                      $("li", $(alog)).slice(0, i).animate({
-                                   height: '0px'
-                               }, {
-                                   duration: 500,
-                                   complete: function() {
-                                       $(this).remove();
-                                   }
-                               });
-                  };}(i), 1000);
-                } else {
-                    alog.empty();
-                    alog.append($('<li/>').html(
-                       '<span class="bolded_font" style="color:red;">[ Rasp Pi log not found ]</span>'));
-                }
-                update_timeout = setTimeout(update_log, 5000);
-            });
-          } else {
-            update_timeout = setTimeout(update_log, 5000);
-          }
-      };
-
       var add_macid = function(ev) {
           var ins = $('.input_mac').val();
           if (!append_mac_id(ins)) {
@@ -548,36 +441,11 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
               ard_select.selectmenu('refresh', true);
           }
       };
-      var update_current_cmd = function(ev) {
-         var o = $(':selected', $(ev.currentTarget));
-         var txt = o.val();
-         $('.input_cmd', $(thediv)).val(txt);
-         if (txt === '""') {
-           $('.input_cmd', $(thediv)).removeClass("ui-disabled");
-         } else {
-           $('.input_cmd', $(thediv)).addClass("ui-disabled");
-         }
-      };
-      var cmd_select = $('.cmd_select', $(thediv)).filter(":input");
-      for (var k in docobj.predef_cmds) {
-        cmd_select.append($('<option/>')
-          .val(JSON.stringify(docobj.predef_cmds[k]))
-          .text(k));
-      }
-      cmd_select.selectmenu("refresh", true);
       $('.arduino_select', $(thediv)).on('change', update_current_code);
-      $('.cmd_select', $(thediv)).on('change', update_current_cmd);
       $('.add_new_code', $(thediv)).on('click', add_new_code);
       $('.read_from_db', $(thediv)).on('click', read_from_db);
       $('.submit_new_arduino', $(thediv)).on('click', add_macid);
-      $('.send_cmd', $(thediv)).on('click', send_current_command);
       $('.read_from_db', $(thediv)).trigger('click');
-      $('.stop_wait', $(thediv)).on('click', function() {
-        if (submit_cmd_timeout) clearTimeout(submit_cmd_timeout);
-        submit_cmd_timeout = null;
-        $('.send_cmd', $(thediv)).removeClass('ui-disabled');
-        $('.stop_wait', $(thediv)).addClass('ui-disabled');
-      });
       var button_func = function(x) {
          var nm = x;
          return function(ev) {
@@ -611,8 +479,12 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                             if (!all_rasp[mac]) {
                               all_rasp[mac] = { count: 0, ts : new Date(o.key[1]) };
                             }
+                            if (typeof o.key[2] === "string") {
+                              all_rasp[mac].ip = o.key[2];
+                              return null;
+                            }
                             all_rasp[mac].count += 1;
-                            return o.key[2];
+                            return o.value._id;
                           });
                           $('.doc_name', $(thediv)).each( function() {
                             var d = $(this).parents('.code_sample').data('doc');
@@ -628,6 +500,7 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
                             var opt = $('.arduino_select option[value="' + k + '"]', $(thediv));
                             opt.text( opt.text().split(' : ')[0] + ' : ' + ct + ' running' );
                             opt.data('last_update', all_rasp[k].ts);
+                            opt.data('ip_addr', all_rasp[k].ip);
                           }
                           $('.arduino_select', $(thediv)).filter(':input').selectmenu('refresh', true);
                           update_timestamp();
@@ -637,7 +510,6 @@ of the <a href="https://github.com/nEDM-TUM/HimbeereCouch#running-code">GitHub p
       }
       this_db.on("heartbeat", update_run_status);
 
-      update_log();
       update_run_status();
   }"""
 }

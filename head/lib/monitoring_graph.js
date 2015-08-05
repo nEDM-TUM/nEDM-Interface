@@ -1,18 +1,27 @@
 /**
- * MonitoringGraph provides an interface to the dygraph functionality
+ * module defining class monitoring graph
+ * @module lib/monitoring_graph
  *
- * @param {DOM Object} $adiv - where the graph should show up
- * @param {String or Array} data_name - name or list of data names
- * @param {Number} since_time_in_secs - grab since a time seconds from 'now'
- * @param {DB Object} database object
- * @api public
+ * @requires module:lib/math
+ * @requires module:dygraph-combined
+ * @requires module:lib/nedm
  */
-
 var dygraphs = require("dygraph-combined");
 var math_lib = require("lib/math");
 
 var bs = math_lib.bs;
 var GetNumberParts = math_lib.GetNumberParts;
+
+/**
+ * @class
+ * MonitoringGraph provides an interface to the dygraph functionality
+ *
+ * @param {Object} $adiv - where the graph should show up
+ * @param {String|Array} data_name - name or list of data names
+ * @param {Number} since_time_in_secs - grab since a time seconds from 'now'
+ * @param {Object} database object
+ * @public
+ */
 exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 
     // Private variables
@@ -44,11 +53,10 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
      * show the particular container (if hidden)
      *
-     * @param {jQuery Event Object} ev
-     * @param {jQuery User Object} ui
-     * @api private
+     * @param {Object} ev
+     * @param {Object} ui
+     * @private
      */
-
     function ShowContainer(ev, ui) {
         if ($(ui.toPage).data("url") !== myBaseURL) return;
         if (wasLive) {
@@ -59,11 +67,10 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
      * hide the particular container (if shown)
      *
-     * @param {jQuery Event Object} ev
-     * @param {jQuery User Object} ui
-     * @api private
+     * @param {Object} ev
+     * @param {Object} ui
+     * @private
      */
-
     function HideContainer(ev, ui) {
         if ($(ui.prevPage).data("url") !== myBaseURL) return;
         if (isListening) {
@@ -77,9 +84,8 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
      * Synchronize with the database, called by event handler
      *
-     * @api private
+     * @private
      */
-
     var __basenedm = require("lib/nedm");
     var nedm = new __basenedm.nEDMDatabase();
     function HandleListening(msg) {
@@ -113,9 +119,8 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      * Prepend to the 'data' variable
      *
      * @param {Array} r - data to prepend
-     * @api private
+     * @private
      */
-
     function PrependData(r) {
       for (var i=0;i<r.length;i++) {
           data.unshift(r[i]);
@@ -126,7 +131,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
      * Append to the 'data' variable
      *
      * @param {Array} r - data to append
-     * @api private
+     * @private
      */
 
     function AppendData(r) {
@@ -143,7 +148,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 	 * chronological order.
      *
      * @param {Array} new_data - data to be merged in
-     * @api private
+     * @private
      */
 
     function MergeData(new_data) {
@@ -179,7 +184,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
 	 * Recalculate what the axis labels should be.
      *
-     * @api private
+     * @private
      */
 
     function RecalcAxisLabels() {
@@ -194,8 +199,8 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 	 * Get Date object from Key
      *
      * @param {Array} obj - key like accepted by nedm.dateFromKey
-     * @return {Date object}
-     * @api private
+     * @return {Object}
+     * @private
      */
 
     function DateFromKeyVal(hasCustomBars) {
@@ -233,7 +238,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
 	 * Stop listening for changes
      *
-     * @api private
+     * @private
      */
 
     function EndListening() {
@@ -245,7 +250,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
 	 * Begin listening for changes
      *
-     * @api private
+     * @private
      */
 
     function BeginListening() {
@@ -260,7 +265,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 	 * Return name (variables)
      *
      * @return {Number} group level
-     * @api public
+     * @public
      */
 
     this.name = function() { return name; };
@@ -269,17 +274,32 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
 	 * Get group level
      *
+     * 1 = Year
+     * 2 = Month
+     * 3 = Day
+     * 4 = Hour
+     * 5 = Minute
+     * 6 = Second
+     * > 6, no averaging
+     *
      * @return {Number} group level
-     * @api public
+     * @public
      */
 
     this.groupLevel = function() { return group_level; };
 
     /**
-	 * Set group level
+	 * Set group level, or grouping used to average the data
      *
+     * 1 = Year
+     * 2 = Month
+     * 3 = Day
+     * 4 = Hour
+     * 5 = Minute
+     * 6 = Second
+     * > 6, no averaging
      * @param {Number} gl - set group level
-     * @api public
+     * @public
      */
 
     this.setGroupLevel = function(gl) {
@@ -294,7 +314,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
 	 * Update the graph with current data, settings, etc.
      *
-     * @api public
+     * @public
      */
 
     this.update = function() {
@@ -305,7 +325,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
 	 * Destroy the plot (like destructor).  Stops listening, removes event handlers
      *
-     * @api public
+     * @public
      */
 
     this.destroy = function() {
@@ -318,16 +338,15 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 	 * change the displayed time range.  This reloads all the data, assuming
 	 * that none of it is 'good'.
      *
-     * @param {Date object} prev_time - previous time
-     * @param {Date object} until_t - go until time.
+     * @param {Object} prev_time - previous time
+     * @param {Object} until_t - go until time.
      * @param {Function} callback() - called once everything is completed
      *    The function will be called without an argument if something went wrong.
 	 *    Otherwise it will be called with the object :
 	 *      { loaded : # entries, done : true/false, variable : variable name }
      * @return {Object} returns an object with the
-	 * @api public
+	 * @public
      */
-
     this.changeTimeRange = function (prev_time, until_t, callback) {
 
         time_prev = prev_time;
@@ -413,6 +432,13 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
         }
         return ret_obj;
     };
+    /**
+	 * Add a variable name (or list of names) to the data to be shown
+     *
+     * @param {string|Array} aname - string or array of strings with variables to be added
+     * @return {boolean} true if all could be added, otherwise false.
+	 * @public
+     */
 
     this.addDataName = function(aname) {
         if (!aname) return false;
@@ -428,6 +454,13 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
         return retVal;
     };
 
+    /**
+	 * Remove a variable name (or list of names) from the data to be shown
+     *
+     * @param {string|Array} aname - string or array of strings with variables to be removed
+     * @param {Function} callback - function called after function is complete.
+	 * @public
+     */
     this.removeDataName = function(aname, callback) {
         if (!Array.isArray(aname)) {
           aname = [ aname ];
@@ -446,6 +479,13 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
         if (callback) callback();
     };
 
+    /**
+	 * Remove all data before given date
+     *
+     * @param {Object} adate - particular date.
+	 * @public
+     */
+
     this.removeBeforeDate = function(adate) {
         if (data.length === 0) return 0;
         var j = 0;
@@ -458,7 +498,6 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
 
     $(document).on( { pagecontainershow : ShowContainer,
                       pagecontainerhide : HideContainer });
-
 
 };
 

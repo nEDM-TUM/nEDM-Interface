@@ -192,9 +192,6 @@
     </div>
     <div class="ui-block-b">
       <div data-role='controlgroup' data-type='horizontal'>
-          <select class='avail_server' data-native-menu="false">
-            <option data-placeholder="true" value="">Server:</option>
-          </select>
           <select class='downsample' data-native-menu="false">
             <option data-placeholder="true" value="">Downsample:</option>
             <option value="1">1</option>
@@ -478,18 +475,8 @@
         var new_obj = $(download_clone).clone();
         $('.filename', $(new_obj)).text(thefile.name);
         $('.filelength', $(new_obj)).text(thefile.length);
-        if (!thefile.downsample) {
+        if (!thefile.params.downsample) {
           $('.downsample', $(new_obj)).remove();
-        }
-        if (typeof thefile.params.servers === 'undefined') {
-          $('.avail_server', $(new_obj)).remove();
-        } else {
-          var srv = thefile.params.servers;
-          for (var k in srv) {
-            $('.avail_server', $(new_obj)).append(
-              $('<option/>').val(srv[k]).text(k)
-            );
-          }
         }
         function exec_download(uri) {
           $.ajax( {
@@ -508,26 +495,19 @@
         function download_file(ev) {
           ev.preventDefault();
           var dat = $(ev.currentTarget).data();
-          if (dat.href) {
+          if (dat.href && !dat.downsample) {
             exec_download(dat.href);
           } else {
-            var server = $("select.avail_server", $(ev.currentTarget).parent()).val();
             var ds = $("select.downsample", $(ev.currentTarget).parent()).val();
-            if (server === "") {
-              toastr.error("select server before downloading", "Server");
-              return;
-            }
             if (ds === "") {
               toastr.error("select downsample before downloading", "Downsample");
               return;
             }
-            var opts = {
-              id : dat.id,
-              filename : dat.name,
-              db : dat.db
-            };
-            if (typeof ds !== "undefined") opts.downsample = ds;
-            exec_download(server + "?" + $.param(opts));
+            var href = dat.href;
+            if (typeof ds !== "undefined" && parseInt(ds) > 1) {
+              href += "/downsample/" + ds;
+            }
+            exec_download(href);
           }
         }
         $('.file_name_class', $(new_obj)).data(thefile.params)
@@ -812,21 +792,9 @@
         }
         // Remove old attachments
         $('.actual_file_list', $(thediv)).empty();
-        if (obj._attachments) {
-          for (k in obj._attachments) {
-            add_file_fn(
-               { name : k,
-               length : obj._attachments[k].length,
-               params : {
-                   href : this_db.url+"/" + obj._id+"/"+k
-               }
-               });
-          }
-        }
         var base_obj = {
-          servers : obj.file_servers,
           id : obj._id,
-          db : "nedm/" + this_db.db_name()
+          db : "nedm%2F" + this_db.db_name()
         };
         if (obj.external_docs) {
           for (k in obj.external_docs) {
@@ -834,9 +802,11 @@
             add_file_fn(
                { name : k,
                length : obj.external_docs[k].size,
-           downsample : k.split('.').pop() === "dig",
-               params : base_obj
-               });
+               params : {
+                   href : "/_attachments/" + base_obj.db + "/" + base_obj.id + "/" + base_obj.name,
+             downsample : k.split('.').pop() === "dig"
+              }
+            });
           }
         }
 

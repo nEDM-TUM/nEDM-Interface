@@ -1,0 +1,8 @@
+{
+  "_id" : "settings",
+  "type" : "settings",
+  "devices" : [
+    "temp-control.1.nedm1",
+    "temp-control.2.nedm1",
+  ]
+}
