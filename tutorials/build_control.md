@@ -1,5 +1,5 @@
 This tutorial gives an overview of how one builds controls in a particular
-database. 
+database.
 
 _Control_ components are built from documents of type `"control"` in the
 database in question.  When one defines a `"control"` document and uploads it
@@ -15,8 +15,8 @@ Let's have a look at an example control document:
   "type" : "control", // type, must be "control"
   "title" : "Make single measurement", // Title
   "description" : "Record single log file", // description, help.  Can also contain HTML
-  "html" : "...", // main html of control component 
-  "script" : "..." // main script 
+  "html" : "...", // main html of control component
+  "script" : "..." // main script
 }
 ```
 
@@ -25,7 +25,8 @@ self-explanatory, where the only point that should be made is that
 `"description"` may, and _should_, include HTML.  This is an ideal location to
 document to the user how your interface component works.  One may also define
 other fields which may be used to pass information to the script run on the
-page.
+page.  The content of the `"description"` field shows up inside a popup, which
+may be accessed via an _Info_ button on the page.
 
 We will examine the other two fields in the following:
 
@@ -48,7 +49,7 @@ that this must contain a function defined like:
   }
 "
 }
-``` 
+```
 
 where the first argument (in this case, `$theDiv`) is the `<div>` object in
 which the component is inserted, and the second argument (in this case,
@@ -64,7 +65,7 @@ Let's look a little more closely at the function defined in `"script"`.
 function($theDiv, docobj) {
   // n.b. console.log prints something in the browser developer debug window.
   // In this function we have a few "global variables" defined, in particular:
-  console.log(nedm);  // The nedm variable is an nEDMDB object. 
+  console.log(nedm);  // The nedm variable is an nEDMDB object.
   console.log(theCurrentPage); // jQuery object referring to this current page.
 }
 ```
@@ -73,6 +74,43 @@ The `nedm` variable is an instantiation of the {@link module:lib/nedm~nEDMDataba
 points to the current database.  For example, if one were on the Hg Laser page,
 this would point by default to the database `"nedm%2Fhg_laser"`.  (Of course,
 accessing other databases are possible, see the documentation for {@link
-module:lib/nedm~nEDMDatabase#get_database|get_database}. 
+module:lib/nedm~nEDMDatabase#get_database|get_database}.) `theCurrentPage` is a
+{@link https://api.jquery.com/Types/#jQuery|jQuery object} that wraps the DOM
+object of the page.
+
+### Technical details
+
+This describes how the assembly of control documents actually works using
+functionality from CouchDB.  For building your page, you generally don't need
+to know this information.
+
+Control pages take advantage of CouchDB {@link
+http://docs.couchdb.org/en/latest/couchapp/ddocs.html#list-functions list
+functions}, which take the results from a view and format it into an HTML page.
+In this case, the view returns the list of control documents.
+
+The list function loops through each control document and outputs the following
+for each document:
+
+```html
+<div id='unique_name'>
+  <!-- content of doc.html -->
+<div>
+<script type='text/javascript'><!--
+  (function() {
+    var __base = require('lib/nedm');
+    var nedm = new __base.nEDMDatabase('name_of_db'); // name_of_db automatically inserted by list function
+    var theCurrentPage = $('#unique_name_of_page');
+    theCurrentPage.on('pagecreate', function() {(
+    // content of doc.script, should be of the form:
+    // function($theDiv, doc) {
+    //  ...
+    // }
+    )($('#unique_name') /* jQuery Object of div DOM */, doc /* content of doc */);
+    }
+  })();
+//-->
+</script>
+```
 
 
