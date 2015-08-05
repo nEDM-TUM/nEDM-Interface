@@ -804,10 +804,10 @@ function nEDMDatabase(db_name) {
   }
 
   /**
-  * Helper function, gets most recent value of a variable
+  * Gets current database, or other database
   *
-  * @param {String} var_name - name of variable
-  * @param {module:lib/update_db.DBRequestCallback} callback 
+  * @param {String} [db_name] - name of database, when not given then the current database
+  * @return {nEDMDB}
   *
   * @public
   */
@@ -819,7 +819,7 @@ function nEDMDatabase(db_name) {
   * Helper function, gets most recent value of a variable
   *
   * @param {String} var_name - name of variable
-  * @param {module:lib/update_db.DBRequestCallback} callback 
+  * @param {module:lib/update_db.DBRequestCallback} callback
   *
   * @public
   */
@@ -830,7 +830,7 @@ function nEDMDatabase(db_name) {
   /**
    * Helper function, sends command to current database
    *
-   * @param {module:lib/update_db.CommandObject} o - command
+   * @param {module:lib/update_db.CommandObject} o - Object to send command
    * @return {Object}
    * @public
    */

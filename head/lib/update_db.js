@@ -641,7 +641,7 @@ function nEDMDB(url) {
          * @function listen_to_changes_feed
          * @memberof nEDMDB#
          *
-         * @param {module:lib/update_db.ChangesFeedCallback} callback(EventSource) - gets message from EventSource object
+         * @param {module:lib/update_db.ChangesFeedCallback} callback - gets message from EventSource object
          * @options {Object} options - Options to pass to changes feed
          * @public
          */
@@ -671,7 +671,7 @@ function nEDMDB(url) {
          * @function cancel_changes_feed
          * @memberof nEDMDB#
          *
-         * @param {module:lib/update_db.ChangesFeedCallback} callback(EventSource) - gets message from EventSource object
+         * @param {module:lib/update_db.ChangesFeedCallback} callback - gets message from EventSource object
          * @public
          */
         db.cancel_changes_feed = function(callback) {
