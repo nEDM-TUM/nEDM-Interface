@@ -1,6 +1,6 @@
 {
   "_id" : "subsystem_information",
-  "prettyname" : "Internal Coils System",
+  "prettyname" : "B0 System",
   "pages" : {
         "Control" : "control.html",
         "Monitor" : "monitor.html"

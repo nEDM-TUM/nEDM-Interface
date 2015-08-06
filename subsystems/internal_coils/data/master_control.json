@@ -2,7 +2,7 @@
   "_id" : "master_control",
   "type" : "control",
   "title" : "Master Controls",
-  "description" : "Control the internal coils",
+  "description" : "More Control of the internal coils",
   "read_functions" : {
     "getstatus" : "Status",
     "getcurrentrange" : "Current Range",
@@ -23,108 +23,72 @@
   },
  "html" : """
 <div>
-    <div class='all_read_div'>
-        <h2>Read functions</h2>
-        <div data-role='fieldcontain'>
-            <div data-role='controlgroup' data-type='horizontal' class='all_read_functions'>
-                <button class='get_value_class'>Get</button>
-                <select class='read_functions'></select>
-                <select class='channel_spinner1'></select>
-            </div>
-        </div>
-        <div class='ui-grid-c'>
-          <div class='ui-block-a'>
-            <h3>Read (return) value:</h3>
-          </div>
-          <div class='ui-block-b'>
-            <input type='text' class='output_text' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
-          </div>
-        </div>
-        <div class='ui-grid-b'>
-          <div class='ui-block-a'>
-            <button class='read_and_clear'>Read and Clear Errors</button>
-          </div>
-        </div>
-
-    </div>
-    <div class='all_write_div'>
-        <h2>Write/set functions</h2>
-        <div data-role='fieldcontain'>
-            <div data-role='controlgroup' data-type='horizontal' class='all_write_functions'>
-                <button class='set_value_class'>Set</button>
-                <select class='write_functions'></select>
-                <select class='channel_spinner2'></select>
-            </div>
-        </div>
-        <div class='ui-grid-c'>
-          <div class='ui-block-a'>
-            <h3>Write value:</h3>
-          </div>
-          <div class='ui-block-b'>
-            <input type='text' class='input_text' data-wrapper-class='controlgroup-textinput ui-btn'>
-          </div>
-        </div>
-    </div>
-
-    <br>
-    <div class='ramper_div'>
-        <h2>Ramping functions</h2>
-        <div data-role='fieldcontain'>
-            <div data-role='controlgroup' data-type='horizontal' class='advanced_ramp_function'>
-                <button class='send_ramp_data'>Set parameters</button>
-                <button class='read_ramp_data'>Readback settings</button>
-                <button class='add_ramp_channel'>Add ramp channel</button>
-            </div>
-        </div>
-        <div data-role='popup' class='show_ramp_results ui-corner-all'>
-           <div data-role='header'>
-             <h1>Results</h1>
-           </div>
-           <div role='main' class='ui-corner-bottom ui-content'>
-             <h3 class='ui-title'>Readback from device:</h3>
-             <div class='text_results' >
-             </div>
-             <a href='#' data-role='button' data-rel='back'>Ok</a>
-           </div>
-        </div>
-        <div class='ui-grid-c'>
-          <div class='ui-block-a'>
-            <h3>Ramp time (s):</h3>
-          </div>
-          <div class='ui-block-b'>
-            <input type='text' class='ramp_time' data-wrapper-class='controlgroup-textinput ui-btn'>
-          </div>
-        </div>
-
-        <div class='ramper_channels'>
-          <div data-role='collapsible' class='ramp_channel_ctrl_collapse' data-mini='true'>
-              <h4>Ramp channel</h4>
-              <div class='ui-grid-c'>
-                <div class='ui-block-a'>
-                  <h4>Start (V or A):</h4>
-                  <h4>Stop (V or A):</h4>
+    <div data-role='collapsible' data-collapsed='false'>
+        <h4>Switch Power Supply</h4>
+        <div data-role='controlgroup' data-type='vertical' class='ps_list'>
+            <label for='coil_selector_la'>Switch Coil:</label>
+            <select name='coil_selector_la' id='coil_selector' class='coil_selector'>
+            </select>
+            <div class='ui-field-contain'>
+                <div class='ui-grid-c'>
+                    <div class='ui-block-a'>
+                        <p>Bilt Name:</p>
+                    </div>
+                    <div class='ui-block-b'>
+                        <input type='text' class='supply_nr' readonly=true value=''></input>
+                    </div>
+                    <div class='ui-block-c'>
+                        <p>Bilt Name:</p>
+                    </div>
+                    <div class='ui-block-d'>
+                        <input type='text' class='supply_name' readonly=true value=''></input>
+                    </div>
                 </div>
-                <div class='ui-block-b'>
-                   <input type='text' class='min_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
-                   <input type='text' class='max_ramp_value' data-wrapper-class='controlgroup-textinput ui-btn'>
+            </div>
+            <div class='ui-field-contain'>
+                <div class='ui-grid-b'>
+                    <div class='ui-block-a'><p>Voltage:</p></div>
+                    <div class='ui-block-b'><input type='text' class='coil_volt' value=''></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_volt_read' readonly=true value=''></div>
+                    <div class='ui-block-a'><p>Current:</p></div>
+                    <div class='ui-block-b'><input type='text' class='coil_curr' value=''></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_curr_read' readonly=true value=''></div>
+                    <div class='ui-block-a'><p>Voltage range:</p></div>
+                    <div class='ui-block-b' style='padding-top:10px;'><select data-mini="true" class='coil_voltrange_sel'></select></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_voltrange_read' readonly=true value=''></div>
+                    <div class='ui-block-a'><p>Current range:</p></div>
+                    <div class='ui-block-b' style='padding-top:10px;'><select data-mini="true" class='coil_currrange_sel'></select></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_currrange_read' readonly=true value=''></div>
                 </div>
-              </div>
-              <div data-role='fieldcontain'>
-                  <div data-role='controlgroup' data-type='horizontal'>
-                      <select class='ramp_type'>
-                         <option value='curr'>Current</option>
-                         <option value='volt'>Voltage</option>
-                      </select>
-                      <select class='channel_spinner3'></select>
-		              <button class='delete_btn ui-disabled'>Remove</button>
-                  </div>
-              </div>
-          </div>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <button class='set_ps_params to_disable'>Set</button>
+                <button class='get_ps_params to_disable'>Get</button>
+                <button class='reset_ps_params to_disable'>Reset</button>
+            </div>
+            <select class='on_switch to_disable' data-role='slider'>
+                <option value='Off'>Off</option>
+                <option value='On'>On</option>
+            </select>
         </div>
-        <div data-role='fieldcontain'>
-            <div data-role='controlgroup' data-type='horizontal' class='advanced_ramp_function'>
-                <button class='run_ramp'>Run</button>
-                <button class='stop_ramp'>Stop</button>
+    </div>
+    <div>
+        <div data-role='collapsible' data-collapsed='false' class='parameter_code_collapsible'>
+            <h4>
+                Change coil parameters
+            </h4>
+            <div class='ui-field-contain'>
+                <label for='select-setting'>Current setting:</label>
+                <select required name='select-setting' class='select-setting-sel'>
+                </select>
+            </div>
+
+            <div class='code_editor left'></div>
+            <div data-role='controlgroup' class='save_div' data-type='horizontal'>
+                <label><input type='checkbox' class="save_check">Save</label>
+                <button class="ui-btn save_editor">Save to db</button>
+                <button class='ui-btn reset_editor'>Reset</button>
+                <button class="ui-btn set_settings_from_editor">Set</button>
             </div>
         </div>
     </div>
@@ -133,6 +97,211 @@
  """,
  "script" : """
     function( $theDiv, anobj ) {
+
+        var this_db = nedm.get_database();
+
+        var settings_dict = {};
+       
+        this_db.getView('document_type', 'document_type',
+                    { opts: {
+                                reduce: false,
+                                include_docs: true,
+                                endkey: ['bilt_currents_settings'],
+                                startkey: ['bilt_currents_settings', {}],
+                                descending: true
+                            }},
+                            function(e,o) {
+                                if(e !== null) return;
+                                var r = o.rows;
+                                o.rows.forEach(function(x) {
+                                    settings_dict[x.id] = x.doc;
+                                });
+                                if ( !settings_dict.bilt_config ) {
+                                    toastr.error("No Settings document", "bilt_config document not found");
+                                }
+                                else {
+                                    do_stuff();
+                                }
+
+                            }
+
+                    );
+        
+        var disable_ui = function() {
+            $('.to_disable', $($theDiv)).addClass('ui-disabled');
+            $('.on_switch').slider('disable');
+        };
+        
+        var enable_ui = function() {
+            $('.to_disable', $($theDiv)).removeClass('ui-disabled');
+            $('.on_switch').slider('enable');
+        };
+
+        function do_stuff() {
+            var set_list = $('.select-setting-sel', $($theDiv)).filter(":input");
+            var options = {};
+            for ( var k in settings_dict ) {
+                if (settings_dict[k].name) {
+                    set_list.append($('<option>', {
+                        value: k,
+                        text: settings_dict[k].name
+                    }));
+                }
+            }
+
+            $('.select-setting-sel option[value="B0_setting"]').attr('selected', true);
+            set_list.selectmenu('refresh');
+            editor.set(settings_dict.B0_setting.value);
+
+            var cs_list = $('.coil_selector', $($theDiv)).filter(":input");
+            for (var j=1;j<=Object.keys(settings_dict.bilt_config.value).length;j++) {
+                var ps_name = settings_dict.bilt_config.value[j].CoilName;
+                if ( ps_name != "x") {
+                    cs_list.append($('<option/>').val(j).text(ps_name.toString()));
+                }
+            }
+            cs_list.selectmenu("refresh");
+
+            $('.select-setting-sel').change(function() {
+                editor.set(settings_dict[$('.select-setting-sel').filter(":input").val()].value);
+            });
+            
+        }
+
+        $('.coil_selector').change(function() {
+            disable_ui();
+            $('.coil_voltrange_sel').empty();
+            $('.coil_currrange_sel').empty();
+            var sel = $('.coil_selector').filter(':input').val();
+            var sett = settings_dict[$('.select-setting-sel').filter(":input").val()].value[sel];
+            $('.supply_name').val(settings_dict.bilt_config.value[sel].Name);
+            $('.supply_nr').val(sel);
+            $('.coil_volt').val(sett.SetVolt);
+            $('.coil_curr').val(sett.SetCurr);
+            var CurrRanges = settings_dict.bilt_config.value[sel].CurrRanges;
+            for (var j=0; j<CurrRanges.length; j++) {
+                $('.coil_currrange_sel').filter(':input').append($('<option/>').val(CurrRanges[j].toString()).text(CurrRanges[j].toString()));
+            }
+            $('.coil_currrange_sel').filter(':input').selectmenu('refresh');
+            var VoltRanges = settings_dict.bilt_config.value[sel].VoltRanges;
+            for (var k=0; k<VoltRanges.length; k++) {
+                $('.coil_voltrange_sel').filter(':input').append($('<option/>').val(VoltRanges[k].toString()).text(VoltRanges[k].toString()));
+            }
+            $('.coil_voltrange_sel').filter(':input').selectmenu('refresh');
+            $('.coil_voltrange').val(sett.SetVoltRange);
+            $('.coil_currrange').val(sett.SetCurrRange);
+            nedm.send_command({
+                cmd_name: "getstatus",
+                arguments: [sel],
+                timeout: 5000,
+                callback: function(e,o) {
+                    enable_ui();
+                    if (o && o.ok) {
+                        $('.on_switch').val(o.return).slider('refresh');
+                    }
+                },
+                quiet: true
+            });
+        });
+        
+        $('.set_ps_params', $($theDiv)).on('click', function () {
+            disable_ui();
+            var sel = $('.coil_selector').filter(':input').val();
+            var volt = $('.coil_volt').val();
+            var curr = $('.coil_curr').val();
+            var vrange = $('.coil_voltrange_sel').filter(':input').val();
+            var crange = $('.coil_currrange_sel').filter(':input').val();
+            console.log(volt, curr, vrange, crange);
+                nedm.send_command({
+                    cmd_name: "setsource",
+                    arguments: [sel, parseFloat(volt), parseFloat(curr), parseFloat(vrange), parseFloat(crange)],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        enable_ui();
+                        if (o && o.ok) {
+                        }
+                    },
+                    quiet: true
+                });
+        });
+
+        $('.get_ps_params', $($theDiv)).on('click', function () {
+            disable_ui();
+            var sel = $('.coil_selector').filter(':input').val();
+            var sett = settings_dict[$('.select-setting-sel').filter(":input").val()].value[sel];
+            $('.supply_name').val(settings_dict.bilt_config.value[sel].Name);
+            $('.supply_nr').val(sel);
+            $('.coil_volt').val(sett.SetVolt);
+            $('.coil_curr').val(sett.SetCurr);
+            $('.coil_voltrange_sel').val(sett.SetVoltRange);
+            $('.coil_currrange_sel').val(sett.SetCurrRange);
+            nedm.send_command({
+                cmd_name: "getsource",
+                arguments: [sel],
+                timeout: 5000,
+                callback: function(e,o) {
+                    enable_ui();
+                    $('.coil_volt_read').val(o.return[0]);
+                    $('.coil_curr_read').val(o.return[1]);
+                    $('.coil_voltrange_read').val(o.return[2].slice(0,-2));
+                    $('.coil_currrange_read').val(o.return[3].slice(0,-2));
+                    if (o.return[4] == "On" || o.return[4] == 'Off'){
+                        $('.on_switch').val(o.return[4]).slider('refresh');
+                    }
+                    else {
+                        console.log(o.return[4]);
+                    }
+                    },
+                quiet: true
+            });
+        });
+        
+        $('.reset_ps_params', $($theDiv)).on('click', function () {
+            var sel = $('.coil_selector').filter(':input').val();
+            var sett = settings_dict[$('.select-setting-sel').filter(":input").val()].value[sel];
+            $('.supply_name').val(settings_dict.bilt_config.value[sel].Name);
+            $('.supply_nr').val(sel);
+            $('.coil_volt').val(sett.SetVolt);
+            $('.coil_curr').val(sett.SetCurr);
+            $('.coil_voltrange').val(sett.SetVoltRange);
+            $('.coil_currrange').val(sett.SetCurrRange);
+        });
+
+        $('.on_switch', $($theDiv)).on('change', function () {
+            disable_ui();
+            var sel = $('.on_switch').val();
+            var src = $('.coil_selector').filter(':input').val();
+            if ( sel === "Off"  ) {
+                nedm.send_command({
+                    cmd_name: 'off',
+                    arguments: [src],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        enable_ui();
+                    }
+                });
+            }
+            if ( sel === "On"  ) {
+                nedm.send_command({
+                    cmd_name: 'on',
+                    arguments: [src],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        enable_ui();
+                    }
+                });
+            }
+
+        });
+
+        $('.save_editor', $($theDiv)).on('click', function () {
+            if ($('.save_check', $($theDiv)).prop("checked")) {
+                console.log('Checked');
+            } else {
+                console.log("Not checked");
+            }
+        });
+
 
         var disable_all = function() {
             $(':button,[type=text]', $($theDiv)).addClass('ui-disabled');
@@ -304,6 +473,18 @@
           $('.ramper_channels .delete_btn').removeClass('ui-disabled');
           $('.delete_btn', $($theDiv)).off().on('click', removeChannel);
         });
+
+        //*****************************************************
+        // Set up text editor
+        var cmt = $('.code_editor', $($theDiv));
+        var jsoneditor = require('jsoneditor');
+        var editor = new jsoneditor(cmt[0], { mode: 'code'});
+
+        $('.parameter_code_collapsible', $($theDiv)).on("collapsibleexpand", function() {
+          editor.resize();
+        });
+
+        //*****************************************************
 
     }
  """
