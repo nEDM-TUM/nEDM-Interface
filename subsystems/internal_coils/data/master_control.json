@@ -1,0 +1,492 @@
+{
+  "_id" : "master_control",
+  "type" : "control",
+  "title" : "Master Controls",
+  "description" : "More Control of the internal coils",
+  "read_functions" : {
+    "getstatus" : "Status",
+    "getcurrentrange" : "Current Range",
+    "getvoltrange" : "Voltage Range",
+    "getcurrent" : "Current",
+    "getvoltage" : "Voltage"
+  },
+  "write_functions" : {
+    "on" : ["On", 0],
+    "off" : ["Off", 0],
+    "setcurrentrange" : ["Current Range", 1],
+    "setvoltrange" : ["Voltage Range", 1],
+    "setcurrent" : ["Current", 1],
+    "setvoltage" : ["Voltage", 1],
+    "userwrite" : ["User write command", 1],
+    "userask" : ["User read command", 1],
+    "clearstatus" : ["Clear Status", 0]
+  },
+ "html" : """
+<div>
+    <div data-role='collapsible' data-collapsed='false'>
+        <h4>Switch Power Supply</h4>
+        <div data-role='controlgroup' data-type='vertical' class='ps_list'>
+            <label for='coil_selector_la'>Switch Coil:</label>
+            <select name='coil_selector_la' id='coil_selector' class='coil_selector'>
+            </select>
+            <div class='ui-field-contain'>
+                <div class='ui-grid-c'>
+                    <div class='ui-block-a'>
+                        <p>Bilt Name:</p>
+                    </div>
+                    <div class='ui-block-b'>
+                        <input type='text' class='supply_nr' readonly=true value=''></input>
+                    </div>
+                    <div class='ui-block-c'>
+                        <p>Bilt Name:</p>
+                    </div>
+                    <div class='ui-block-d'>
+                        <input type='text' class='supply_name' readonly=true value=''></input>
+                    </div>
+                </div>
+            </div>
+            <div class='ui-field-contain'>
+                <div class='ui-grid-b'>
+                    <div class='ui-block-a'><p>Voltage:</p></div>
+                    <div class='ui-block-b'><input type='text' class='coil_volt' value=''></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_volt_read' readonly=true value=''></div>
+                    <div class='ui-block-a'><p>Current:</p></div>
+                    <div class='ui-block-b'><input type='text' class='coil_curr' value=''></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_curr_read' readonly=true value=''></div>
+                    <div class='ui-block-a'><p>Voltage range:</p></div>
+                    <div class='ui-block-b' style='padding-top:10px;'><select data-mini="true" class='coil_voltrange_sel'></select></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_voltrange_read' readonly=true value=''></div>
+                    <div class='ui-block-a'><p>Current range:</p></div>
+                    <div class='ui-block-b' style='padding-top:10px;'><select data-mini="true" class='coil_currrange_sel'></select></div>
+                    <div class='ui-block-c' style='padding-left:10px'><input type='text' class='coil_currrange_read' readonly=true value=''></div>
+                </div>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <button class='set_ps_params to_disable'>Set</button>
+                <button class='get_ps_params to_disable'>Get</button>
+                <button class='reset_ps_params to_disable'>Reset</button>
+            </div>
+            <select class='on_switch to_disable' data-role='slider'>
+                <option value='Off'>Off</option>
+                <option value='On'>On</option>
+            </select>
+        </div>
+    </div>
+    <div>
+        <div data-role='collapsible' data-collapsed='false' class='parameter_code_collapsible'>
+            <h4>
+                Change coil parameters
+            </h4>
+            <div class='ui-field-contain'>
+                <label for='select-setting'>Current setting:</label>
+                <select required name='select-setting' class='select-setting-sel'>
+                </select>
+            </div>
+
+            <div class='code_editor left'></div>
+            <div data-role='controlgroup' class='save_div' data-type='horizontal'>
+                <label><input type='checkbox' class="save_check">Save</label>
+                <button class="ui-btn save_editor">Save to db</button>
+                <button class='ui-btn reset_editor'>Reset</button>
+                <button class="ui-btn set_settings_from_editor">Set</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+ """,
+ "script" : """
+    function( $theDiv, anobj ) {
+
+        var this_db = nedm.get_database();
+
+        var settings_dict = {};
+       
+        this_db.getView('document_type', 'document_type',
+                    { opts: {
+                                reduce: false,
+                                include_docs: true,
+                                endkey: ['bilt_currents_settings'],
+                                startkey: ['bilt_currents_settings', {}],
+                                descending: true
+                            }},
+                            function(e,o) {
+                                if(e !== null) return;
+                                var r = o.rows;
+                                o.rows.forEach(function(x) {
+                                    settings_dict[x.id] = x.doc;
+                                });
+                                if ( !settings_dict.bilt_config ) {
+                                    toastr.error("No Settings document", "bilt_config document not found");
+                                }
+                                else {
+                                    do_stuff();
+                                }
+
+                            }
+
+                    );
+        
+        var disable_ui = function() {
+            $('.to_disable', $($theDiv)).addClass('ui-disabled');
+            $('.on_switch').slider('disable');
+        };
+        
+        var enable_ui = function() {
+            $('.to_disable', $($theDiv)).removeClass('ui-disabled');
+            $('.on_switch').slider('enable');
+        };
+
+        function do_stuff() {
+            var set_list = $('.select-setting-sel', $($theDiv)).filter(":input");
+            var options = {};
+            for ( var k in settings_dict ) {
+                if (settings_dict[k].name) {
+                    set_list.append($('<option>', {
+                        value: k,
+                        text: settings_dict[k].name
+                    }));
+                }
+            }
+
+            $('.select-setting-sel option[value="B0_setting"]').attr('selected', true);
+            set_list.selectmenu('refresh');
+            editor.set(settings_dict.B0_setting.value);
+
+            var cs_list = $('.coil_selector', $($theDiv)).filter(":input");
+            for (var j=1;j<=Object.keys(settings_dict.bilt_config.value).length;j++) {
+                var ps_name = settings_dict.bilt_config.value[j].CoilName;
+                if ( ps_name != "x") {
+                    cs_list.append($('<option/>').val(j).text(ps_name.toString()));
+                }
+            }
+            cs_list.selectmenu("refresh");
+
+            $('.select-setting-sel').change(function() {
+                editor.set(settings_dict[$('.select-setting-sel').filter(":input").val()].value);
+            });
+            
+        }
+
+        $('.coil_selector').change(function() {
+            disable_ui();
+            $('.coil_voltrange_sel').empty();
+            $('.coil_currrange_sel').empty();
+            var sel = $('.coil_selector').filter(':input').val();
+            var sett = settings_dict[$('.select-setting-sel').filter(":input").val()].value[sel];
+            $('.supply_name').val(settings_dict.bilt_config.value[sel].Name);
+            $('.supply_nr').val(sel);
+            $('.coil_volt').val(sett.SetVolt);
+            $('.coil_curr').val(sett.SetCurr);
+            var CurrRanges = settings_dict.bilt_config.value[sel].CurrRanges;
+            for (var j=0; j<CurrRanges.length; j++) {
+                $('.coil_currrange_sel').filter(':input').append($('<option/>').val(CurrRanges[j].toString()).text(CurrRanges[j].toString()));
+            }
+            $('.coil_currrange_sel').filter(':input').selectmenu('refresh');
+            var VoltRanges = settings_dict.bilt_config.value[sel].VoltRanges;
+            for (var k=0; k<VoltRanges.length; k++) {
+                $('.coil_voltrange_sel').filter(':input').append($('<option/>').val(VoltRanges[k].toString()).text(VoltRanges[k].toString()));
+            }
+            $('.coil_voltrange_sel').filter(':input').selectmenu('refresh');
+            $('.coil_voltrange').val(sett.SetVoltRange);
+            $('.coil_currrange').val(sett.SetCurrRange);
+            nedm.send_command({
+                cmd_name: "getstatus",
+                arguments: [sel],
+                timeout: 5000,
+                callback: function(e,o) {
+                    enable_ui();
+                    if (o && o.ok) {
+                        $('.on_switch').val(o.return).slider('refresh');
+                    }
+                },
+                quiet: true
+            });
+        });
+        
+        $('.set_ps_params', $($theDiv)).on('click', function () {
+            disable_ui();
+            var sel = $('.coil_selector').filter(':input').val();
+            var volt = $('.coil_volt').val();
+            var curr = $('.coil_curr').val();
+            var vrange = $('.coil_voltrange_sel').filter(':input').val();
+            var crange = $('.coil_currrange_sel').filter(':input').val();
+            console.log(volt, curr, vrange, crange);
+                nedm.send_command({
+                    cmd_name: "setsource",
+                    arguments: [sel, parseFloat(volt), parseFloat(curr), parseFloat(vrange), parseFloat(crange)],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        enable_ui();
+                        if (o && o.ok) {
+                        }
+                    },
+                    quiet: true
+                });
+        });
+
+        $('.get_ps_params', $($theDiv)).on('click', function () {
+            disable_ui();
+            var sel = $('.coil_selector').filter(':input').val();
+            var sett = settings_dict[$('.select-setting-sel').filter(":input").val()].value[sel];
+            $('.supply_name').val(settings_dict.bilt_config.value[sel].Name);
+            $('.supply_nr').val(sel);
+            $('.coil_volt').val(sett.SetVolt);
+            $('.coil_curr').val(sett.SetCurr);
+            $('.coil_voltrange_sel').val(sett.SetVoltRange);
+            $('.coil_currrange_sel').val(sett.SetCurrRange);
+            nedm.send_command({
+                cmd_name: "getsource",
+                arguments: [sel],
+                timeout: 5000,
+                callback: function(e,o) {
+                    enable_ui();
+                    $('.coil_volt_read').val(o.return[0]);
+                    $('.coil_curr_read').val(o.return[1]);
+                    $('.coil_voltrange_read').val(o.return[2].slice(0,-2));
+                    $('.coil_currrange_read').val(o.return[3].slice(0,-2));
+                    if (o.return[4] == "On" || o.return[4] == 'Off'){
+                        $('.on_switch').val(o.return[4]).slider('refresh');
+                    }
+                    else {
+                        console.log(o.return[4]);
+                    }
+                    },
+                quiet: true
+            });
+        });
+        
+        $('.reset_ps_params', $($theDiv)).on('click', function () {
+            var sel = $('.coil_selector').filter(':input').val();
+            var sett = settings_dict[$('.select-setting-sel').filter(":input").val()].value[sel];
+            $('.supply_name').val(settings_dict.bilt_config.value[sel].Name);
+            $('.supply_nr').val(sel);
+            $('.coil_volt').val(sett.SetVolt);
+            $('.coil_curr').val(sett.SetCurr);
+            $('.coil_voltrange').val(sett.SetVoltRange);
+            $('.coil_currrange').val(sett.SetCurrRange);
+        });
+
+        $('.on_switch', $($theDiv)).on('change', function () {
+            disable_ui();
+            var sel = $('.on_switch').val();
+            var src = $('.coil_selector').filter(':input').val();
+            if ( sel === "Off"  ) {
+                nedm.send_command({
+                    cmd_name: 'off',
+                    arguments: [src],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        enable_ui();
+                    }
+                });
+            }
+            if ( sel === "On"  ) {
+                nedm.send_command({
+                    cmd_name: 'on',
+                    arguments: [src],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        enable_ui();
+                    }
+                });
+            }
+
+        });
+
+        $('.save_editor', $($theDiv)).on('click', function () {
+            if ($('.save_check', $($theDiv)).prop("checked")) {
+                console.log('Checked');
+            } else {
+                console.log("Not checked");
+            }
+        });
+
+
+        var disable_all = function() {
+            $(':button,[type=text]', $($theDiv)).addClass('ui-disabled');
+        };
+        var enable_all = function() {
+            $(':button,[type=text]', $($theDiv)).removeClass('ui-disabled');
+        };
+        var sel = $('.read_functions', $($theDiv)).filter(':input');
+        $.each(anobj.read_functions, function(val, text) {
+          sel.append($('<option/>').val(val).text(text));
+        });
+        sel.selectmenu('refresh', true);
+        sel = $('.write_functions', $($theDiv)).filter(':input');
+        $.each(anobj.write_functions, function(val, text) {
+          sel.append($('<option/>').val(val).text(text[0]).data('should_enable', (text[1] == 1)));
+        });
+        sel.selectmenu('refresh', true);
+        var sync_func = function(e) {
+          var o = $(':selected', $(e.target));
+          if (o.data('should_enable')) {
+            $('.input_text', $($theDiv)).removeClass('ui-disabled');
+          } else {
+            $('.input_text', $($theDiv)).addClass('ui-disabled');
+          }
+        };
+        sync_func({ target : sel });
+        sel.change(sync_func);
+
+        $('.channel_spinner1,.channel_spinner2,.channel_spinner3', $($theDiv)).filter(':input').each(
+          function() {
+            for (var i=1;i<40;i++) {
+              $(this).append($('<option/>').val(i).text('Ch ' + i.toString()));
+            }
+            $(this).selectmenu('refresh', true);
+        });
+        var channel_clone = $('.ramp_channel_ctrl_collapse', $($theDiv)).clone();
+        $($theDiv).trigger('refresh');
+
+        $( '.get_value_class', $($theDiv) ).on('click', function () {
+          var cmd = $('.read_functions :selected', $($theDiv)).val();
+          var chan = $('.channel_spinner1 :selected', $($theDiv)).val();
+          nedm.send_command( { cmd_name : cmd,
+                               arguments : [ parseFloat(chan) ],
+                               timeout : 5000,
+                               callback: function(e, o) {
+                                 if (o && o.ok) {
+                                     $('.output_text', $($theDiv)).val(o.return);
+                                 }
+                                 enable_all();
+                               }
+                             });
+        });
+        $( '.set_value_class', $($theDiv) ).on('click', function () {
+          var o = $('.write_functions :selected', $($theDiv));
+          var cmd = o.val();
+          var chan = $('.channel_spinner2 :selected', $($theDiv)).val();
+          var args = [ parseFloat(chan) ];
+          if (o.data('should_enable')) {
+            args[1] = $('.input_text', $($theDiv)).val();
+          }
+          nedm.send_command( { cmd_name : cmd,
+                               arguments : args,
+                               timeout : 5000,
+                               callback: function(e, o) {
+                                 enable_all();
+                                 sync_func({ target : sel });
+                               }
+                             });
+        });
+
+        var disable_ramp_ctr = function() {
+          $('.ramper_div', $($theDiv)).addClass('ui-disabled');
+        };
+        var enable_ramp_ctr = function() {
+          $('.ramper_div', $($theDiv)).removeClass('ui-disabled');
+        };
+        var disable_all_ctr = function() {
+          $(':not(div,.stop_ramp)', $('.advanced_ramp_function')).each( function() {
+            $(this).addClass('ui-disabled');
+          });
+        };
+        var enable_all_ctr = function() {
+          $(':not(div,.stop_ramp)', $('.advanced_ramp_function')).each( function() {
+            $(this).removeClass('ui-disabled');
+          });
+        };
+
+        // Now the lower controls for ramping
+        var popup_return = function(ret) {
+          $('.text_results').empty();
+          for (var j=0;j<ret.length;j++) {
+              $('.text_results').append($('<p/>').append(ret[j]));
+          }
+          $('.show_ramp_results').popup('open');
+        };
+
+        $( '.send_ramp_data', $($theDiv)).on('click', function() {
+          disable_ramp_ctr();
+          var adoc = {
+            'time_length' : $('.ramp_time', $($theDiv)).val(),
+            'channels' : []
+          };
+          var i = 0;
+          $('.ramp_channel_ctrl_collapse', $($theDiv)).each( function() {
+              adoc.channels[i] = {
+                type : $('.ramp_type :selected', $(this)).val(),
+                nr   : $('.channel_spinner3 :selected', $(this)).val(),
+                min  : $('.min_ramp_value', $(this)).val(),
+                max  : $('.max_ramp_value', $(this)).val()
+              };
+              i += 1;
+          });
+          nedm.send_command( { cmd_name : 'setup_ramp',
+                               arguments: [adoc],
+                               timeout  : 10000,
+                               callback : enable_ramp_ctr} );
+        });
+        $( '.run_ramp', $($theDiv)).on('click', function() {
+          disable_all_ctr();
+          var run_ramp_sync = function() {
+            nedm.get_most_recent_value('ramp_running', function(err, obj) {
+              if (!err && obj.rows.length == 1) {
+                if (obj.rows[0].value !== 0) {
+                  setTimeout(run_ramp_sync, 1500);
+                  return;
+                }
+              }
+              enable_all_ctr();
+            });
+          };
+          nedm.send_command( { cmd_name : 'run_ramp',
+                               timeout  : 10000,
+                               callback : run_ramp_sync} );
+        });
+        $( '.stop_ramp', $($theDiv)).on('click', function() {
+          nedm.send_command( { cmd_name : 'stop_macro',
+                               timeout  : 10000} );
+        });
+
+        $( '.read_ramp_data', $($theDiv)).on('click', function() {
+          nedm.send_command( { cmd_name : 'read_macro_data',
+                               timeout  : 10000,
+                               callback : function(o) {
+                                   if ((!o || !o.ok)) return;
+                                   popup_return(o.return);
+                               }} );
+        });
+        $( '.read_and_clear', $($theDiv)).on('click', function() {
+          nedm.send_command( { cmd_name : 'readallerrors',
+                               timeout  : 10000,
+                               callback : function(o) {
+                                   if ((!o || !o.ok)) return;
+                                   popup_return(o.return);
+                               }} );
+        });
+
+        function removeChannel(ev, ui) {
+          $(ev.currentTarget).closest('.ramp_channel_ctrl_collapse').remove();
+          var all_channels = $('.ramp_channel_ctrl_collapse', $($theDiv));
+          if ( all_channels.length === 1) {
+            $('.delete_btn', $(all_channels[0])).addClass('ui-disabled');
+          }
+        }
+
+
+        $( '.advanced_ramp_function .add_ramp_channel', $($theDiv)).on('click', function() {
+          var t = channel_clone.clone();
+          $('.ramper_channels', $($theDiv)).append(t).trigger('create');
+          $('.ramper_channels .delete_btn').removeClass('ui-disabled');
+          $('.delete_btn', $($theDiv)).off().on('click', removeChannel);
+        });
+
+        //*****************************************************
+        // Set up text editor
+        var cmt = $('.code_editor', $($theDiv));
+        var jsoneditor = require('jsoneditor');
+        var editor = new jsoneditor(cmt[0], { mode: 'code'});
+
+        $('.parameter_code_collapsible', $($theDiv)).on("collapsibleexpand", function() {
+          editor.resize();
+        });
+
+        //*****************************************************
+
+    }
+ """
+
+}
