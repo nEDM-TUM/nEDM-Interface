@@ -942,7 +942,7 @@ function nEDMDB(url) {
 
 
 exports.UseDB = nEDMDB
-old_db.use = UseDB;
+old_db.use = exports.UseDB;
 exports.on_cloudant = function(avar) {
   on_cloudant = avar;
 };
