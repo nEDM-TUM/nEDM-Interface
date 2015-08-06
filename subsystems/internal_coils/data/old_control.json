@@ -1,7 +1,7 @@
 {
-  "_id" : "master_control",
+  "_id" : "master_control_old",
   "type" : "control",
-  "title" : "Master Controls",
+  "title" : "Master Controls old",
   "description" : "Control the internal coils",
   "read_functions" : {
     "getstatus" : "Status",
