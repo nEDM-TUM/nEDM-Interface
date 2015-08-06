@@ -127,12 +127,12 @@
 
                     );
         
-        var disable_ui = function() {
+        var disable_ui = function() {
             $('.to_disable', $($theDiv)).addClass('ui-disabled');
             $('.on_switch').slider('disable');
         };
         
-        var enable_ui = function() {
+        var enable_ui = function() {
             $('.to_disable', $($theDiv)).removeClass('ui-disabled');
             $('.on_switch').slider('enable');
         };
