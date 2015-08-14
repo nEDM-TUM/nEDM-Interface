@@ -129,6 +129,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                     <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class="external_freq">
                     <label><input type="checkbox" class='set_freq_ext'>Use ext clk (give input in Hz)</label>
                 </div>
+                <div data-role='controlgroup' data-type='horizontal'>
+                    <input type='text' data-wrapper-class='controlgroup-textinput ui-btn' class="downsample">
+                    <label><input type="checkbox" class='set_downsample'>Downsample data</label>
+                </div>
             </div>
             <label><input type="range" value="50" min="0" max="100" class="timeWindow"/>Time window (ms)</label>
           </div>
@@ -674,6 +678,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           var meas_name = $('.meas_name', $(thediv)).val();
           settings.readoutTime = buf_size; // Save readoutTime
           buf_size = parseInt(buf_size * data_per_ms);
+          settings.downsample = 1;
+          if ($('.set_downsample', $(thediv)).is(':checked')) {
+              settings.downsample = parseInt($('.downsample', $(thediv)).val());
+          }
           x.sendObj({
               cmd: "startReadout",
               args: { should_upload : upload_data,
@@ -682,6 +690,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                                 log : com,
                            logitems : add_header,
                         buffer_size : buf_size,
+                         downsample : settings.downsample,
                        channel_list : ssc,
                            mod_list : mods }
           });
@@ -939,6 +948,18 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       });
 
       $('.connectBtn', $(thediv)).on("click", connect);
+      $('.set_downsample', $(thediv)).on("click", function(ev) {
+        var ds_settings = $('.downsample', $(thediv));
+        if ($(ev.currentTarget).is(":checked")) {
+             var val = parseInt(ds_settings.val());
+             if (isNaN(val) || val < 1) {
+                 ds_settings.val("1");
+             }
+             ds_settings.addClass('ui-disabled');
+        } else {
+             ds_settings.removeClass('ui-disabled');
+        }
+      });
       $('.set_freq_ext', $(thediv)).on("click", function(ev) {
         var is_checked = $(ev.currentTarget).is(":checked");
         var freq = null;
