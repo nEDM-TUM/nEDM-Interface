@@ -1,6 +1,6 @@
 {
   "_id" : "subsystem_information",
-  "prettyname" : "Temperature Environment",
+  "prettyname" : "Temperature & Environment",
   "pages" : {
         "Control" : "control.html",
         "Monitor" : "monitor.html"
