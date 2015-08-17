@@ -56,10 +56,20 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <option>Select IP:</option>
         </select>
         <input type="button" value="Request digitizer" class="reqDigi" disabled>
-        <input type="button" value="Release digitizer" class="relDigi" disabled>
+        <input type="button" value="Release digitizer" 
+         data-cmd-name="releaseDigitizerControl"
+         data-no-digitizer="true"
+         class="relDigi cardOn" disabled>
     </div>
     <div data-role="controlgroup" data-type="horizontal">
-        <input type="button" value="Reboot digitizer" class="rebootDigi" disabled>
+        <input type="button" value="Reset readout" class="resetDigi cardOn" 
+         data-cmd-name="resetReadout"
+         data-reset-on-return="true"
+         disabled>
+        <input type="button" value="Reboot digitizer" class="rebootDigi cardOn"
+         data-cmd-name="rebootCard"
+         data-reset-on-return="true"
+         disabled>
     </div>
     <div class="digitizerControl ui-disabled">
         <div class="show_plot"></div>
@@ -499,7 +509,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
 
       function enableIPSelection() {
           $(".reqDigi", $(thediv)).button("option", "disabled", false);
-          $(".relDigi,.rebootDigi", $(thediv)).button("option", "disabled", true);
+          $(".cardOn", $(thediv)).button("option", "disabled", true);
           $('.selectIPAddress', $(thediv)).filter(':input').selectmenu("enable");
       }
 
@@ -508,7 +518,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               // re-enable interface
               enableIPSelection();
           } else {
-              $(".relDigi,.rebootDigi", $(thediv)).button("option", "disabled", false);
+              $(".cardOn", $(thediv)).button("option", "disabled", false);
               x.sendObj({
                   cmd: "getChannels",
                   embed: true
@@ -533,15 +543,12 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           x.sendObj({ cmd : 'requestDigitizerControl', args : { ip_addr : ip } }, true);
       });
 
-      $('.relDigi', $(thediv)).on("click", function (ev) {
+      $('.relDigi,.rebootDigi,.resetDigi', $(thediv)).on("click", function (ev) {
           $(ev.currentTarget).button("option", "disabled", true);
-          x.sendObj({ cmd : 'releaseDigitizerControl' }, true);
+          x.sendObj({ cmd : $(ev.currentTarget).data('cmdName') },
+                    $(ev.currentTarget).data('noDigitizer'));
       });
 
-      $('.rebootDigi', $(thediv)).on("click", function (ev) {
-          $(ev.currentTarget).button("option", "disabled", true);
-          x.sendObj({ cmd : 'rebootCard' });
-      });
       function appendData(dat) {
           data = dat;
           g.updateOptions({
@@ -594,7 +601,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           $('.startButton', $(thediv)).button("option", "disabled", false);
           $('.stopButton', $(thediv)).button("option", "disabled", true);
           $('.adv_options', $(thediv)).removeClass("ui-disabled");
-          $('.relDigi', $(thediv)).button("option", "disabled", false);
+          $('.cardOn', $(thediv)).button("option", "disabled", false);
       }
 
       function getChannels(obj) {
@@ -663,7 +670,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           }
 
           $('.startButton', $(thediv)).button("option", "disabled", true);
-          $('.relDigi', $(thediv)).button("option", "disabled", true);
+          $('.cardOn', $(thediv)).button("option", "disabled", true);
           var upload_data = $('.upload_data', $(thediv)).is(':checked');
           var save_data = $('.save_data', $(thediv)).is(':checked');
           if (!upload_data) {
@@ -880,6 +887,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
               if (!("ok" in msg)) {
                   toastr.error("<pre class='result'>" + msg.error + "</pre>");
               }
+              $('[data-cmd-name=' + msg.cmd + '][data-reset-on-return=true]').button("option", "disabled", false);
 
               // Now call the correct callback function
               var cmd = msg.cmd;
