@@ -322,6 +322,7 @@ function HandleLocalStorage(ev) {
   if (useLocalStorage && !localStorage.aggregate_feed_running) {
     // Means another tab died
     window.removeEventListener('storage', HandleLocalStorage);
+    ResetLocalStorage(true);
     ListenToDBChanges();
   } else {
     if (ev.key !== "nedm_aggregate") return;
@@ -341,22 +342,36 @@ function StartFeed() {
   aggr.listen_to_changes_feed(HandleDatabaseChanges, { since : "now" });
 }
 
+/**
+ * Refreshes updates by removing aggregate feed running
+ *
+ * @private
+ */
+
 function RefreshUpdates() {
-  if (iAmActiveListener) {
-    ResetLocalStorage(true);
-  } else {
-    localStorage.removeItem('aggregate_feed_running');
-  }
+  // This function is called by a button press
+  localStorage.removeItem('aggregate_feed_running');
+
+  // The previous removeItem call calls the following function in all tabs.  We
+  // call it explicitly here.
   HandleLocalStorage( { key : "" } );
 }
 
+/**
+ * Reset the local storage, and cancels feed if shutdown is true.
+ *
+ * @private
+ */
+
 function ResetLocalStorage(shutdown) {
    if (iAmActiveListener) {
-     localStorage.removeItem('aggregate_feed_running');
-     iAmActiveListener = false;
-     if (shutdown) {
-       get_database('nedm%2Faggregate').cancel_changes_feed( HandleDatabaseChanges );
+     if (localStorage.aggregate_feed_running) {
+       localStorage.removeItem('aggregate_feed_running');
      }
+     iAmActiveListener = false;
+   }
+   if (shutdown) {
+     get_database('nedm%2Faggregate').cancel_changes_feed( HandleDatabaseChanges );
    }
 }
 
