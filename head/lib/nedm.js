@@ -33,10 +33,18 @@ function UpdateButtons() {
       if (user_status === null) {
           loginbtn.show();
           logoutbtn.hide();
+          $('.db-updates-refresh').off()
+                    .hide()
+                    .prop("disabled", true);
+
       } else {
           logoutbtn.text("Logout (" + user_status + ")");
           logoutbtn.show();
           loginbtn.hide();
+          $('.db-updates-refresh').prop("disabled", false)
+                   .show()
+                   .off()
+                   .on("click", RefreshUpdates);
       }
       $("a[id*=homebtn]").attr("href", using_prefix);
     });
@@ -315,9 +323,10 @@ function HandleLocalStorage(ev) {
     // Means another tab died
     window.removeEventListener('storage', HandleLocalStorage);
     ListenToDBChanges();
+  } else {
+    if (ev.key !== "nedm_aggregate") return;
+    HandleDatabaseChanges( { data : ev.newValue }, true );
   }
-  if (ev.key !== "nedm_aggregate") return;
-  HandleDatabaseChanges( { data : ev.newValue }, true );
 }
 
 /**
@@ -330,6 +339,15 @@ function StartFeed() {
   var aggr = get_database('nedm%2Faggregate');
   aggr.cancel_changes_feed( HandleDatabaseChanges );
   aggr.listen_to_changes_feed(HandleDatabaseChanges, { since : "now" });
+}
+
+function RefreshUpdates() {
+  if (iAmActiveListener) {
+    ResetLocalStorage(true);
+  } else {
+    localStorage.removeItem('aggregate_feed_running');
+  }
+  HandleLocalStorage( { key : "" } );
 }
 
 function ResetLocalStorage(shutdown) {
@@ -365,10 +383,9 @@ function ListenToDBChanges() {
                iAmActiveListener = true;
                toastr.info("This window is now the master aggregate listener", _agg_msg_title);
                StartFeed();
-             } else {
-               // Call again, it will just listen to storage events
-               ListenToDBChanges();
              }
+             // Call again, it will just listen to storage events
+             ListenToDBChanges();
            });
         }
       } else {
