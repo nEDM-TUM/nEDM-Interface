@@ -396,8 +396,11 @@ function ListenToDBChanges() {
              if (should_listen) {
                localStorage.aggregate_feed_running = "true";
                iAmActiveListener = true;
+               $('.masterListener').show();
                toastr.info("This window is now the master aggregate listener", _agg_msg_title);
                StartFeed();
+             } else {
+               $('.masterListener').hide();
              }
              // Call again, it will just listen to storage events
              ListenToDBChanges();
