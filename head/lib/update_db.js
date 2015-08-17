@@ -682,6 +682,16 @@ function nEDMDB(url) {
             open_changes_feeds[url].removeListener(callback);
             callback_functions.callbacks.splice(index, 1);
             callback_functions.urls.splice(index, 1);
+            var delete_urls = [];
+            for (url in open_changes_feeds) {
+                if ( callback_functions.urls.indexOf( url ) === -1 ) {
+                  delete_urls.push(url);
+                }
+            }
+            delete_urls.forEach( function(url) {
+                open_changes_feeds[url].close();
+                delete open_changes_feeds[url];
+            });
         };
 
         /**
