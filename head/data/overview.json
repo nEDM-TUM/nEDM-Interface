@@ -3,7 +3,12 @@
   "type" : "control_template",
   'body' : """
             <h1 >Overview</h1>
-            <div class='all_shown_variables'>
+            <div class='gridster'>
+              <ul>
+              </ul>
+            </div>
+            <div data-role='controlgroup' data-type='horizontal'>
+                <label><input type='checkbox' class='edit_current'/>Move/Resize</label>
             </div>
             <div class='set_new_variable'>
               <h2>Add variable (requires admin rights)</h2>
@@ -15,73 +20,91 @@
 
             </div>
 """,
-  'footer' : """
-    <div class='ui-field-contain db_template' style='display:none;'>
-      <h3 class='db_name'></h3>
-      <div class='ui-grid-c variable_template' style='display:none;'>
-        <div class='ui-block-a'>
-          <button class='delete_over_var ui-btn ui-shadow ui-corner-all ui-icon-delete ui-btn-icon-notext'>Delete</button>
-        </div>
-        <div class='ui-block-b'>
-          <h3 class='variable_name'></h3>
-        </div>
-        <div class='ui-block-c'>
-          <h4 class='variable_val'></h4>
-        </div>
-        <div class='ui-block-d'>
-          <p style='color:blue;' class='last_saved'></p>
-        </div>
-      </div>
-    </div>
-""",
   'script' : """
-    var clock_text = $('.last_checked');
-    var time_out = null;
-    var delete_overview_var = function(ev) {
-        nedm.get_database('nedm_head').getDoc($(ev.currentTarget).parents('.variable_deployed').data('id'),
+    var delete_btn_txt = "<div class='header'><button class='delete_over_var ui-btn ui-shadow ui-corner-all ui-icon-minus ui-btn-icon-notext'>Delete</button></div>";
+    var dbs = {};
+    var gridster;
+    var isEditing = false;
+    function delete_overview_var(ev) {
+        var id = $(ev.currentTarget).data('id');
+        gridster.remove_widget($(ev.currentTarget).closest('li'));
+        nedm.get_database('nedm_head').getDoc(id,
           function(e, doc) {
             if (e !== null) return;
             nedm.get_database('nedm_head').removeDoc(doc, function(ee, o) {
               if (ee) {
                 nedm.show_error_window(ee.error, ee.reason);
-              } else refresh_all();
+              }
+              refresh_all();
             });
           });
-    };
-    var SyncObject = {};
-    function SyncForADB(adb) {
-      return function(msg) {
-        $('.variable_deployed').each( function() {
-          var x = $(this);
-          var d = x.data();
-          var var_name = d.var;
-          if (d.db !== adb || !msg[var_name]) return;
-          var obj = msg[var_name];
-          var k = obj.time;
-          var v = obj.value;
-          var t = new Date(Date.UTC.apply(this, k));
-          var now = new Date();
-          var bgd_color = '';
-          if ((now-t) > 20000) bgd_color = '#ED4337';
-          else if ((now-t) > 10000) bgd_color = '#FFFC7F';
+    }
 
-          $('.variable_val', $(x)).text(v).css('background-color', bgd_color);
-          $('.last_saved', $(x)).text('Last updated: ' + t.toUTCString());
-        });
-
+    function serializePositions($w, wgd) {
+      return {
+        col: wgd.col,
+        row: wgd.row,
+        size_x: wgd.size_x,
+        size_y: wgd.size_y,
+        var_name: $w.data().var_name,
+        id: $w.data().id
       };
     }
 
-    var get_overview_vars = function(all_dbs) {
+    function positionKey(var_name, id) {
+      return var_name + "," + id;
+    }
+    function savePositions() {
+      var obj = {};
+      gridster.serialize().forEach( function(o) {
+        obj[positionKey(o.var_name, o.id)] = [o.size_x, o.size_y, o.col, o.row];
+      });
+      localStorage.overview_head = JSON.stringify(obj);
+    }
+
+    function getPosition(var_name, id) {
+      if (typeof localStorage.overview_head === "undefined") return null;
+      return JSON.parse(localStorage.overview_head)[positionKey(var_name, id)];
+    }
+
+    function get_gridster() {
+      if (gridster) return gridster;
+      $('.gridster').empty();
+      $('.gridster').append($('<ul/>'));
+      gridster = $('.gridster > ul').gridster({
+          widget_base_dimensions: [100, 55],
+          //widget_class: ".widget",
+          widget_margins: [5, 5],
+          helper: 'clone',
+          draggable: {
+              handle: ".header"
+          },
+          autogrow_cols : true,
+          serialize_params : serializePositions,
+          resize: {
+              enabled: true,
+              stop: resize,
+              resize: resize
+          }
+      }).data('gridster');
+      return gridster;
+    }
+
+    function get_overview_vars(all_dbs) {
         nedm.get_database('nedm_head').getView('overview_vars',
                                                'overview_vars',
            { opts : { reduce : false } },
            function( e, o ) {
              if (e !== null) return;
-             var k, r = o.rows;
-             var dbtoclone = $('.db_template');
-             var svs = $('.all_shown_variables');
-             var dbs = {};
+             var now = new Date(Date.now() - 600000),
+                 k,
+                 r = o.rows,
+                 current_shown = $('.gridster ul li').map( function() {
+                   return $(this).data('var_name');
+                 }).toArray(),
+                 grid = get_gridster();
+
+
              for (var i=0;i<r.length;i++) {
                k = r[i].key[0];
                var v = r[i].key[1];
@@ -89,28 +112,33 @@
                if (! (k in dbs) ) {
                  var dbn = /nedm%2F(.*)/.exec(k)[1];
                  if (!(dbn in all_dbs)) continue;
-                 dbs[k] = dbtoclone.clone();
-                 dbs[k].show();
-                 $('.db_name', $(dbs[k])).text(all_dbs[dbn].prettyname);
-                 svs.append(dbs[k]);
+                 dbs[k] = { prettyname : all_dbs[dbn].prettyname, vars : {}};
                }
-               if ( dbs[k].data(v) ) continue;
-               dbs[k].data(v, true);
-               var new_clone = $('.variable_template', $(dbs[k])).clone();
-               new_clone.show();
-               new_clone.data({ db : k, var : v, id : id});
-               new_clone.addClass('variable_deployed').removeClass('variable_template');
-               $(dbs[k]).append(new_clone);
-               $('.variable_name', $(new_clone)).text(v);
+               dbs[k].vars[v] = id;
+               var thename = dbs[k].prettyname + ": " + v;
+               if (current_shown.indexOf(thename) !== -1) continue;
+               var widget = ["<li>" + delete_btn_txt + "<div class='graph_show'></div></li>"];
+               var pos = getPosition(thename, id);
+               if (pos) {
+                 widget.push.apply(widget, pos);
+               } else {
+                 widget.push(4, 2);
+               }
+               var new_clone = grid.add_widget.apply(grid, widget);
+               var gr = new nedm.MonitoringGraph($('.graph_show', new_clone)[0],
+                 [v], now, nedm.get_database(k), {
+                   title : thename,
+                   height : 0
+               });
+               $('.graph_show', new_clone).data('graph', gr);
+               new_clone.data({var_name : thename, id : id});
+               $('.delete_over_var', $(new_clone)).data('id', id);
                if ( id === 'overview_vars_default') $('.delete_over_var', $(new_clone)).addClass('ui-disabled');
              }
-             for (k in dbs) {
-               SyncObject[k] = SyncForADB(k);
-               nedm.get_database(k).on("latest", SyncObject[k]);
-             }
-             svs.trigger('create');
              // Set up the button functions
-             $('.delete_over_var').on('click', delete_overview_var);
+             $('.delete_over_var').off().on('click', delete_overview_var);
+             updateEditing();
+
 
              function get_vars_for_db(x) {
                return function(keys) {
@@ -129,14 +157,16 @@
              }
              adb.selectmenu('refresh', true);
       });
-    };
-    var refresh_all = function() {
-      $('.all_shown_variables').empty();
+    }
+    function resize(ev, ui, $widget) {
+        $('.graph_show', $widget).data('graph').graph.resize();
+    }
+    function refresh_all() {
       nedm.get_database_info(function(d) {
         get_overview_vars(d);
       });
-    };
-    var submit_new_variable = function() {
+    }
+    function submit_new_variable() {
       var d = $('.all_dbs :selected').data('db_name');
       var vn = $('.variable_for_db :selected').text();
       var submit_o = { type : 'overview_vars', vars : {} };
@@ -147,18 +177,44 @@
            nedm.show_error_window(e.error, e.reason);
          } else refresh_all();
        });
-    };
+    }
 
-    (function() {
-      refresh_all();
-      $('.all_dbs').change( function(ev) {
-        var opt = $(':selected', $(ev.currentTarget));
-        var vdb = $('.variable_for_db').filter(':input');
-        vdb.find('option').remove();
-        opt.data('all_keys').forEach( function(o) { vdb.append($('<option/>').val(o).text(o)); } );
-        vdb.selectmenu('refresh', true);
-      });
-      $('.submit_new_variable').on('click', submit_new_variable);
-    }());
+    function updateEditing() {
+      var awidth = 50;
+      if ( isEditing ) {
+        $('.gridster li > .header').width(awidth + "px").show();
+        $('.gridster li > .graph_show').css('left', awidth + "px").each( function() {
+          $(this).data('graph').graph.resize();
+        });
+        gridster.enable_resize();
+      } else {
+        $('.gridster li > .header').width("0px").hide();
+        $('.gridster li > .graph_show').css('left', "0px").each( function() {
+          $(this).data('graph').graph.resize();
+        });
+        gridster.disable_resize();
+        savePositions();
+      }
+    }
+
+    //theCurrentPage.on("pagecreate", function() {
+    refresh_all();
+    $('.all_dbs').change( function(ev) {
+      var opt = $(':selected', $(ev.currentTarget));
+      var vdb = $('.variable_for_db').filter(':input');
+      vdb.find('option').remove();
+      opt.data('all_keys').forEach( function(o) { vdb.append($('<option/>').val(o).text(o)); } );
+      vdb.selectmenu('refresh', true);
+    });
+    $('.submit_new_variable').on('click', submit_new_variable);
+    $('.edit_current').on('click', function(ev) {
+      isEditing = $(ev.currentTarget).is(":checked");
+      if ( isEditing ) {
+        $(ev.currentTarget).text("End edit");
+      } else {
+        $(ev.currentTarget).text("Edit current");
+      }
+      updateEditing();
+    });
 """
 }
