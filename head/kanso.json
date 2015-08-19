@@ -28,6 +28,7 @@
     "jsoneditor" : null,
     "dsp" : null,
     "autobahn" : null,
+    "gridster-js" : null,
     "underscore" : null 
   } 
 }

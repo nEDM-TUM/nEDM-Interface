@@ -17,6 +17,7 @@ var events = require("events");
 var dygraphs = require("dygraph-combined");
 var toastr = require("toastr");
 var cookie = require("js-cookie");
+require("gridster-js");
 cookie.json = true;
 
 /**
