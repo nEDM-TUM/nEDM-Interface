@@ -163,26 +163,21 @@
 
         (function() {
             $( '.db_monitor_class' ).off('pageinit').on( 'pageinit', function(ev, ui) {
-                var addr = '/nedm_head/_design/nedm_head/_show/define_control/graph_template';
                 var tthis = $(this);
                 var evv = ev;
                 var uii = ui;
-                $.ajax({ type: 'POST',
-                         url: addr,
-                         data: JSON.stringify({}),
-                         success: function(e) {
-                             graph_template = e;
-                             if (e.doc && e.doc.script) {
-                                 /* jshint ignore:start */
-                                 graph_template.script = eval('(' + e.doc.script + ')');
-                                 /* jshint ignore:end */
-                             }
-                             getAvailableItems(evv, uii);
-                             // Set up also for later
-                             tthis.on('pageshow', populateGraphsWithCookies);
-                             $('.makeNewPlot', $(evv.target)).removeClass('ui-disabled');
-                         }
-                });
+                nedm.get_database("nedm_head").getDoc("graph_template",
+                   function(e, o) {
+                       graph_template = o;
+                       /* jshint ignore:start */
+                       graph_template.script = eval('(' + o.script + ')');
+                       /* jshint ignore:end */
+                       getAvailableItems(evv, uii);
+                       // Set up also for later
+                       tthis.on('pageshow', populateGraphsWithCookies);
+                       $('.makeNewPlot', $(evv.target)).removeClass('ui-disabled');
+                   }
+                );
 
                 $('.makeNewPlot', $(ev.target)).off('click').on('click', makeNewGraph );
                 $('.removePlot', $(ev.target)).off('click').on('click', destroyGraph );
