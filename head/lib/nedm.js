@@ -809,6 +809,26 @@ function Dygraph($adiv, data, opts) {
     return new dygraphs.Dygraph($adiv, data, o);
 }
 
+/**
+ * Set and return global settings.  Internally, these settings should be
+ * persistent when closing a browser.
+ *
+ * @param {String} key - key to save global setting
+ * @param {Object|String|Number} [value] - value to set.  If not given, function reads out current value.
+ *
+ * @return {Object|String|Number} current globalSetting associated with key.  undefined if not found.
+ */
+
+function globalSetting(key, value) {
+  var settings = JSON.parse(localStorage.nedm_settings || '{}');
+  if ( typeof value !== 'undefined' ) {
+    settings[key] = value;
+    localStorage.nedm_settings = JSON.stringify(settings);
+    return value;
+  }
+  return settings[key];
+}
+
 var to_export = {
         Dygraph : Dygraph,
         keyFromDate : keyFromDate,
@@ -823,6 +843,7 @@ var to_export = {
         validate : validate,
         remove_db_updates : remove_db_updates,
         on_db_updates : on_db_updates,
+        globalSetting : globalSetting,
         MonitoringGraph : require("lib/monitoring_graph").MonitoringGraph
 };
 
