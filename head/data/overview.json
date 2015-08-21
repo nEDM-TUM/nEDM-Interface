@@ -198,24 +198,25 @@
       }
     }
 
-    //theCurrentPage.on("pagecreate", function() {
-    refresh_all();
-    $('.all_dbs').change( function(ev) {
-      var opt = $(':selected', $(ev.currentTarget));
-      var vdb = $('.variable_for_db').filter(':input');
-      vdb.find('option').remove();
-      opt.data('all_keys').forEach( function(o) { vdb.append($('<option/>').val(o).text(o)); } );
-      vdb.selectmenu('refresh', true);
-    });
-    $('.submit_new_variable').on('click', submit_new_variable);
-    $('.edit_current').on('click', function(ev) {
-      isEditing = $(ev.currentTarget).is(":checked");
-      if ( isEditing ) {
-        $(ev.currentTarget).text("End edit");
-      } else {
-        $(ev.currentTarget).text("Edit current");
-      }
-      updateEditing();
+    nedm.page.once("load", function() {
+      refresh_all();
+      $('.all_dbs', theCurrentPage).change( function(ev) {
+        var opt = $(':selected', $(ev.currentTarget));
+        var vdb = $('.variable_for_db', theCurrentPage).filter(':input');
+        vdb.find('option').remove();
+        opt.data('all_keys').forEach( function(o) { vdb.append($('<option/>').val(o).text(o)); } );
+        vdb.selectmenu('refresh', true);
+      });
+      $('.submit_new_variable', theCurrentPage).on('click', submit_new_variable);
+      $('.edit_current', theCurrentPage).on('click', function(ev) {
+        isEditing = $(ev.currentTarget).is(":checked");
+        if ( isEditing ) {
+          $(ev.currentTarget).text("End edit");
+        } else {
+          $(ev.currentTarget).text("Edit current");
+        }
+        updateEditing();
+      });
     });
 """
 }
