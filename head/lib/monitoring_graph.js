@@ -279,7 +279,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb, o
     /**
 	 * Return name (variables)
      *
-     * @return {Number} group level
+     * @return {Array} list of names
      * @public
      */
 
