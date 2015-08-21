@@ -70,9 +70,9 @@
 
     function get_gridster() {
       if (gridster) return gridster;
-      $('.gridster').empty();
-      $('.gridster').append($('<ul/>'));
-      gridster = $('.gridster > ul').gridster({
+      $('.gridster', theCurrentPage).empty();
+      $('.gridster', theCurrentPage).append($('<ul/>'));
+      gridster = $('.gridster > ul', theCurrentPage).gridster({
           widget_base_dimensions: [100, 55],
           //widget_class: ".widget",
           widget_margins: [5, 5],
@@ -100,7 +100,7 @@
              var now = new Date(Date.now() - 600000),
                  k,
                  r = o.rows,
-                 current_shown = $('.gridster ul li').map( function() {
+                 current_shown = $('.gridster ul li', theCurrentPage).map( function() {
                    return $(this).data('var_name');
                  }).toArray(),
                  grid = get_gridster();
@@ -137,17 +137,17 @@
                if ( id === 'overview_vars_default') $('.delete_over_var', $(new_clone)).addClass('ui-disabled');
              }
              // Set up the button functions
-             $('.delete_over_var').off().on('click', delete_overview_var);
+             $('.delete_over_var', theCurrentPage).off().on('click', delete_overview_var);
              updateEditing();
 
 
              function get_vars_for_db(x) {
                return function(keys) {
                  x.data( { all_keys : keys } );
-                 if ( x.prop('selected') ) $('.all_dbs').filter(':input').trigger('change');
+                 if ( x.prop('selected') ) $('.all_dbs', theCurrentPage).filter(':input').trigger('change');
                };
              }
-             var adb = $('.all_dbs').filter(':input');
+             var adb = $('.all_dbs', theCurrentPage).filter(':input');
              adb.find('option').remove();
              for (var kk in all_dbs) {
                var obj = $('<option/>').val(kk).text(all_dbs[kk].prettyname);
@@ -168,8 +168,8 @@
       });
     }
     function submit_new_variable() {
-      var d = $('.all_dbs :selected').data('db_name');
-      var vn = $('.variable_for_db :selected').text();
+      var d = $('.all_dbs :selected', theCurrentPage).data('db_name');
+      var vn = $('.variable_for_db :selected', theCurrentPage).text();
       var submit_o = { type : 'overview_vars', vars : {} };
       submit_o.vars[d] = [vn];
       nedm.get_database('nedm_head').updateDoc(
@@ -183,14 +183,14 @@
     function updateEditing() {
       var awidth = 50;
       if ( isEditing ) {
-        $('.gridster li > .header').width(awidth + "px").show();
-        $('.gridster li > .graph_show').css('left', awidth + "px").each( function() {
+        $('.gridster li > .header', theCurrentPage).width(awidth + "px").show();
+        $('.gridster li > .graph_show', theCurrentPage).css('left', awidth + "px").each( function() {
           $(this).data('graph').graph.resize();
         });
         gridster.enable_resize();
       } else {
-        $('.gridster li > .header').width("0px").hide();
-        $('.gridster li > .graph_show').css('left', "0px").each( function() {
+        $('.gridster li > .header', theCurrentPage).width("0px").hide();
+        $('.gridster li > .graph_show', theCurrentPage).css('left', "0px").each( function() {
           $(this).data('graph').graph.resize();
         });
         gridster.disable_resize();
