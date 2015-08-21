@@ -292,6 +292,7 @@ function RequestLockDatabase(callback) {
 
 // Internal EventEmitter object
 var _emitter = new events.EventEmitter();
+var _pageEvents = new events.EventEmitter();
 
 /**
  * Handles aggregate database messages (changes feed)
@@ -841,6 +842,7 @@ var to_export = {
         get_current_db_name : get_current_db_name,
         registerUser : registerUser,
         validate : validate,
+        page : _pageEvents,
         remove_db_updates : remove_db_updates,
         on_db_updates : on_db_updates,
         globalSetting : globalSetting,
@@ -921,9 +923,15 @@ $(document).on('mobileinit', function() {
     ud.on_cloudant(false);
 
   }
-  $(document).on('pageinit', function(x, y) {
+  $(document).on('pagecreate', function(x, y) {
       UpdateHeader(x, y);
       BuildDBList(x, y);
+  });
+
+  $(document).on('pagecontainershow', function() {
+     var tmp = Array.prototype.slice.call(arguments);
+     tmp.unshift('load');
+     _pageEvents.emit.apply(_pageEvents, tmp);
   });
 
   // Handle page load fails from couchDB, forward to error handling.
