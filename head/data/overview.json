@@ -59,12 +59,13 @@
       gridster.serialize().forEach( function(o) {
         obj[positionKey(o.var_name, o.id)] = [o.size_x, o.size_y, o.col, o.row];
       });
-      localStorage.overview_head = JSON.stringify(obj);
+      nedm.globalSetting("overview_head", obj);
     }
 
     function getPosition(var_name, id) {
-      if (typeof localStorage.overview_head === "undefined") return null;
-      return JSON.parse(localStorage.overview_head)[positionKey(var_name, id)];
+      var gs = nedm.globalSetting("overview_head");
+      if ( typeof gs === 'undefined' ) return undefined; 
+      return gs[positionKey(var_name, id)];
     }
 
     function get_gridster() {
