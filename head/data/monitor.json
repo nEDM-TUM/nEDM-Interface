@@ -77,6 +77,12 @@
             var position = info.position;
             position.unshift("<li>" + delete_btn_txt + graph_template.html + "</li>");
             var grid = get_gridster();
+            if (position[1] > grid.cols) {
+                position[1] = grid.cols;
+            }
+            if (position[2] > grid.rows) {
+                position[2] = grid.rows;
+            }
             var new_div = grid.add_widget.apply(grid, position);
             new_div.data("obj", new graph_template.script(new_div))
                    .data("window_num", window_num);
