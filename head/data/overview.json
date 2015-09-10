@@ -121,6 +121,13 @@
                var widget = ["<li>" + delete_btn_txt + "<div class='graph_show'></div></li>"];
                var pos = getPosition(thename, id);
                if (pos) {
+                 // Make sure the saved size is not too big.
+                 if (pos[0] > grid.cols) {
+                   pos[0] = grid.cols;
+                 }
+                 if (pos[1] > grid.rows) {
+                   pos[1] = grid.rows;
+                 }
                  widget.push.apply(widget, pos);
                } else {
                  widget.push(4, 2);
