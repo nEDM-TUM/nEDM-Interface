@@ -1,0 +1,8 @@
+{
+  "_id" : "subsystem_information",
+  "prettyname" : "Scratch",
+  "pages" : {
+        "Monitor" : "monitor.html"
+  }
+
+}
