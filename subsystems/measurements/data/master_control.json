@@ -69,7 +69,7 @@
           };
           tthis.set = function(adiv, obj) {
             $('.cmd_name', $(adiv)).filter(':input').val(obj.cmd_name);
-            $('.all_args', $(adiv)).val(obj.args);
+            $('.all_args', $(adiv)).val(JSON.stringify(obj.args));
           };
 
           tthis.script = function(adiv, cbck) {
