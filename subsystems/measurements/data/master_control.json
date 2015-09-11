@@ -68,7 +68,7 @@
             };
           };
           tthis.set = function(adiv, obj) {
-            $('.cmd_name', $(adiv)).filter(':input').val(obj.cmd_name);
+            $('select.cmd_name', $(adiv)).val(obj.cmd_name).selectmenu('refresh');
             $('.all_args', $(adiv)).val(JSON.stringify(obj.args));
           };
 
@@ -314,7 +314,6 @@
         var all_dbs = [];
         var that = this;
         this.get_db = function(aname) {
-          if (!(aname in all_dbs)) return null;
           return all_dbs[aname];
         };
         this.add_db = function(aname) {
