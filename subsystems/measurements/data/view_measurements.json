@@ -105,8 +105,11 @@ href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
       }
     };
 
+    var updating_events = false;
     var get_events_on_day = function(begin, end, callback) {
+      if (updating_events) return;
       var cbck = callback;
+      updating_events = true;
       the_cal.addClass('ui-disabled');
       var tmp  = {  opts : {
                          reduce : false,
@@ -132,6 +135,7 @@ href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
                  };
              });
            }
+           updating_events = false;
            cbck(proc);
          });
     };
