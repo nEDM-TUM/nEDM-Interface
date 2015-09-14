@@ -29,6 +29,7 @@
     "dsp" : null,
     "autobahn" : null,
     "gridster-js" : null,
+    "handlebars" : null,
     "underscore" : null 
   } 
 }
