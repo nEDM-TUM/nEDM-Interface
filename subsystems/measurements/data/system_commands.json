@@ -1,0 +1,141 @@
+{
+  "_id" : "system_commands",
+  "type" : "export_commands",
+  "keys" : {
+    "log" : {
+      "Info" : {
+        "language" : "javascript",
+        "help_msg" : "log information given to function",
+        "function" : """function(args, callback) {
+  callback(null, {"return" : JSON.stringify(args)});
+  return {};
+}"""
+      }
+    },
+    "pause_time" : {
+      "Info" : {
+        "language" : "javascript",
+        "help_msg" : "Pause for set amount of time (in ms)",
+        "function" : """function(args, callback) {
+  var timeToPause = parseInt(args[0]);
+  var abort = false;
+  var $popUp = $("<div/>").addClass("ui-content center").popup({
+      dismissible: false,
+      theme: "a",
+      overlayTheme: "b",
+      transition: "pop"
+  }).on("popupafterclose", function () {
+      //remove the popup when closing
+      $(this).remove();
+      if (abort) {
+        callback({ error : "abort", reason : "User abort" });
+      } else {
+        callback(null, { "return" : "success" });
+      }
+  });
+  //create a title for the popup
+  $("<h2/>", {
+      text: "Pausing (" + timeToPause/1000 + " s)"
+  }).appendTo($popUp);
+  $("<progress value='0' max='100'/>").appendTo($popUp);
+
+  function abortProc() {
+      abort = true;
+      $popUp.popup("close");
+  }
+  function but(opts) {
+      opts.type = "button";
+      return $('<input/>').attr(opts);
+  }
+  $('<div/>').append(
+  but({
+    "value" : "Abort",
+    "data-icon" : "delete",
+  })
+  .on("click", abortProc))
+  .controlgroup( {
+    type : "horizontal"
+  }).appendTo($popUp);
+
+  $popUp.popup('open').trigger("create");
+
+  var timeToGo = timeToPause;
+  var updateTime = 1000;
+  function updateProgress() {
+    if (abort) return;
+    timeToGo -= updateTime;
+    if (timeToGo < 0) timeToGo = 0;
+    $('progress', $popUp).val(100*(timeToPause - timeToGo) / timeToPause);
+    if (timeToGo < updateTime) updateTime = timeToGo;
+    if (updateTime > 0) {
+      setTimeout(updateProgress, updateTime);
+    } else {
+      $popUp.popup("close");
+    }
+  }
+  setTimeout(updateProgress, updateTime);
+  return { abort : abortProc };
+}"""
+      }
+    },
+    "wait_user" : {
+      "Info" : {
+        "language" : "javascript",
+        "help_msg" : "Wait for user input",
+        "function" : """function(args, callback) {
+    var abort = false;
+    var $popUp = $("<div/>").addClass("ui-content center").popup({
+        dismissible: false,
+        theme: "a",
+        overlayTheme: "b",
+        transition: "pop"
+    }).on("popupafterclose", function () {
+        //remove the popup when closing
+        $(this).remove();
+        if (abort) {
+          callback({ error : "abort", reason : "User abort" });
+        } else {
+          callback(null, { "return" : "success" });
+        }
+    });
+    //create a title for the popup
+    $("<h2/>", {
+        text: "User wait"
+    }).appendTo($popUp);
+
+    //create a message for the popup
+    if (args.length > 0) {
+      $("<p/>", {
+          text: args[0]
+      }).appendTo($popUp);
+    }
+
+    function but(opts) {
+        opts.type = "button";
+        return $('<input/>').attr(opts);
+    }
+
+    $('<div/>').append(
+    but({
+      "value" : "Ok",
+      "data-icon" : "check"
+    }).on("click", function () {
+        $popUp.popup("close");
+    })).append(
+    but({
+      "value" : "Abort",
+      "data-icon" : "delete"
+    }).on("click", function () {
+        abort = true;
+        $popUp.popup("close");
+    })).controlgroup( {
+      type : "horizontal"
+    }).appendTo($popUp);
+
+    $popUp.popup('open').trigger("create");
+}"""
+      }
+    }
+
+  }
+}
