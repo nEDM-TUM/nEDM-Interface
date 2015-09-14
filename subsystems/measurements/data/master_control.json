@@ -38,7 +38,13 @@
             cmds.empty();
             cmds.on('change', function(e) {
               var dat = cmds.find(':selected').data('obj');
-              if (dat && dat.Info) cmd_info.text(dat.Info);
+              if (dat && dat.Info) {
+                if (typeof dat.Info === 'object') {
+                  cmd_info.text(dat.Info.help_msg);
+                } else {
+                  cmd_info.text(dat.Info);
+                }
+              }
             });
             database_cache.get_db(db_name).get_commands(function(all_cmds) {
               all_cmds.forEach( function(o) {
@@ -77,7 +83,12 @@
             var db_name = obj.db_name;
             var cmd_name = obj.cmd_name;
             var args = obj.args;
+            var dat = $('select.cmd_name', $(adiv)).find(':selected').data('obj');
             if (!Array.isArray(args)) args = [args];
+            if (dat && typeof dat.Info === 'object' && dat.Info.language === 'javascript') {
+                var func = eval('(' + dat.Info.function + ')');
+                return func(args, cbck);
+            }
             return nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
               arguments : args,
               callback : cbck,
