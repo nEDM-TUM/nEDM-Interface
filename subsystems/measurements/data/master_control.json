@@ -424,11 +424,11 @@ For an example measurement using system functions, see:
       add_loop_after($('.current_protocol > h2', thediv));
 
       function moveUp(ev) {
-        var $el = $(ev.currentTarget).parents(".protocol_clone_act");
+        var $el = $(ev.currentTarget).closest(".protocol_clone_act");
         $el.prev().before($el);
       }
       function moveDown(ev) {
-        var $el = $(ev.currentTarget).parents(".protocol_clone_act");
+        var $el = $(ev.currentTarget).closest(".protocol_clone_act");
         $el.next().after($el);
       }
 
