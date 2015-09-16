@@ -142,7 +142,7 @@ For an example measurement using system functions, see:
                });
              };
              tthis.save = function(adiv, proc) {
-               var proc = proc || function(o) { return o; };
+               proc = proc || function(o) { return o; };
                return {
                  db_name : $('.all_dbs', $(adiv)).find(':selected').val(),
                  var_name : $('.var_name', $(adiv)).find(':selected').val(),
@@ -235,11 +235,16 @@ For an example measurement using system functions, see:
      </div>
 """,
   "loop_code" : """
-     <div>
-       <h2>Loop code</h2>
+   <div class="ui-body ui-body-a ui-corner-all">
+     <h3>Loop settings</h3>
+     <div data-role="collapsible" data-theme="b">
+       <h2>Code</h2>
        <div class='code_editor left'></div>
        <div data-role='controlgroup' data-type='horizontal'>
          <button class="ui-btn ui-icon-info ui-btn-icon-left help">Help</button>
+         <button class="ui-btn ui-icon-recycle ui-btn-icon-left check">Check output</button>
+       </div>
+       <div data-role="popup" class="ui-content check_output">
        </div>
        <div data-role="popup" class="ui-content loop_description">
 		 <p>The code written is in javascript or JSON and must be either a list
@@ -262,6 +267,7 @@ For an example measurement using system functions, see:
 </p>
        </div>
      </div>
+   </div>
 """,
 
   "html" : """
@@ -349,7 +355,7 @@ For an example measurement using system functions, see:
       theCurrentPage.find('.example_measurement').on('click', set_load_example);
 
       function add_loop_code_window($after) {
-          var $code_div = $(loop_code_clone).clone().collapsible( { theme : 'b' });
+          var $code_div = $(loop_code_clone).clone();
           $after.after($code_div);
           var $popUp = $code_div.find('[data-role=popup]')
               .css({
@@ -363,7 +369,19 @@ For an example measurement using system functions, see:
           ed.setTheme('ace/theme/xcode');
           $code_div.find('.code_editor').data({ edit : ed });
           $('.help', $code_div).on('click', function(ev) {
-            $popUp.popup("open");
+            $popUp.filter('.loop_description').popup("open");
+          });
+          $('.check', $code_div).on('click', function(ev) {
+            var fo = $popUp.filter('.check_output');
+            fo.empty();
+            try {
+              parse_loop_code($code_div.find('.code_editor')).forEach(function(o) {
+                 fo.append("<code>" + JSON.stringify(o) + ",</code><br>");
+              });
+            } catch (e) {
+              fo.append("<p>Error: " + e.name + "<br>Message: " + e.message + "</p>");
+            } 
+            fo.filter('.check_output').popup("open");
           });
           $code_div.on('collapsibleexpand', function() {
             ed.resize();
@@ -387,6 +405,22 @@ For an example measurement using system functions, see:
             add_loop_code_window($('.movement_arrows', pt.children(':last-child')));
           });
       }
+
+      function parse_loop_code($code_editor, proc) {
+          proc = proc || function(o) { return o; };
+          /* jshint -W061 */
+          var v_c = eval('(' + proc($code_editor.data('edit').getSession().getValue() || '[]') + ')');
+          if (typeof v_c === 'function') {
+            v_c = v_c();
+          }
+          if (!Array.isArray(v_c)) {
+            throw {name : "Not array", message : "object must either be an array or create an array"};
+          }
+          return v_c;
+      }
+
+
+
       add_loop_after($('.current_protocol > h2', thediv));
 
       function moveUp(ev) {
@@ -600,13 +634,7 @@ For an example measurement using system functions, see:
              if ($('.protocol_table', as).length !== 0) {
                var v_c;
                try {
-                 v_c = eval('(' + proc(as.find('.code_editor').first().data('edit').getSession().getValue() || '[]') + ')');
-                 if (typeof v_c === 'function') {
-                   v_c = v_c();
-                 }
-                 if (!Array.isArray(v_c)) {
-                   throw {name : "Not array", message : "object must either be an array or create an array"};
-                 }
+                 v_c = parse_loop_code(as.find('.code_editor').first(), proc);
                } catch (e) {
                  toastr.error(e.message, e.name);
                  updateStatus(as, false);
