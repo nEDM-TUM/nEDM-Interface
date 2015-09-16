@@ -2,7 +2,11 @@
   "_id"  : "master_control",
   "type" : "control",
   "title" : "Measurements",
-  "description" : "Run measurements",
+  "description" : """Run measurements
+<br><br>
+For an example measurement using system functions, see:
+<a href='#' class='example_measurement'>example measurement</a>.
+""",
   "order" : 1,
   "protocol_types" : {
     "Command" : {
@@ -230,6 +234,36 @@
        <button class="ui-btn add_loop_line">Add loop</button>
      </div>
 """,
+  "loop_code" : """
+     <div>
+       <h2>Loop code</h2>
+       <div class='code_editor left'></div>
+       <div data-role='controlgroup' data-type='horizontal'>
+         <button class="ui-btn ui-icon-info ui-btn-icon-left help">Help</button>
+       </div>
+       <div data-role="popup" class="ui-content loop_description">
+		 <p>The code written is in javascript or JSON and must be either a list
+(array) or a function that returns a list.  The list should define objects in it, e.g.:
+         <br><br>
+         <code>[{something : 1, a : 'a'}, {something : 2, a : 'b'}]</code>
+         <br><br>
+         and later the variables can be referenced as e.g. <code>{{something}}</code> or <code>{{a}}</code>.
+         If a function is to be used, it should have the form:
+         <br><br>
+         <code>
+         function() {
+           return [{something : 1, a : 'a'}, {something : 2, a : 'b'}];
+}</code>
+         <br><br>
+		 where of course more complex calculations may done.  To test whether
+or not the function works, run the process with "Dry Run" selected.
+For an example measurement using system functions, see:
+<a href='#' class='example_measurement'>example measurement</a>.
+</p>
+       </div>
+     </div>
+""",
+
   "html" : """
 <div>
     <div class='entire_protocol'>
@@ -300,10 +334,41 @@
       var line_clone = $.parseHTML(docobj.protocol_clone.trim());
       var download_clone = $.parseHTML(docobj.download_clone.trim());
       var loop_clone = $.parseHTML(docobj.protocol_table.trim());
+      var loop_code_clone = $.parseHTML(docobj.loop_code.trim());
       var prot_sel = $('.protocol_type', $(line_clone));
       var toastr = require("toastr");
       var command_obj = {};
       var this_db = nedm.get_database();
+
+      // Set the link
+      function set_load_example(ev) {
+         $(ev.currentTarget).closest('[data-role=popup]').popup('close');
+         load_with_docid("measurement_example");
+      }
+
+      theCurrentPage.find('.example_measurement').on('click', set_load_example);
+
+      function add_loop_code_window($after) {
+          var $code_div = $(loop_code_clone).clone().collapsible( { theme : 'b' });
+          $after.after($code_div);
+          var $popUp = $code_div.find('[data-role=popup]')
+              .css({
+                width : '80%',
+                'max-width' : '800px'
+              }).popup();
+          $popUp.find('.example_measurement').on('click', set_load_example);
+          $code_div.trigger('create');
+          var ed = ace.edit($code_div.find('.code_editor')[0]);
+          ed.getSession().setMode('ace/mode/javascript');
+          ed.setTheme('ace/theme/xcode');
+          $code_div.find('.code_editor').data({ edit : ed });
+          $('.help', $code_div).on('click', function(ev) {
+            $popUp.popup("open");
+          });
+          $code_div.on('collapsibleexpand', function() {
+            ed.resize();
+          });
+      }
 
       function add_loop_after($after) {
           var $nc = $(loop_clone).clone();
@@ -319,12 +384,7 @@
             $('.movement_arrows ~ ', pt.children(':last-child')).remove();
             $('.current_title', pt.children(':last-child')).text('Loop');
             add_loop_after($('.movement_arrows', pt.children(':last-child')));
-            var $code_div = $('<div class="code_editor left"/>');
-            $('.movement_arrows', pt.children(':last-child')).after($code_div);
-            var ed = ace.edit($code_div[0]);
-            ed.getSession().setMode('ace/mode/javascript');
-            ed.setTheme('ace/theme/xcode');
-            $code_div.data({ edit : ed });
+            add_loop_code_window($('.movement_arrows', pt.children(':last-child')));
           });
       }
       add_loop_after($('.current_protocol > h2', thediv));
@@ -933,7 +993,7 @@
             var ptc = prot.protocol || prot;
             $('.add_loop_line', $pt.siblings()).trigger('click');
             var $new_pt = $('.protocol_table', $pt.children().last());
-            $new_pt.siblings('.code_editor').data('edit').getSession().setValue(js);
+            $new_pt.parent().find('.code_editor').first().data('edit').getSession().setValue(js);
             for (var i = 0;i<ptc.length;i++) {
               add_protocol($new_pt, ptc[i]);
             }
