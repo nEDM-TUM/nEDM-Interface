@@ -432,11 +432,14 @@ class MyTrigger(Trigger):
           var thedat = obj.data;
           var offset = obj.offset;
           var header = new DataView(thedat);
-          var numChannels = header.getInt32(offset, true);
+          var numChannels = header.getUint32(offset, true);
           if (numChannels === 0) {
               // Means we are not requesting any channels
               setTimeout(sendAndReceive, 1000);
               resetProgressBar(true);
+              return;
+          } else if (numChannels === 0xdeadbeef) {
+              // Means we are done taking data
               return;
           }
           var chs = [];
