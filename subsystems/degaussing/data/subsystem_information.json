@@ -1,0 +1,7 @@
+{
+  "_id" : "subsystem_information",
+  "prettyname" : "Degaussing",
+  "pages" : {
+        "Control" : "control.html"
+  }
+}
