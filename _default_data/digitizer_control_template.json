@@ -46,6 +46,37 @@ menu to the right of this.
 
 Example scripts on how to readout: <a href="https://gist.github.com/6033a49c60771e7dd16f">python</a>, <a href="https://gist.github.com/de7b3621ed14ee559662">C/C++</a>.
 """,
+  "trigger_help" : """
+  The trigger code should be written in python and look like:
+<pre><code>
+class MyTrigger(Trigger):
+    def trigger(self, v):
+        # v is a dictionary of numpy arrays
+        # For example, test for a trigger condition in channel 5
+        if v[5].max() > 100:
+            # Write to file
+            return True
+        # Don't write to file
+        return False
+</code></pre>
+  Note that the dictionary will contain all readout channels, not just those
+designated to be written.<br><br>
+  The code can also request the readout to end:
+<pre><code>
+import time
+class MyTrigger(Trigger):
+    _time = None
+    def trigger(self, v):
+        if not self._time: self._time = time.time()
+        if time.time() - self._time > 5:
+            raise EndReadoutNow("Timeout")
+        if v[5].max() > 100:
+            raise EndReadoutNow("Max seen, stopping")
+        # Don't write to file
+        return False
+</code></pre>
+
+""",
   "html" : """
 <div data-role="controlgroup" data-type="horizontal">
     <input type="button" value="Connect" class="connectBtn">
@@ -56,13 +87,13 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             <option>Select IP:</option>
         </select>
         <input type="button" value="Request digitizer" class="reqDigi" disabled>
-        <input type="button" value="Release digitizer" 
+        <input type="button" value="Release digitizer"
          data-cmd-name="releaseDigitizerControl"
          data-no-digitizer="true"
          class="relDigi cardOn" disabled>
     </div>
     <div data-role="controlgroup" data-type="horizontal">
-        <input type="button" value="Reset readout" class="resetDigi cardOn" 
+        <input type="button" value="Reset readout" class="resetDigi cardOn"
          data-cmd-name="resetReadout"
          data-reset-on-return="true"
          disabled>
@@ -100,6 +131,20 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                 </div>
             </div>
         </div>
+        <div data-role='collapsible' class='software_trigger adv_options'>
+            <h4>Software Trigger</h4>
+            <div class="left">
+              <div class='code_editor'># Fill the following with python code</div>
+            </div>
+            <div data-role="controlgroup" data-type="horizontal">
+              <label><input type='checkbox' class='use_trigger'/>Use trigger</label>
+              <input type="button" value="Check code" class="checkTriggerCode">
+              <input type="button" value="Help" class="helpTriggerCode">
+            </div>
+        </div>
+        <div data-role="popup" class="ui-content helpTrigger">
+        </div>
+
         <div class='adv_options'>
           <div data-role='collapsible' class='measurement_options'>
             <h4>Measurement (save) options</h4>
@@ -173,6 +218,16 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
       var hdr_editor = new jsoneditor(hdr[0], { mode : "code" });
       hdr_editor.set(docobj.default_header_info);
       hdr.data({ editor : hdr_editor});
+
+      var trig_settings = nedm.get_database().db_name() + "_trigger_settings";
+      var trigger_editor = ace.edit($('.code_editor', $(thediv))[0]);
+      trigger_editor.getSession().setMode('ace/mode/python');
+      trigger_editor.getSession().setValue(nedm.globalSetting(trig_settings) || "");
+      trigger_editor.setTheme('ace/theme/xcode');
+
+      trigger_editor.on("change", function() {
+        nedm.globalSetting(trig_settings, trigger_editor.getSession().getValue());
+      });
 
       var setDefaults;
       if (docobj.defaults) {
@@ -377,11 +432,14 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           var thedat = obj.data;
           var offset = obj.offset;
           var header = new DataView(thedat);
-          var numChannels = header.getInt32(offset, true);
+          var numChannels = header.getUint32(offset, true);
           if (numChannels === 0) {
               // Means we are not requesting any channels
               setTimeout(sendAndReceive, 1000);
               resetProgressBar(true);
+              return;
+          } else if (numChannels === 0xdeadbeef) {
+              // Means we are done taking data
               return;
           }
           var chs = [];
@@ -660,6 +718,20 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         $('.selectSaveChannels', $(thediv)).filter(':input').selectmenu("refresh", true);
       });
 
+      $('.checkTriggerCode', $(thediv)).on('click', function() {
+          x.sendObj({
+              cmd: "checkTrigger",
+              embed: true,
+              args: { trigger : trigger_editor.getSession().getValue() }
+          });
+      });
+      $('.helpTriggerCode', $(thediv)).on('click', function() {
+          var $pu = theCurrentPage.find(".helpTrigger");
+          $pu.empty().append(docobj.trigger_help.trim());
+          $pu.popup("open");
+      });
+
+
       $('.startButton', $(thediv)).on("click", function () {
           var add_header;
           try {
@@ -677,6 +749,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
             save_data = false;
           }
           var com = cmt.data('editor').getSession().getValue();
+          var trigger = "";
+          if ($('.use_trigger', $(thediv)).is(':checked')) {
+             trigger = trigger_editor.getSession().getValue();
+          }
           shouldStop = false;
           var ssc = getSelected($('.selectSaveChannels', $(thediv)));
           var mods = getSelected($('.selectSaveModules', $(thediv)));
@@ -695,6 +771,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
                         should_save : save_data,
                    measurement_name : meas_name,
                                 log : com,
+                            trigger : trigger,
                            logitems : add_header,
                         buffer_size : buf_size,
                          downsample : settings.downsample,
@@ -868,6 +945,7 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
           releaseDigitizerControl: releaseDigitizerControl,
           announce: announce,
           performCmd: performCmd,
+          checkTrigger: performCmd,
           setClkDiv: setClkDiv,
           useExternalClock: useExternalClock,
           initializeWebPage: initializeWebPage
@@ -1017,6 +1095,10 @@ Example scripts on how to readout: <a href="https://gist.github.com/6033a49c6077
         should_show_amp = true;
         frqg.resize();
         ampg.resize();
+      });
+
+      $('.software_trigger', $(thediv)).on("collapsibleexpand", function() {
+        trigger_editor.resize();
       });
 
       $('.fft_window', $(thediv)).on("collapsiblecollapse", function() {

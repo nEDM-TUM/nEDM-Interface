@@ -1,0 +1,112 @@
+{
+  "_id": "measurement_example",
+  "type": "measurement",
+  "log": "Demonstrates an example of how system commands (loops, logs, pause, etc.) may be used to design measurements",
+  "protocol": [
+    {
+      "Command": {
+        "db_name": "nedm%2Fmeasurements",
+        "cmd_name": "wait_user",
+        "args": "Something to wait for",
+        "name": "User input",
+        "status": "success"
+      }
+    },
+    {
+      "javascript": "function() {\n    var o = [];\n    for (var i =0;i<3;i++) {\n        o[o.length] = { wait_time : (i+1)*500 };\n    }\n    return o;\n}",
+      "protocol": [
+        {
+          "javascript": "[\n    { msg : \"should I continue?\" }\n]",
+          "protocol": [
+            {
+              "Command": {
+                "db_name": "nedm%2Fmeasurements",
+                "cmd_name": "wait_user",
+                "args": "{{msg}}",
+                "name": "Waiting...",
+                "status": "success"
+              }
+            }
+          ]
+        },
+        {
+          "Command": {
+            "db_name": "nedm%2Fmeasurements",
+            "cmd_name": "pause_time",
+            "args": "{{wait_time}}",
+            "name": "Pause",
+            "status": "success"
+          }
+        }
+      ]
+    },
+    {
+      "Command": {
+        "db_name": "nedm%2Fmeasurements",
+        "cmd_name": "pause_time",
+        "args": 2000,
+        "name": "Pausing",
+        "status": "success"
+      }
+    }
+  ],
+  "measurement_name": "Measurements Example",
+  "measurement_run": [
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "wait_user",
+      "args": "Something to wait for",
+      "msg": "success",
+      "success": True
+    },
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "wait_user",
+      "args": "should I continue?",
+      "msg": "success",
+      "success": True
+    },
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "pause_time",
+      "args": 500,
+      "msg": "success",
+      "success": True
+    },
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "wait_user",
+      "args": "should I continue?",
+      "msg": "success",
+      "success": True
+    },
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "pause_time",
+      "args": 1000,
+      "msg": "success",
+      "success": True
+    },
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "wait_user",
+      "args": "should I continue?",
+      "msg": "success",
+      "success": True
+    },
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "pause_time",
+      "args": 1500,
+      "msg": "success",
+      "success": True
+    },
+    {
+      "db_name": "nedm%2Fmeasurements",
+      "cmd_name": "pause_time",
+      "args": 2000,
+      "msg": "success",
+      "success": True
+    }
+  ]
+}

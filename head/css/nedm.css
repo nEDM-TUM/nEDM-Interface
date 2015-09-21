@@ -230,3 +230,7 @@ li .window_designation {
     text-align: center;
     display: none;
 }
+
+.protocol_table > div {
+    margin-left: 2em;
+}

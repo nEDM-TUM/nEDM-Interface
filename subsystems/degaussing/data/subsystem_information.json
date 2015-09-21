@@ -2,8 +2,13 @@
   "_id" : "subsystem_information",
   "prettyname" : "Degaussing",
   "pages" : {
+<<<<<<< HEAD
         "Control" : "control.html",
         "b" : "monitor.html"
   }
 
+=======
+        "Control" : "control.html"
+  }
+>>>>>>> master
 }
