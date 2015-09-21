@@ -1,0 +1,180 @@
+{
+  "_id" : "deg_control",
+  "type" : "control",
+  "title" : "Control",
+  "description" : "Run degaussing system from nedm db",
+  "popup_template" : """
+        <div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='paramspopup' class='ui-content'>
+            <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+            <h4>Parameters for the selected coils</h4>
+            <div data-role='controlgroup' data-type='vertical' class='coil_list'>
+                <label for='coil_selector'>Degaussing coil:</label>
+                <select name='coil_selector_n' id='coil_selector' class='coil_selector'></select>
+                <div class='ui-field-contain'>
+                    <div class='ui-grid-a'>
+                        <div class='ui-block-a'><p>Amplitude:</p></div>
+                        <div class='ui-block-b'><input type='text' class='coil_amp' value=''></div>
+                        <div class='ui-block-a'><p>Frequency:</p></div>
+                        <div class='ui-block-b'><input type='text' class='coil_freq' value=''></div>
+                        <div class='ui-block-a'><p>Duration:</p></div>
+                        <div class='ui-block-b'><input type='text' class='coil_dur' value=''></div>
+                        <div class='ui-block-a'><p>Keep time:</p></div>
+                        <div class='ui-block-b'><input type='text' class='coil_keep' value=''></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      """,
+  "html" : """
+    <div>
+        <h3>Degaussing control</h3>
+            <div class='ui-field-contain'>
+                <fieldset data-role='controlgroup'>
+                    <legend>Choose a coil set:</legend>
+                    <input type='radio' name='rb_coilset' id='rb_set1a' value='msr_inner' checked='checked'>
+                    <label for='rb_set1a'>MSR inner layer</label>
+                    <input type='radio' name='rb_coilset' id='rb_set2a' value='msr_all'>
+                    <label for='rb_set2a'>MSR complete</label>
+                    <input type='radio' name='rb_coilset' id='rb_set3a' value='insert_all'>
+                    <label for='rb_set3a'>Insert complete (w/o cylinder)</label>
+                    <input type='radio' name='rb_coilset' id='rb_set4a' value='insert_inner'>
+                    <label for='rb_set4a'>Insert inner layer</label>
+                    <input type='radio' name='rb_coilset' id='rb_set5a' value='insert_cyl'>
+                    <label for='rb_set5a'>Insert cylinder</label>
+                    <a href='#' data-role='button' id='parapop'>Show Parameters</a> 
+                </fieldset>
+            </div>
+            <fieldset data-role='controlgroup' data-type='horizontal'>
+                <input type='button' value="Start" class='start_deg to-disable'></input>
+                <input type='button' value="Stop"></input>
+            </fieldset>
+    </div>
+ """,
+ "script" : """
+     function( $theDiv, anobj ) {
+         var this_db = nedm.get_database();
+         var toastr = require('toastr');
+
+         var settings = {};
+         var configs = {};
+
+         var disable_ui = function() {
+           // $('.to-disable', $theDiv).addClass('ui-disabled');
+            console.log("lock");
+         };
+
+         var getsettings = function() {
+             this_db.getView('document_type', 'document_type',
+                     { opts: {
+                                 reduce: false,
+                                 include_docs: true,
+                                 endkey: ['deg_setting'],
+                                 startkey: ['deg_setting', {}],
+                                 descending: true
+                             }},
+                             function(e,o) {
+                                 if(e !== null) return;
+                                 var r = o.rows;
+                                 o.rows.forEach(function(x) {
+                                     settings[x.id] = x.doc;
+                                 });
+                                 if ( Object.keys(settings).length === 0 ){
+                                     toastr.error("No settings documents", "deg_settings documents not found");
+                                 }
+                             }
+
+                     );
+         };
+
+         this_db.getView('document_type', 'document_type',
+                     { opts: {
+                                 reduce: false,
+                                 include_docs: true,
+                                 endkey: ['deg_config'],
+                                 startkey: ['deg_config', {}],
+                                 descending: true
+                             }},
+                             function(e,o) {
+                                 if(e !== null) return;
+                                 var r = o.rows;
+                                 o.rows.forEach(function(x) {
+                                     configs[x.id] = x.doc;
+                                 });
+                                 if ( Object.keys(configs).length === 0 ){
+                                     toastr.error("No config documents", "deg_config documents not found");
+                                 }
+                                 else {
+                                     getsettings();
+                                     do_stuff();
+                                 }
+
+                             }
+
+                     );
+
+                     
+        var popup_clone = $.parseHTML(anobj.popup_template.trim());
+
+        function do_stuff() {
+            console.log("doing stuff");
+            $('input[name=rb_coilset]').change( function() {
+                var chosen_set = $('input[name=rb_coilset]:checked').val();
+            });
+
+            $('#parapop').on('click', function() {
+                var $popup = $(popup_clone).clone() 
+                    .on('popupafterclose', function() {
+                        $(this).remove();
+                    });
+                $theDiv.append($popup);
+                $popup.popup()
+                    .trigger("create")
+                    .popup('open');
+                
+                var use_set = $('input[name=rb_coilset]:checked').val();
+                var cs_list = $('.coil_selector', $popup).filter(':input');
+                for (var j=0;j<settings[use_set].value.Sequence.length;j++) {
+                    cs_list.append($('<option/>').val(j).text(settings[use_set].value.Sequence[j]));
+                }
+
+                
+                $('.coil_selector', $popup).filter(':input').change(function(){
+                var use_set = $('input[name=rb_coilset]:checked').val();
+                var cs_val = $('.coil_selector', $popup).filter(':input').val();
+                var coilname = settings[use_set].value.Sequence[cs_val];
+                var ccs = configs[settings[use_set].value.Config].value;
+                
+                $('.coil_amp').val(ccs[coilname].Amp);
+                $('.coil_freq').val(ccs[coilname].Freq);
+                $('.coil_dur').val(ccs[coilname].Dur);
+                $('.coil_keep').val(ccs[coilname].Keep);
+
+                
+            });
+            cs_list.val(0).selectmenu("refresh").trigger("change");
+
+            });
+
+            $('.start_deg').filter(':input').click(function() {
+                var seq = settings[$('input[name=rb_coilset]:checked').val()].value.Sequence;
+                var conf = settings[$('input[name=rb_coilset]:checked').val()].value.Config;
+                disable_ui();
+                nedm.send_command({
+                    cmd_name: "run_deg",
+                    arguments: [conf, seq],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        if (o && o.ok) {
+                            console.log("command success");
+                        }
+                    },
+                    quiet: false
+                });
+            });
+
+
+        }
+
+     }
+ """
+}
