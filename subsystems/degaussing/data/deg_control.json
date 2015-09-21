@@ -46,7 +46,7 @@
             </div>
             <fieldset data-role='controlgroup' data-type='horizontal'>
                 <input type='button' value="Start" class='start_deg to-disable'></input>
-                <input type='button' value="Stop"></input>
+                <input type='button' value="Stop" class='stop_deg'></input>
             </fieldset>
     </div>
  """,
@@ -172,6 +172,22 @@
                 });
             });
 
+            $('.start_deg').filter(':input').click(function() {
+                var seq = settings[$('input[name=rb_coilset]:checked').val()].value.Sequence;
+                var conf = settings[$('input[name=rb_coilset]:checked').val()].value.Config;
+                disable_ui();
+                nedm.send_command({
+                    cmd_name: "interrupt_deg",
+                    arguments: [],
+                    timeout: 5000,
+                    callback: function(e,o) {
+                        if (o && o.ok) {
+                            console.log("command success");
+                        }
+                    },
+                    quiet: false
+                });
+            });
 
         }
 
