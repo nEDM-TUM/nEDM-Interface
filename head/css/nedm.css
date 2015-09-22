@@ -230,3 +230,6 @@ li .window_designation {
 .protocol_table > div {
     margin-left: 2em;
 }
+.toast-title {
+  text-shadow: none;
+}
