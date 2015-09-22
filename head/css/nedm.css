@@ -284,3 +284,17 @@ li .window_designation {
   width: 95px;
 
 }
+
+table.settings {
+  table-layout: fixed;
+}
+
+td.settings {
+  width: 50px;
+}
+
+td.loading {
+  background-image: url(images/large-loader.gif);
+  background-size: contain;
+  background-repeat: no-repeat;
+}
