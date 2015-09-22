@@ -99,6 +99,7 @@ function UpdateDBStatus(ev, ui) {
     {
            iconClass : " ",
         tapToDismiss : false,
+        containerId  : "db-status-id",
         hideDuration : 300,
              timeOut : 0,
      extendedTimeOut : 0,
