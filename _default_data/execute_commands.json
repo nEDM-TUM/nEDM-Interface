@@ -34,7 +34,7 @@
       "map" : """function(doc) {
           if (!doc.type || doc.type != 'export_commands') return;
           for (var k in doc.keys) {
-            emit(k, [doc.keys[k].Info, doc.uuid]);
+            emit(k, [doc.keys[k].Info, doc.uuid, doc.log_servers]);
           }
       }""",
       "reduce" : "_count"
