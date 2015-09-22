@@ -104,11 +104,12 @@ function UpdateDBStatus(ev, ui) {
      extendedTimeOut : 0,
            closeHtml : '<button>_</button>',
        positionClass : "toast-bottom-left",
-            onHidden : function() { my_but.show().removeClass('ui-disabled');
-                                    db_status.shown_toastr_status = null; }
+            onHidden : function() { 
+              $('.db-status-button').show().removeClass('ui-disabled');
+              db_status.shown_toastr_status = null; }
     });
     $new_div.controlgroup();
-    my_but.hide();
+    $('.db-status-button').hide();
   }
   // Populate with DB info
   function getDBInfo(dbs) {
@@ -129,8 +130,7 @@ function UpdateDBStatus(ev, ui) {
   if (!db_status.shown_toastr_status) {
     // temp set to avoid anything else setting
     db_status.shown_toastr_status = true;
-    var my_but = $(ev.currentTarget);
-    my_but.addClass('ui-disabled');
+    $('.db-status-button').addClass('ui-disabled');
 
     if (db_status.$toastr_content) {
       defineToasterStatus(db_status.$toastr_content);
