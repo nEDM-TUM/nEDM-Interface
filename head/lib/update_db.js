@@ -26,6 +26,13 @@
  */
 
 /**
+ * Returns an object with all commands
+ * @callback module:lib/update_db.CommandsCallback
+ * @param {Array} rowsOfCommands
+ */
+
+
+/**
  * Information from changes feed
  *
  * @callback module:lib/update_db.ChangesFeedCallback
@@ -614,7 +621,11 @@ function nEDMDB(url) {
           * @param {module:lib/update_db.VariableNamesCallback} callback
           * @public
           */
+        var _varNameCache;
         db.getVariableNames = function(callback) {
+          if (_varNameCache) {
+            return callback(_varNameCache);
+          }
           this.getView('slow_control_time', 'slow_control_time',
             { opts : { stale : 'ok',
                  group_level : 1
@@ -622,10 +633,35 @@ function nEDMDB(url) {
             },
             function (e, o) {
                   if (e !== null ) {
-                    callback([]);
+                    _varNameCache = [];
                   } else {
-                    callback(o.rows.map(function(x) { return x.key[0]; }));
+                    _varNameCache = o.rows.map(function(x) { return x.key[0]; });
                   }
+                  db.getVariableNames(callback);
+            }
+          );
+        };
+         /**
+          * Get all commands in a particular database
+          * @function getCommands
+          * @memberof nEDMDB#
+          * @param {module:lib/update_db.CommandsCallback} callback
+          * @public
+          */
+        var _commandCache;
+        db.getCommands = function(callback) {
+          if (_commandCache) {
+            return callback(_commandCache);
+          }
+          this.getView('execute_commands', 'export_commands',
+            { opts : { reduce : false } },
+            function (e, o) {
+                  if (e !== null ) {
+                    _commandCache = [];
+                  } else {
+                    _commandCache = o.rows;
+                  }
+                  db.getCommands(callback);
             }
           );
         };

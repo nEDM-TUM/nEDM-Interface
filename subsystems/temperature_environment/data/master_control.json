@@ -34,10 +34,9 @@
     function( avar, anobj ) {
        var devices = $('.temp_device_select', $(avar)).filter(":input");
        var funcs = $('.function_select', $(avar)).filter(":input");
-       var setup_func = function(e, o) {
-           if (!o || !o.rows) return;
+       var setup_func = function(o) {
            var cmd_dict = {};
-           o.rows.forEach( function (k) {
+           o.forEach( function (k) {
               var par = k.key.split('_');
               if (!cmd_dict[par[0]]) cmd_dict[par[0]] = { cmds : {} };
               var obj = k.value[0];
@@ -104,12 +103,7 @@
            nedm.send_command( cmd_doc );
        };
 
-       nedm.get_database().getView("execute_commands", "export_commands",
-         { opts : {
-           reduce : false
-         }},
-         setup_func
-       );
+       nedm.get_database().getCommands( setup_func );
 
        ['set', 'get', 'call'].forEach( function(k) {
            $('.' + k + '_function', $(avar)).data({ type : k });
