@@ -104,18 +104,26 @@ function UpdateDBStatus(ev, ui) {
              timeOut : 0,
      extendedTimeOut : 0,
            closeHtml : '<button>_</button>',
-       positionClass : "toast-bottom-left",
-            onHidden : function() { 
+       positionClass : "toast-bottom-full-width",
+            onHidden : function() {
               $('.db-status-button').show().removeClass('ui-disabled');
               db_status.shown_toastr_status = null; }
     });
     $new_div.controlgroup();
+    var $blinkers = $new_div.find('.ui-controlgroup-controls');
+    var width = $blinkers.width();
+    var pos = $blinkers.position();
+    $new_div.after($('<div/>').addClass('log').css({
+      'left' : width + 20 + pos.left + 'px',
+      'top' : pos.top + 'px',
+      'height' : $blinkers.height() + 'px'
+    }));
     $('.db-status-button').hide();
   }
   // Populate with DB info
   function getDBInfo(dbs) {
     db_status.$toastr_content =
-                   $('<div/>').addClass('ui-grid-b nedm-db-status');
+                   $('<div/>').addClass('ui-grid-b nedm-db-status ui-controlgroup ui-controlgroup-vertical ui-corner-all');
     var tmp = [ "ui-block-a", "ui-block-b", "ui-block-c" ];
     var i = 0;
     for (var db in dbs) {
@@ -843,6 +851,7 @@ var to_export = {
         get_current_db_name : get_current_db_name,
         registerUser : registerUser,
         validate : validate,
+        addLogMessage : addLogMessage,
         page : _pageEvents,
         remove_db_updates : remove_db_updates,
         on_db_updates : on_db_updates,
@@ -904,6 +913,21 @@ function nEDMDatabase(db_name) {
 //  exports[k] = to_export[k];
 //}
 exports.nEDMDatabase = nEDMDatabase;
+
+/**
+ * Appends the message to the logging facility (available in status)
+ *
+ * @param {string} msg
+ * @public
+ */
+function addLogMessage(msg) {
+  var $status_log = $('#db-status-id .log')
+  if ($status_log.length === 0) return;
+  $status_log.append('<p>' + msg + '</p>')
+             .scrollTop($status_log[0].scrollHeight);
+}
+
+
 
 
 // Now call basic elements

@@ -276,6 +276,12 @@ li .window_designation {
   text-align: center;
 }
 
+#db-status-id .log {
+  overflow: auto;
+  right: 10px;
+  position: absolute;
+}
+
 #db-status-id .ui-controlgroup-controls {
   float: left;
 }
