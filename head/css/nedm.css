@@ -295,12 +295,19 @@ table.settings {
   table-layout: fixed;
 }
 
-td.settings {
-  width: 50px;
+td .settings {
+  max-width: 100%;
+  max-height: 150px;
+  min-height: 100%;
+  overflow: auto;
 }
 
-td.loading {
+td .loading {
   background-image: url(images/large-loader.gif);
   background-size: contain;
   background-repeat: no-repeat;
+}
+
+label.inline {
+  display: inline-block !important;
 }

@@ -17,14 +17,30 @@
 </table>
 """,
   'script' : """
+
+    function tableRow(withClass) {
+      withClass = withClass || "";
+      return $('<td/>').append($('<div/>').addClass("settings loading " + withClass));
+    }
     function addDataBaseRow(db_name) {
        var $newRow = $('<tr/>')
           .append($('<th/>').append(db_name))
-          .append($('<td/>').addClass("settings variables loading"))
-          .append($('<td/>').addClass("settings commands loading"))
-          .append($('<td/>').addClass("settings listeners loading"));
+          .append(tableRow("variables"))
+          .append(tableRow("commands"))
+          .append(tableRow("listeners center"));
        $('#settings-table tbody').append($newRow).trigger('create');
        return $newRow;
+    }
+
+    function handleLogSetting(ev) {
+      var $chk = $(ev.currentTarget);
+      var addr = $chk.data('address');
+      var anid = $chk.data('id-field');
+      if ($chk.is(':checked')) {
+        nedm.startWebSocketListener(addr, anid);
+      } else {
+        nedm.stopWebSocketListener(addr);
+      }
     }
 
     function handle_all_dbs(all_dbs) {
@@ -40,7 +56,28 @@
          return function(keys) {
            $row.data( { cmds : keys } );
            $row.find('.commands').append(keys.map(function(o) { return o.key; }).join(", "));
+           var lstnr = $row.find('.listeners');
+           var ws_listeners = nedm.globalSetting("websocket_listeners") || {};
+           keys.forEach( function(o) {
+             var ids = o.value[2];
+             if (!ids) return;
+             lstnr.append("<h4>Log for: " + o.value[1] + "</h4>");
+             ids.forEach( function(x) {
+
+               var add = "";
+               if (ws_listeners[x]) {
+                 add = "checked";
+               }
+               lstnr.append("<label class='inline'>" +
+                  "<input data-mini='true' type='checkbox' data-address='" +
+                  x + "' data-id-field='" + o.value[1] + "'" + add + ">" + x + "</label>");
+             } );
+           } );
+           lstnr.trigger("create");
            $row.find('.commands,.listeners').removeClass('loading');
+           lstnr.find("input")
+                .on("change", handleLogSetting)
+                .trigger('change');
          };
        }
 
