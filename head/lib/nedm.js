@@ -856,8 +856,72 @@ var to_export = {
         remove_db_updates : remove_db_updates,
         on_db_updates : on_db_updates,
         globalSetting : globalSetting,
+        startWebSocketListener : startWebSocketListener,
+        stopWebSocketListener : stopWebSocketListener,
         MonitoringGraph : require("lib/monitoring_graph").MonitoringGraph
 };
+
+/**
+* Listen to a web socket
+* @param {String} url - url and port name
+* @param {String} [prepend] - prepends to output log
+*
+* @constructor
+* @private
+*/
+function WebSocketListen(url, prepend) {
+  var pre = prepend || "";
+  var tthis = this;
+  var x = new WebSocket(url);
+  x.onmessage = function(msg) {
+    addLogMessage(prepend + ' : ' + JSON.parse(msg.data).msg);
+  };
+  this.stop = function() {
+    x.close();
+  };
+  x.error = function() {
+    if (tthis.error) { tthis.error(arguments); }
+  };
+}
+
+var _listening_websockets = {};
+var _current_websocket_settings = globalSetting("websocket_listeners") || {};
+
+for (var k in _current_websocket_settings) {
+  startWebSocketListener(k, _current_websocket_settings[k]);
+}
+
+/**
+* Start websocket listener
+* @param {String} url - url and port name
+* @param {String} [prepend] - prepends to output log
+*
+* @public
+*/
+function startWebSocketListener(url, prepend) {
+  if (_listening_websockets[url]) return;
+  _listening_websockets[url] = new WebSocketListen(url, prepend);
+  _listening_websockets[url].error = function() {
+    stopWebSocketListener(url);
+  };
+  _current_websocket_settings[url] = prepend;
+  globalSetting("websocket_listeners", _current_websocket_settings);
+}
+
+/**
+* Stop websocket listener
+* @param {String} url - url and port name
+*
+* @public
+*/
+function stopWebSocketListener(url) {
+  if (!_listening_websockets[url]) return;
+  _listening_websockets[url].stop();
+  delete _listening_websockets[url];
+  delete _current_websocket_settings[url];
+  globalSetting("websocket_listeners", _current_websocket_settings);
+}
+
 
 /**
 * Defines an interface for a given database
