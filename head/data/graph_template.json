@@ -109,11 +109,11 @@
     var ensure_until_now_state = function() {
         var until_now = $('.check_box_until_now', new_div).is(':checked');
         if ( until_now ) {
-          $('.date_end', new_div).addClass('ui-disabled');
-          $('.time_end', new_div).addClass('ui-disabled');
+          $('.date_end', new_div).parent().addClass('ui-disabled');
+          $('.time_end', new_div).parent().addClass('ui-disabled');
         } else {
-          $('.date_end', new_div).removeClass('ui-disabled');
-          $('.time_end', new_div).removeClass('ui-disabled');
+          $('.date_end', new_div).parent().removeClass('ui-disabled');
+          $('.time_end', new_div).parent().removeClass('ui-disabled');
         }
         return until_now;
     };
