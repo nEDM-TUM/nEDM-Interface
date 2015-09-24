@@ -83,6 +83,66 @@ var old_db = require("db");
 var old_use = old_db.use;
 
 /**
+ * Returns a function for handling ajax responses from jquery and calls
+ * the callback with the data or appropriate error.
+ *
+ * @param {Function} callback(err,response)
+ * @api private
+ */
+
+function onComplete(options, callback) {
+    return function (req) {
+        var resp;
+        var ctype = req.getResponseHeader('Content-Type');
+        if (ctype === 'application/json' || ctype === 'text/json') {
+            try {
+                resp = req.responseJSON;
+            }
+            catch (e) {
+                return callback(e);
+            }
+        }
+        else {
+            if (options.expect_json) {
+                try {
+                    resp = req.responseJSON;
+                }
+                catch (ex) {
+                    return callback(
+                        new Error('Expected JSON response, got ' + ctype)
+                    );
+                }
+            }
+            else {
+                resp = req.responseText;
+            }
+        }
+        if (req.status === 401) {
+            exports.emit('unauthorized', req);
+        }
+        if (req.status === 200 || req.status === 201 || req.status === 202) {
+            callback(null, resp);
+        }
+        else if (resp && (resp.error || resp.reason)) {
+            var err = new Error(resp.reason || resp.error);
+            err.error = resp.error;
+            err.reason = resp.reason;
+            err.code = resp.code;
+            err.status = req.status;
+            callback(err);
+        }
+        else {
+            // TODO: map status code to meaningful error message
+            var err2 = new Error('Returned status code: ' + req.status);
+            err2.status = req.status;
+            callback(err2);
+        }
+    };
+}
+
+
+
+/**
  * Extension of db.DB
  * Adds/updates several functions to the DB object
  * @constructs nEDMDB
@@ -224,8 +284,6 @@ function nEDMDB(url) {
                limit : 1}}, callback);
         };
 
-        db.old_request = db.request;
-
         /**
           * Guess current database (most of the time this shouldn't be used)
           * @function guessCurrent
@@ -354,7 +412,11 @@ function nEDMDB(url) {
           * @public
           */
         db.request = function(req, callback) {
-          if (!callback || typeof callback !== 'object') return this.old_request(req, callback);
+          req.dataType = 'json';
+          if (typeof callback !== 'object') {
+            req.complete = onComplete(req, callback);
+            return $.ajax(req);
+          }
           var cbck = callback;
           if (cbck.progress) {
             req.xhr = function() {
@@ -367,9 +429,8 @@ function nEDMDB(url) {
               return xhr;
             };
           }
-          if (callback.success) callback = callback.success;
-          else callback = null;
-          return this.old_request(req, callback);
+          req.complete = onComplete(req, callback.success);
+          return $.ajax(req);
         };
 
         /**
@@ -665,6 +726,9 @@ function nEDMDB(url) {
             }
           );
         };
+
+
+
 
 
         /**
