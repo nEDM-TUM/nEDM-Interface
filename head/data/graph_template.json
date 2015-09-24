@@ -81,8 +81,8 @@
     $('.all_date_boxes', new_div).append(gimme_datebox('calbox', 'date_begin'))
                                  .append(gimme_datebox('calbox', 'date_end'))
                                  .trigger('create');
-    $('.all_time_boxes', new_div).append(gimme_datebox('timeflipbox', 'time_begin'))
-                                 .append(gimme_datebox('timeflipbox', 'time_end'))
+    $('.all_time_boxes', new_div).append(gimme_datebox('timebox', 'time_begin'))
+                                 .append(gimme_datebox('timebox', 'time_end'))
                                  .trigger('create');
     var now = new Date(Date.now() - 600000);
     var now2 = new Date(now);
