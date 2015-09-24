@@ -58,11 +58,22 @@
            $row.find('.commands').append(keys.map(function(o) { return o.key; }).join(", "));
            var lstnr = $row.find('.listeners');
            var ws_listeners = nedm.globalSetting("websocket_listeners") || {};
+           var funcs = {};
            keys.forEach( function(o) {
              var ids = o.value[2];
              if (!ids) return;
-             lstnr.append("<h4>Log for: " + o.value[1] + "</h4>");
+             var lg_name = o.value[1];
+             if (!funcs[lg_name]) {
+               funcs[lg_name] = [];
+             }
              ids.forEach( function(x) {
+               if (funcs[lg_name].indexOf(x) === -1) {
+                 funcs[lg_name].push(x);
+               }
+             });
+
+           } );
+           function addListener(x) {
 
                var add = "";
                if (ws_listeners[x]) {
@@ -70,9 +81,14 @@
                }
                lstnr.append("<label class='inline'>" +
                   "<input data-mini='true' type='checkbox' data-address='" +
-                  x + "' data-id-field='" + o.value[1] + "'" + add + ">" + x + "</label>");
-             } );
-           } );
+                  x + "' data-id-field='" + k + "'" + add + ">" + x + "</label>");
+           }
+           for (var k in funcs) {
+             var ids = funcs[k];
+             lstnr.append("<h4>Log for: " + k + "</h4>");
+             ids.forEach(addListener);
+           }
+
            lstnr.trigger("create");
            $row.find('.commands,.listeners').removeClass('loading');
            lstnr.find("input")
