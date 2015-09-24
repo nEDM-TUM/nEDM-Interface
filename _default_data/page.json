@@ -39,7 +39,7 @@
     };
     this.define_header = function() {
       var html =  me.header_intro;
-      html += "<body class='ui-mobile-viewport ui-overlay-c'>";
+      html += "<body class='ui-mobile-viewport'>";
       html += "<div data-role='page' " + page_cl + " id='" + page_name + "'>";
       html += me.primary_content;
       return html;
