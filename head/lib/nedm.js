@@ -879,8 +879,8 @@ function WebSocketListen(url, prepend) {
   this.stop = function() {
     x.close();
   };
-  x.error = function() {
-    if (tthis.error) { tthis.error(arguments); }
+  x.onerror = function() {
+    stopWebSocketListener(url);
   };
 }
 
