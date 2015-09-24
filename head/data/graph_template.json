@@ -155,6 +155,7 @@
         return retDiv;
     };
     var change_dates = function(eve) {
+        var $mon_opts = $('.monitor_options', new_div);
         var get_new_date = function(prefix) {
             var the_date = $('.date_' + prefix, new_div).datebox('getTheDate');
             var the_time = $('.time_' + prefix, new_div).datebox('getTheDate');
@@ -163,7 +164,7 @@
             the_date.setSeconds( the_time.getSeconds() );
             return the_date;
         };
-        $('.monitor_options', new_div).children(':not(.variable_progress)').addClass('ui-disabled');
+        $mon_opts.children(':not(.variable_progress)').addClass('ui-disabled');
         var start_date = get_new_date('begin');
         var end_date = get_new_date('end');
         var until_now = ensure_until_now_state();
@@ -187,7 +188,7 @@
                       loaded.toString());
             });
             if (current_progress.find('[data-role=fieldcontain]').length === 0) {
-                $('.monitor_options', new_div).children(':not(.variable_progress)').removeClass('ui-disabled');
+                $mon_opts.children(':not(.variable_progress)').removeClass('ui-disabled');
             }
         };
         var ret_obj = obj.changeTimeRange(start_date, end_date, update_function);
@@ -195,6 +196,7 @@
             current_progress.append(get_new_progress(k, ret_obj[k]));
         }
         current_progress.trigger('create');
+        $mon_opts.scrollTop($mon_opts[0].scrollHeight);
     };
 
 
