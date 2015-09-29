@@ -4,7 +4,7 @@
   "access" : {
      "read_only" : False
   },
-  "dbs_allow_user_changes" : ["nedm/measurements", "nedm/hexe_edm", "nedm/cs_laser", "nedm/waveform"],
+  "dbs_allow_user_changes" : ["nedm/measurements", "nedm/hexe_edm", "nedm/cs_laser", "nedm/waveform", "nedm/internal_coils"],
   "filters" : {
     "doc_type" : """function(doc, req) {
         var t;
