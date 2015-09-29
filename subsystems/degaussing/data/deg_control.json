@@ -3,6 +3,7 @@
   "type" : "control",
   "title" : "Control",
   "description" : "Run degaussing system from nedm db",
+  "order" : 1,
   "popup_template" : """
         <div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='paramspopup' class='ui-content'>
             <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
@@ -156,12 +157,12 @@
             });
 
             $('.start_deg').filter(':input').click(function() {
-                var seq = settings[$('input[name=rb_coilset]:checked').val()].value.Sequence;
+                var sett = settings[$('input[name=rb_coilset]:checked').val()]._id;
                 var conf = settings[$('input[name=rb_coilset]:checked').val()].value.Config;
                 disable_ui();
                 nedm.send_command({
                     cmd_name: "run_deg",
-                    arguments: [conf, seq],
+                    arguments: [sett],
                     timeout: 5000,
                     callback: function(e,o) {
                         if (o && o.ok) {
@@ -172,7 +173,7 @@
                 });
             });
 
-            $('.start_deg').filter(':input').click(function() {
+            $('.stop_deg').filter(':input').click(function() {
                 var seq = settings[$('input[name=rb_coilset]:checked').val()].value.Sequence;
                 var conf = settings[$('input[name=rb_coilset]:checked').val()].value.Config;
                 disable_ui();
