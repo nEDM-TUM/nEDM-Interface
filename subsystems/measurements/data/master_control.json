@@ -380,7 +380,7 @@ For an example measurement using system functions, see:
               });
             } catch (e) {
               fo.append("<p>Error: " + e.name + "<br>Message: " + e.message + "</p>");
-            } 
+            }
             fo.filter('.check_output').popup("open");
           });
           $code_div.on('collapsibleexpand', function() {
@@ -534,26 +534,10 @@ For an example measurement using system functions, see:
 
       var load_database_info = function(adb) {
           var my_db = central_cache.get_db(adb);
-          nedm.get_database(adb).getView("execute_commands", "export_commands",
-            { opts : {
-              reduce : false
-            }},
-            function(e, o) {
-              var set_obj = {};
-              if (!e) set_obj = o.rows;
-              my_db.set_commands(set_obj);
-          });
-          nedm.get_database(adb).getView(
-            "slow_control_time", "slow_control_time",
-            { opts : {
-              group_level : 1
-            }},
-            function(e, o) {
-              var set_obj = [];
-              if (!e) set_obj = o.rows;
-              my_db.set_variables(set_obj);
-          });
+          nedm.get_database(adb).getCommands( my_db.set_commands );
+          nedm.get_database(adb).getVariableNames( my_db.set_variables );
       };
+
       nedm.get_database_info(function(all_dbs) {
          var adbs = $('.all_dbs', $(line_clone));
          for (var x in all_dbs) {
@@ -635,6 +619,14 @@ For an example measurement using system functions, see:
                var v_c;
                try {
                  v_c = parse_loop_code(as.find('.code_editor').first(), proc);
+                 v_c = v_c.map( function(o) {
+                   for (var k in var_context) {
+                     if (!o[k]) {
+                       o[k] = var_context[k];
+                     }
+                   }
+                   return o;
+                 });
                } catch (e) {
                  toastr.error(e.message, e.name);
                  updateStatus(as, false);

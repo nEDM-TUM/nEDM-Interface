@@ -81,8 +81,8 @@
     $('.all_date_boxes', new_div).append(gimme_datebox('calbox', 'date_begin'))
                                  .append(gimme_datebox('calbox', 'date_end'))
                                  .trigger('create');
-    $('.all_time_boxes', new_div).append(gimme_datebox('timeflipbox', 'time_begin'))
-                                 .append(gimme_datebox('timeflipbox', 'time_end'))
+    $('.all_time_boxes', new_div).append(gimme_datebox('timebox', 'time_begin'))
+                                 .append(gimme_datebox('timebox', 'time_end'))
                                  .trigger('create');
     var now = new Date(Date.now() - 600000);
     var now2 = new Date(now);
@@ -109,11 +109,11 @@
     var ensure_until_now_state = function() {
         var until_now = $('.check_box_until_now', new_div).is(':checked');
         if ( until_now ) {
-          $('.date_end', new_div).addClass('ui-disabled');
-          $('.time_end', new_div).addClass('ui-disabled');
+          $('.date_end', new_div).parent().addClass('ui-disabled');
+          $('.time_end', new_div).parent().addClass('ui-disabled');
         } else {
-          $('.date_end', new_div).removeClass('ui-disabled');
-          $('.time_end', new_div).removeClass('ui-disabled');
+          $('.date_end', new_div).parent().removeClass('ui-disabled');
+          $('.time_end', new_div).parent().removeClass('ui-disabled');
         }
         return until_now;
     };
@@ -155,6 +155,7 @@
         return retDiv;
     };
     var change_dates = function(eve) {
+        var $mon_opts = $('.monitor_options', new_div);
         var get_new_date = function(prefix) {
             var the_date = $('.date_' + prefix, new_div).datebox('getTheDate');
             var the_time = $('.time_' + prefix, new_div).datebox('getTheDate');
@@ -163,7 +164,7 @@
             the_date.setSeconds( the_time.getSeconds() );
             return the_date;
         };
-        $('.monitor_options', new_div).addClass('ui-disabled');
+        $mon_opts.children(':not(.variable_progress)').addClass('ui-disabled');
         var start_date = get_new_date('begin');
         var end_date = get_new_date('end');
         var until_now = ensure_until_now_state();
@@ -187,7 +188,7 @@
                       loaded.toString());
             });
             if (current_progress.find('[data-role=fieldcontain]').length === 0) {
-                $('.monitor_options', new_div).removeClass('ui-disabled');
+                $mon_opts.children(':not(.variable_progress)').removeClass('ui-disabled');
             }
         };
         var ret_obj = obj.changeTimeRange(start_date, end_date, update_function);
@@ -195,6 +196,7 @@
             current_progress.append(get_new_progress(k, ret_obj[k]));
         }
         current_progress.trigger('create');
+        $mon_opts.scrollTop($mon_opts[0].scrollHeight);
     };
 
 

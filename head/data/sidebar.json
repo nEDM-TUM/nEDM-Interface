@@ -12,6 +12,8 @@
                 </li>
                 <li><a href='/page/alarms' class="alarms">Alarms</a>
                 </li>
+                <li><a href='/page/settings' class="settings">Settings</a>
+                </li>
             </ul>
         </div>
     </div>
