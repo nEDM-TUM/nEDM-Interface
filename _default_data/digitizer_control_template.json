@@ -75,6 +75,24 @@ class MyTrigger(Trigger):
         # Don't write to file
         return False
 </code></pre>
+  Finally, we can request a file to be closed and a new one reopened by raising
+the OpenNewReadoutFile exception.  Note the *current* buffer will *not* be
+saved!<br><br>
+<pre><code>
+class MyTrigger(Trigger):
+    def __init__(self):
+        self.i = 0
+    def trigger(self, v):
+        self.i += 1
+        # After 10 buffers, stop
+        if self.i > 10: raise EndReadoutNow
+        # Every second buffer open a new file
+        if self.i % 2 == 0:
+            raise OpenNewReadoutFile
+        # Don't write to file for the test
+        return False
+</code></pre>
+
 
 """,
   "html" : """
