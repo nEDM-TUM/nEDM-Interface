@@ -48,6 +48,7 @@ href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
         feed   : "longpoll",
         filter : "nedm_default/doc_type",
         type : "measurement",
+        handle_deleted : true,
         heartbeat : 5000
       };
       if (since_rev) opts.since = since_rev;
