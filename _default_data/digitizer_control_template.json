@@ -97,9 +97,9 @@ class MyTrigger(Trigger):
         #   None, # Save all data
         #   OpenNewReadoutFile, # Open new file
         # ]
-		# Note that the entries of *all* selected channels will be saved.  It
-		# is only possible to select the to-be-saved channels at the beginning
-		# of the run.
+        # Note that the entries of *all* selected channels will be saved.  It
+        # is only possible to select the to-be-saved channels at the beginning
+        # of the run.
         return retList
 </code></pre>
 
