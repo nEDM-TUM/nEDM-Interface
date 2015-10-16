@@ -326,12 +326,22 @@ For an example measurement using system functions, see:
       <div data-role='controlgroup' class='save_div' data-type='horizontal'>
         <label><input type='checkbox' class="overwrite_doc">Overwrite</label>
         <button class="ui-btn save_measurement">Save Measurement</button>
+        <button class="ui-btn delete_measurement" disabled>Delete</button>
       </div>
       <p>
         When creating a new measurement (not Overwriting), attachments will *not* be transfered to the new document.
       </p>
     </div>
 </div>
+<div data-role="popup" id="measurementsDeleteConfirm" data-overlay-theme="b" data-theme="a"
+  class="ui-corner-all ui-content center" data-dismissible="false">
+    <h1>Delete measurement?</h1>
+    <h3 class="ui-title">Are you sure you want to delete this measurement?</h3>
+    <p>This action cannot be undone.</p>
+    <a href="#" class='cancel_button' data-role="button" data-inline="true" data-rel="back" data-theme="a">Cancel</a>
+    <a href="#" class='delete_button' data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Delete</a>
+</div>
+
 
 """,
 "script" : """
@@ -774,8 +784,7 @@ For an example measurement using system functions, see:
       // Get direct properties
       var save_id = function(anid) {
         $(thediv).data('current_doc', anid);
-        var msg = anid;
-        if (anid === null) msg = '(Not saved)';
+        var msg = anid || '(Not saved)';
         $('.measurement_status', $(thediv)).text(msg);
       };
       var set_measurement_name = function(aname) {
@@ -910,6 +919,23 @@ For an example measurement using system functions, see:
         }
         return passed;
       };
+      $('.delete_measurement').on('click', function(ev) {
+        var $dc = theCurrentPage.find('#measurementsDeleteConfirm');
+        var doc = $(this).data('doc');
+        $('.delete_button', $dc).off().on('click', function() {
+          nedm.get_database().removeDoc( doc , function(e, o) {
+            if(e) {
+              nedm.show_error_window(e.error, e.reason);
+            } else {
+              toastr.info("Success", "Document: " + o.id + " removed");
+              // Load in open object
+              load_from_object({});
+            }
+
+          });
+        });
+        theCurrentPage.find('#measurementsDeleteConfirm').popup('open');
+      });
       // Save measurement
       $('.save_measurement').on('click', function(ev) {
         var protocol_list = [];
@@ -1050,6 +1076,9 @@ For an example measurement using system functions, see:
                   .val(obj.measurement_name || "(No name)")
                   .trigger('change');
         save_id(obj._id);
+        $('.delete_measurement', $(thediv))
+          .prop('disabled', (typeof obj._id === 'undefined'))
+          .data('doc', obj);
       };
       var load_with_docid = function(doc_id) {
         this_db.getDoc(doc_id,
