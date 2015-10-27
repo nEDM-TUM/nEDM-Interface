@@ -1,3 +1,4 @@
+
 {
   "_id" : "waveform",
   "type" : "control",
@@ -15,7 +16,7 @@
 		<td><select id="listOfWF" size="1"></select></td>
 		<td><button type="button" id="sendWFButton" size="400">Send selected Waveform</button></td>
 	      	<td>
-			<a href="#popupDialog" data-rel="popup" data-position-to="window" data-transition="pop" 
+			<a href="#popupDialog" data-rel="popup" data-position-to="window" data-transition="pop"
 				class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left">Delete selected Waveform</a>
 
 			<div data-role="popup" id="popupDialog" data-dismissible="false" style="max-width:500px;">
@@ -25,13 +26,17 @@
 					<p>This action cannot be undone.</p>
     					<a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline " data-rel="back">Cancel</a>
      					<a href="#" id="deleteWF" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back" data-transition="flow">Delete</a>
-    			</div>	
+    			</div>
 			</div>
 		</td>
 	</tr>
+	<tr>
+		<td><button type="button" id="triggerWF">Trigger Waveform</button></td>
+		<td><label><input type="checkbox" id="CB_draw">Show Waveform</label></td>
+	</tr>
 </table>
 <br /><br />
-      
+
 <h3>Preview of selected Waveform</h3>
 <div id="preview" style="width:600px; height:300px;"></div>
 
@@ -41,11 +46,11 @@
 
 <table>
 	<tr><th>B0 Field in muT (Float)</th><td><input type="text" id="b0_" size="30" /></td></tr>
-	<tr><th>First Burst Time (Float)</th> <td><input type="text" id="f_b_t" size="30" /></td></tr>  
+	<tr><th>First Burst Time (Float)</th> <td><input type="text" id="f_b_t" size="30" /></td></tr>
 	<tr><th>Measuring Time (Float)</th> <td><input type="text" id="m_t" size="30" /></td></tr>
 	<tr><th>Sigma (Float)</th> <td><input type="text" id="s_" size="30" /></td></tr>
 	<tr><th>Sampling Frequency (Integer)</th> <td><input type="text" id="s_f" size="30" /></td></tr>
-	<tr><th>Length (Integer)</th> <td><input type="text" id="l_" size="30" /> </td></tr>   
+	<tr><th>Length (Integer)</th> <td><input type="text" id="l_" size="30" /> </td></tr>
 </table>
 <br /><br />
 <table>
@@ -65,13 +70,13 @@
 		<td><button type="button" id="savebutton" size="400">Save</button></td>
 	</tr>
 </table>
-       
+
 """,
   "script": """
-function($theDOM, docobj) 
+function($theDOM, docobj)
 {
 	var wsuri = "ws://" + docobj.wsuri;
-	
+
 	var measuring_time = "2";
 	var sig = "1";
 	var sampling_freq = "100000";
@@ -90,26 +95,26 @@ function($theDOM, docobj)
 
 	socket = new WebSocket(wsuri);
 	socket.binaryType = "arraybuffer";
-	socket.onopen = function() 
-	{ 
+	socket.onopen = function()
+	{
 		print("Connected!", true);
-		
-		isopen = true; 
+
+		isopen = true;
 		sendCmd(["get NamesList"]);
 	};
-	
+
 	function print(logText)
 	{
 		console.log(logText);
 		$('#status').empty();
 		$('#status').text("Status: " + logText);
-	}	
-	socket.onmessage = function(e) 
+	}
+	socket.onmessage = function(e)
 	{
 		var cmd;
 		var hdrLen;
 		var hdr;
-		if (typeof e.data === "string") 
+		if (typeof e.data === "string")
 		{
 			var str = e.data;
 			var pos = str.indexOf(":");
@@ -119,15 +124,18 @@ function($theDOM, docobj)
 
 			var array = JSON.parse(hdr);
 			console.log("Received Text: ", array);
-			
+
 			cmd = array[0];
+
+			cbdraw = document.getElementById("CB_draw").checked;
+
 			if(cmd === "NamesList") UpdateListOfWF(array[1]);
-			if(cmd === "Draw")
+			if(cmd === "Draw" && cbdraw)
 			{
 				var name = array[1];
 				var id = 0;
 				for(i = 0; i<namesList.length; i++)
-					if(namesList[i]===name) 
+					if(namesList[i]===name)
 						id = i;
 				document.getElementById("listOfWF").selectedIndex = id;
 				$('#listOfWF').selectmenu("refresh");
@@ -170,7 +178,7 @@ function($theDOM, docobj)
 				{
 					data[i] = dv.getFloat64(i*8, true);
 				}
-				console.log(typeof(data), data);
+
 
 				var graphdata = new Array(iMax);
 				for(i = 0; i < iMax; i++)
@@ -182,7 +190,7 @@ function($theDOM, docobj)
 
 		}
 	};
-	socket.onclose = function(e) 
+	socket.onclose = function(e)
 	{
 		print("Connection closed.");
 		socket = null;
@@ -192,11 +200,11 @@ function($theDOM, docobj)
 	function sendCmd(cmd)
 	{
 		cmd = JSON.stringify(cmd);
-		if (isopen) 
+		if (isopen)
 		{
 			socket.send(cmd);
-			console.log("Command send: ", cmd);  
-		} 
+			console.log("Command send: ", cmd);
+		}
 		else print("Connection not opened.");
 	}
 
@@ -207,14 +215,21 @@ function($theDOM, docobj)
 	document.getElementById("sendWFButton").onclick = SendWF;
 	document.getElementById("listOfWF").onchange = SelectionChanged;
 	document.getElementById("deleteWF").onclick = DeleteWF;
+	document.getElementById("triggerWF").onclick = TriggerWF;
 
 	Restore();
-      
+
+	function TriggerWF()
+	{
+		print("Triggering current Waveform");
+		sendCmd(["trigger WF"]);
+	}
+
 	function Send()
 	{
 		print("sending custom Waveform");
 		UpdateParameters();
-		sendCmd(["send CustomWF", 
+		sendCmd(["send CustomWF",
 			[b0, f_burst_time, sampling_freq, sig, measuring_time, len]
 			]);
 	}
@@ -224,13 +239,13 @@ function($theDOM, docobj)
 		document.getElementById("f_b_t").value = "0.5";
 		document.getElementById("s_").value = "1";
 		document.getElementById("s_f").value = "100000";
-		document.getElementById("l_").value = "40000";  
+		document.getElementById("l_").value = "40000";
 		document.getElementById("b0_").value = "1.2";
 		document.getElementById("m_t").value = "2";
 
 		UpdateParameters();
 	}
-	
+
 	function Save()
 	{
 		print("saving Waveform");
@@ -249,12 +264,13 @@ function($theDOM, docobj)
 
 	function SelectionChanged()
 	{
-		
-		if(listNotEmpty)
+		var cbdraw = document.getElementById("CB_draw").checked;
+
+		if(listNotEmpty && cbdraw)
 		{
 			var name = GetDataNameFromList();
 			console.log("Selected WF index: ", name);
-			
+
 			print("Drawing saved Waveform: " + name);
 			sendCmd(["get Waveform", name]);
 		}
@@ -265,18 +281,25 @@ function($theDOM, docobj)
 		var name = GetDataNameFromList();
 		sendCmd(["delete Waveform", name]);
 		listNotEmpty = false;
-	}   
+	}
 
 	function Draw(data)
 	{
-		console.log("Drawing: ", GetDataNameFromList());
-		var graph = document.getElementById("preview");
-		g = new dygraph.Dygraph(graph,
+		var cbdraw = document.getElementById("CB_draw").checked;
+
+		if(cbdraw)
+		{
+
+			console.log("Drawing: ", GetDataNameFromList());
+			var graph = document.getElementById("preview");
+			g = new dygraph.Dygraph(graph,
 				data, {labels: [ "Time t", "V"]}
 				);
-		print("ready");
+			print("ready");
+
+		}
 	}
-      
+
 	function UpdateListOfWF(list)
 	{
 		namesList = list;

@@ -1,0 +1,115 @@
+{
+  "_id"  : "settings",
+  "type" : "control_template",
+  'body' : """
+<h1>Settings</h1>
+<table data-role="table" id="settings-table" data-mode="columntoggle" class="ui-body-d ui-shadow table-stripe ui-responsive settings" data-column-btn-theme="b" data-column-btn-text="Columns to display..." data-column-popup-theme="a">
+  <thead>
+    <tr>
+      <th>Database Name</th>
+      <th>Variables</th>
+      <th>Available Commands</th>
+      <th>Listeners</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+""",
+  'script' : """
+
+    function tableRow(withClass) {
+      withClass = withClass || "";
+      return $('<td/>').append($('<div/>').addClass("settings loading " + withClass));
+    }
+    function addDataBaseRow(db_name) {
+       var $newRow = $('<tr/>')
+          .append($('<th/>').append(db_name))
+          .append(tableRow("variables"))
+          .append(tableRow("commands"))
+          .append(tableRow("listeners center"));
+       $('#settings-table tbody').append($newRow).trigger('create');
+       return $newRow;
+    }
+
+    function handleLogSetting(ev) {
+      var $chk = $(ev.currentTarget);
+      var addr = $chk.data('address');
+      var anid = $chk.data('id-field');
+      if ($chk.is(':checked')) {
+        nedm.startWebSocketListener(addr, anid);
+      } else {
+        nedm.stopWebSocketListener(addr);
+      }
+    }
+
+    function handle_all_dbs(all_dbs) {
+       function get_vars_for_db($row) {
+         return function(keys) {
+           $row.data( { all_vars : keys } );
+           $row.find('.variables')
+               .append(keys.join(", "))
+               .removeClass('loading');
+         };
+       }
+       function get_cmds_for_db($row) {
+         return function(keys) {
+           $row.data( { cmds : keys } );
+           $row.find('.commands').append(keys.map(function(o) { return o.key; }).join(", "));
+           var lstnr = $row.find('.listeners');
+           var ws_listeners = nedm.globalSetting("websocket_listeners") || {};
+           var funcs = {};
+           keys.forEach( function(o) {
+             var ids = o.value[2];
+             if (!ids) return;
+             var lg_name = o.value[1];
+             if (!funcs[lg_name]) {
+               funcs[lg_name] = [];
+             }
+             ids.forEach( function(x) {
+               if (funcs[lg_name].indexOf(x) === -1) {
+                 funcs[lg_name].push(x);
+               }
+             });
+
+           } );
+           function addListener(x) {
+
+               var add = "";
+               if (ws_listeners[x]) {
+                 add = "checked";
+               }
+               lstnr.append("<label class='inline'>" +
+                  "<input data-mini='true' type='checkbox' data-address='" +
+                  x + "' data-id-field='" + k + "'" + add + ">" + x + "</label>");
+           }
+           for (var k in funcs) {
+             var ids = funcs[k];
+             lstnr.append("<h4>Log for: " + k + "</h4>");
+             ids.forEach(addListener);
+           }
+
+           lstnr.trigger("create");
+           $row.find('.commands,.listeners').removeClass('loading');
+           lstnr.find("input")
+                .on("change", handleLogSetting)
+                .trigger('change');
+         };
+       }
+
+       for (var kk in all_dbs) {
+         var $nR = addDataBaseRow(all_dbs[kk].prettyname);
+         var d = 'nedm%2F' + kk;
+         nedm.get_database(d).getVariableNames( get_vars_for_db( $nR ) );
+         nedm.get_database(d).getCommands( get_cmds_for_db( $nR ) );
+       }
+    }
+    function refresh_all() {
+      nedm.get_database_info( handle_all_dbs );
+    }
+
+    nedm.page.once("load", function() {
+      refresh_all();
+    });
+"""
+}

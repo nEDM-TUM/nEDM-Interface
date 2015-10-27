@@ -28,7 +28,7 @@
        var el = '\\n';
        function HandleValue(val) {
          if (first_value) {
-           if (typeof val === "number") {
+           if (typeof val === "number" || typeof val === "boolean") {
              isInteger = true;
            } else {
              isInteger = false;

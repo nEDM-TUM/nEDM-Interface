@@ -1,7 +1,3 @@
-# Monitor template
-#
-#
-
 {
   "_id"  : "monitor",
   "type" : "control_template",
@@ -10,72 +6,116 @@
             <h1 >Monitor</h1>
             <div data-role='controlgroup' data-type='horizontal'>
                 <a href='#' data-role='button' data-inline='true' class='makeNewPlot ui-disabled'>Insert New Graph</a>
-                <select class='selectCurrentPlot ui-disabled'>
-                </select>
-                <a href='#' data-role='button' data-inline='true' class='removePlot ui-disabled'>Remove Selected</a>
+                <label><input type='checkbox' class='edit_layout'/>Edit layout</label>
+                <label><input type='checkbox' class='edit_variables'/>Adjust variables</label>
+                <label><input type='checkbox' class='win_nums'/>Show window numbers</label>
             </div>
             <div data-role='controlgroup' data-type='horizontal'>
+                <select class='selectCurrentPlot ui-disabled'>
+                </select>
                 <a href='#' data-role='button' data-inline='true' class='addSlowControl ui-disabled'>Add to selected graph</a>
                 <select class='selectSlowControl ui-disabled' multiple='multiple' data-native-menu='false'>
                   <option>Available variables:</option>
                 </select>
             </div>
 
-            <div class='monitor_div'>
+            <div class='monitor_div gridster'>
             </div>
 """,
    "script" : """
         var graph_template;
+        var gridster,
+            isEditing = false,
+            showWindowNumbers = false,
+            isEditingVars = false;
+            isInitialized = false;
         var cookie = require('js-cookie');
+        var delete_btn_txt = "<div class='header'><button class='delete_over_var ui-btn ui-shadow ui-corner-all ui-icon-minus ui-btn-icon-notext'>Delete</button></div><div class='window_designation'></div>";
 
-        var makeNewGraph = function(ev) {
-            var aP = $(ev.target);
-            if (!aP.hasClass('db_monitor_class')) {
-              aP = aP.parents('.db_monitor_class');
-            }
-            var selection = $('.selectCurrentPlot', aP).filter(':input');
+        function resize(ev, ui, $widget) {
+            $widget.data('obj').resize();
+        }
+        function serializePositions($w, wgd) {
+          return {
+            col: wgd.col,
+            row: wgd.row,
+            size_x: wgd.size_x,
+            size_y: wgd.size_y,
+            variables: $w.data().obj.graph().name()
+          };
+        }
+        function get_gridster() {
+          if (gridster) return gridster;
+          $('.gridster', theCurrentPage).empty();
+          $('.gridster', theCurrentPage).append($('<ul/>'));
+          gridster = $('.gridster > ul', theCurrentPage).gridster({
+              widget_base_dimensions: [100, 100],
+              //widget_class: ".widget",
+              widget_margins: [5, 5],
+              helper: 'clone',
+              draggable: {
+                  handle: ".header"
+              },
+              autogrow_cols : true,
+              serialize_params : serializePositions,
+              resize: {
+                  enabled: true,
+                  stop: resize,
+                  resize: resize
+              }
+          }).data('gridster');
+          return gridster;
+        }
+
+        function makeNewGraph(info) {
+            var selection = $('.selectCurrentPlot', theCurrentPage).filter(':input');
             var select_length = selection.find('option').length;
             var window_num = select_length;
             if (window_num > 0) {
                 window_num = parseInt($('option:last-child', selection).val()) + 1;
             }
-            var new_div = $('<div/>').append(graph_template.html).addClass('graph_monitor');
-            $('.monitor_div', aP).append(new_div);
-            if (graph_template.script) {
-                graph_template.script(new_div, { window_name: 'Window ' + window_num });
+            var position = info.position;
+            position.unshift("<li>" + delete_btn_txt + graph_template.html + "</li>");
+            var grid = get_gridster();
+            if (position[1] > grid.cols) {
+                position[1] = grid.cols;
             }
-            new_div.trigger('create');
+            if (position[2] > grid.rows) {
+                position[2] = grid.rows;
+            }
+            var new_div = grid.add_widget.apply(grid, position);
+            new_div.data("obj", new graph_template.script(new_div))
+                   .data("window_num", window_num);
+            new_div.data("obj").add_plot(info.variables);
+            $('.window_designation', new_div).text(window_num);
             selection.append($('<option/>').attr( { value : window_num } )
                                            .append('Window ' + window_num)
                                            .data( { reference : new_div,
                                                     num : window_num } ));
+            $('.delete_over_var', new_div).on("click", removeWindow);
             selection[0].selectedIndex = select_length;
             // Now deal with the other buttons
-            $('.removePlot', aP).removeClass('ui-disabled');
             selection.removeClass('ui-disabled');
-            var ssc = $('.selectSlowControl', aP).filter(':input');
+            var ssc = $('.selectSlowControl', theCurrentPage).filter(':input');
             ssc.removeClass('ui-disabled');
             if (ssc.find('option').length !== 0) {
-                $('.addSlowControl', aP).removeClass('ui-disabled');
+                $('.addSlowControl', theCurrentPage).removeClass('ui-disabled');
             }
             selection.selectmenu('refresh', true);
-            updateCookies();
+            updateEditing();
             return $(':selected', $(selection));
             // Begin additional functions
-        }; // makeNewGraph
+        } // makeNewGraph
 
-        var removeWindow = function(sel) {
-            if (!sel) return;
-            // remove the div, and the menu
-            sel.data('reference').data().remove();
-            sel.remove();
-        };
+        function removeWindow(ev) {
+          var li = $(ev.currentTarget).closest('li');
+          li.data('obj').remove();
+          gridster.remove_widget(li);
+          $('.selectCurrentPlot [value=' + li.data('window_num') + ']', theCurrentPage).remove();
+          $('select.selectCurrentPlot', theCurrentPage).selectmenu('refresh');
+        }
 
-        var destroyGraph = function(ev) {
-            var thispage = $(ev.target).parents('.content-primary');
-            var scp = $('.selectCurrentPlot', thispage).filter(':input');
-            var sIndex = scp[0].selectedIndex;
-            var selected = scp.find(':selected');
+        function destroyGraph(ev) {
             removeWindow(selected);
             if (sIndex !== 0) sIndex--;
             scp[0].selectedIndex = sIndex;
@@ -83,112 +123,120 @@
             // Update the buttons.
             if (scp.find('option').length === 0) {
               // disable button if nothing is there
-              $('.removePlot, .addSlowControl', thispage).addClass('ui-disabled');
+              $('.addSlowControl', thispage).addClass('ui-disabled');
               $('.selectSlowControl', thispage).filter(':input').addClass('ui-disabled');
             }
             scp.selectmenu('refresh', true);
-        }; // destroyGraph
+        } // destroyGraph
 
-        var populateGraphsWithCookies = function(ev) {
-            if ( $('.monitor_div', $(ev.target)).children().length > 0 ) return;
-            var durl = $(ev.target).attr('data-url');
-            var old_plots = cookie.get('current_plots' + durl);
-            cookie.remove('current_plots' + durl, { path : '/' });
-            if (old_plots) {
-                for (var i=0;i<old_plots.length;i++) {
-                    var x = old_plots[i];
-                    var gr = makeNewGraph(ev);
-                    gr.data('reference').data().add_plot(x.name);
-                }
-            }
-        };
+        function populateGraphsFromState() {
+           getSavedState().forEach( function(o) {
+             makeNewGraph(o);
+           });
+        }
 
-        var getAvailableItems = function (ev, ui) {
+        function getAvailableItems() {
 			// We can have stale = update_after since the data types will not
 			// change all that often.
-            var evtar = $(ev.target);
-            var ev1 = ev;
             nedm.get_database().getVariableNames( function(allnames) {
-                        var ssc = $('.selectSlowControl', evtar).filter(':input');
+                        var ssc = $('.selectSlowControl', theCurrentPage).filter(':input');
                         ssc.find('option').remove();
                         allnames.forEach( function (aname) {
                           ssc.append($('<option/>').attr({value : aname}).append(aname));
                         });
                         if (ssc.find('option').length !== 0) {
                             ssc.removeClass('ui-disabled');
-                            if ($('.selectCurrentPlot', evtar).find('option').length !== 0) {
-                                $('.addSlowControl', evtar).removeClass('ui-disabled');
+                            if ($('.selectCurrentPlot', theCurrentPage).find('option').length !== 0) {
+                                $('.addSlowControl', theCurrentPage).removeClass('ui-disabled');
                             }
                         }
-                        populateGraphsWithCookies(ev1);
                         ssc.selectmenu('refresh', true);
             });
 
-        }; // getAvailableItems
+        } // getAvailableItems
 
-        var updateCookies = function() {
-            var current_plots = [];
-            var durl = $('.ui-page-active').attr('data-url');
-            $('.ui-page-active select.selectCurrentPlot option').each( function() {
-                var graph = $(this).data('reference').data('graph');
-                var next_obj = {};
-                ["name", "time_prev", "time_range", "until_time"].forEach( function(o) {
-                   next_obj[o] = graph[o];
+        function saveCurrentState() {
+          nedm.globalSetting("monitor_" + nedm.get_database().db_name(), get_gridster().serialize());
+        }
+        function getSavedState() {
+          return (nedm.globalSetting("monitor_" + nedm.get_database().db_name()) || [])
+            .map( function(o) {
+                   return { position: [o.size_x, o.size_y, o.col, o.row], variables: o.variables };
                 });
-                current_plots.push(next_obj);
-            });
-            cookie.set('current_plots' + durl, current_plots, { path : '/' , expires : 365});
-        };
+        }
 
-        var exitCleanup = function (ev, ui) {
-            updateCookies();
-            $('.ui-page-active select.selectCurrentPlot option').each( function() {
-                removeWindow($(this));
-            });
-            $('select.selectCurrentPlot').selectmenu('refresh', true);
-        }; // exitCleanup
-
-        var addSelectedPlotToWindow = function() {
-            var scp = $('.ui-page-active .selectCurrentPlot');
-            var the_div = scp.find(':selected').data('reference');
-            var win_num = scp.find(':selected').data('num');
-            var ssc = $('.ui-page-active .selectSlowControl')
-                       .find(':selected')
-                       .map(function() { return $(this).val(); });
-            ssc = $.makeArray(ssc);
-            if (!the_div.data().add_plot(ssc)) return;
+        function addSelectedPlotToWindow() {
+            var scp = $('.selectCurrentPlot :selected', theCurrentPage).data();
+            var the_div = scp.reference;
+            var win_num = scp.num;
+            var ssc = $.makeArray($('.selectSlowControl :selected')
+                       .map(function() { return $(this).val(); }));
+            if (!the_div.data("obj").add_plot(ssc)) return;
             the_div.find('.date_button_execute').trigger('click');
-            updateCookies();
-        }; // addSelectedPlotToWindow
+            saveCurrentState();
+        } // addSelectedPlotToWindow
 
-        (function() {
-            $( '.db_monitor_class' ).off('pageinit').on( 'pageinit', function(ev, ui) {
-                var addr = '/nedm_head/_design/nedm_head/_show/define_control/graph_template';
-                var tthis = $(this);
-                var evv = ev;
-                var uii = ui;
-                $.ajax({ type: 'POST',
-                         url: addr,
-                         data: JSON.stringify({}),
-                         success: function(e) {
-                             graph_template = e;
-                             if (e.doc && e.doc.script) {
-                                 /* jshint ignore:start */
-                                 graph_template.script = eval('(' + e.doc.script + ')');
-                                 /* jshint ignore:end */
-                             }
-                             getAvailableItems(evv, uii);
-                             // Set up also for later
-                             tthis.on('pageshow', populateGraphsWithCookies);
-                             $('.makeNewPlot', $(evv.target)).removeClass('ui-disabled');
-                         }
-                });
-
-                $('.makeNewPlot', $(ev.target)).off('click').on('click', makeNewGraph );
-                $('.removePlot', $(ev.target)).off('click').on('click', destroyGraph );
-                $('.addSlowControl', $(ev.target)).off('click').on('click', addSelectedPlotToWindow );
-                tthis.on('pagebeforehide', exitCleanup);
+        function updateEditing() {
+            if (!gridster) return;
+            var awidth = 50;
+            if ( isEditing ) {
+              $('.gridster li > .header', theCurrentPage)
+                                  .width(awidth + "px")
+                                  .show()
+                                  .siblings(':not(.gs-resize-handle)')
+                                  .css('left', awidth + "px");
+              gridster.enable_resize();
+            } else {
+              $('.gridster li > .header', theCurrentPage)
+                                  .width("0px")
+                                  .hide()
+                                  .siblings(':not(.gs-resize-handle)')
+                                  .css('left', "0px");
+              gridster.disable_resize();
+            }
+            $('.gridster li', theCurrentPage).each( function() {
+              $(this).data('obj').show_options(isEditingVars);
             });
-        }());
+            $('li .window_designation', theCurrentPage).each( function() {
+              if (!showWindowNumbers) {
+                $(this).hide();
+              } else {
+                var h = $(this).show().height();
+                $(this).css("font-size", parseInt(h*0.7) + "px")
+                       .css("line-height", h + "px");
+              }
+            });
+            saveCurrentState();
+        }
+
+        $('.edit_layout, .edit_variables, .win_nums', theCurrentPage).on("click", function(ev) {
+          isEditing = $('.edit_layout', theCurrentPage).is(":checked");
+          isEditingVars = $('.edit_variables', theCurrentPage).is(":checked");
+          showWindowNumbers = $('.win_nums', theCurrentPage).is(":checked");
+          updateEditing();
+        });
+        $('.makeNewPlot', theCurrentPage).on('click', function() {
+          makeNewGraph( {
+            position: [6, 3, 1, 1],
+            variables: []
+          });
+        });
+
+        $('.addSlowControl', theCurrentPage).on('click', addSelectedPlotToWindow );
+
+        nedm.page.once( 'load', function(ev, ui) {
+            nedm.get_database("nedm_head").getDoc("graph_template",
+               function(e, o) {
+                   graph_template = o;
+                   /* jshint ignore:start */
+                   graph_template.script = eval('(' + o.script + ')');
+                   /* jshint ignore:end */
+                   getAvailableItems();
+                   $('.makeNewPlot', theCurrentPage).removeClass('ui-disabled');
+                   populateGraphsFromState();
+               }
+            );
+
+        });
 """
 }

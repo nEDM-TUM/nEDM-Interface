@@ -1,8 +1,8 @@
 {
   "_id" : "subsystem_information",
-  "prettyname" : "Climate Control",
+  "prettyname" : "Scratch",
   "pages" : {
-        "Control" : "control.html",
         "Monitor" : "monitor.html"
   }
+
 }

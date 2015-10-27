@@ -2,14 +2,18 @@
   "_id"  : "master_control",
   "type" : "control",
   "title" : "Measurements",
-  "description" : "Run measurements",
+  "description" : """Run measurements
+<br><br>
+For an example measurement using system functions, see:
+<a href='#' class='example_measurement'>example measurement</a>.
+""",
   "order" : 1,
   "protocol_types" : {
     "Command" : {
       "html" : """
             <div class='ui-grid-b'>
               <div class='ui-block-a'>
-                <h5>Name:</h5>
+                <h5>Function:</h5>
                 <h5>Argument(s):</h5>
               </div>
               <div class='ui-block-b'>
@@ -38,7 +42,13 @@
             cmds.empty();
             cmds.on('change', function(e) {
               var dat = cmds.find(':selected').data('obj');
-              if (dat && dat.Info) cmd_info.text(dat.Info);
+              if (dat && dat.Info) {
+                if (typeof dat.Info === 'object') {
+                  cmd_info.text(dat.Info.help_msg);
+                } else {
+                  cmd_info.text(dat.Info);
+                }
+              }
             });
             database_cache.get_db(db_name).get_commands(function(all_cmds) {
               all_cmds.forEach( function(o) {
@@ -50,13 +60,13 @@
               cmds.trigger('change');
             });
           };
-          tthis.save = function(adiv) {
+          tthis.save = function(adiv, proc) {
             var args = $('.all_args', $(adiv)).val().trim();
+            if (proc) args = proc(args);
             if (args.length !== 0) {
               try {
                 args = JSON.parse(args);
               } catch (err) {
-                args = null;
               }
             } else {
               args = [];
@@ -68,16 +78,25 @@
             };
           };
           tthis.set = function(adiv, obj) {
-            $('.cmd_name', $(adiv)).filter(':input').val(obj.cmd_name);
-            $('.all_args', $(adiv)).val(obj.args);
+            $('select.cmd_name', $(adiv)).val(obj.cmd_name).selectmenu('refresh');
+            var args = obj.args;
+            if (typeof args === 'object') {
+              args = JSON.stringify(args);
+            }
+            $('.all_args', $(adiv)).val(args);
           };
 
-          tthis.script = function(adiv, cbck) {
-            var obj = tthis.save(adiv);
+          tthis.script = function(adiv, proc, cbck) {
+            var obj = tthis.save(adiv, proc);
             var db_name = obj.db_name;
             var cmd_name = obj.cmd_name;
             var args = obj.args;
+            var dat = $('select.cmd_name', $(adiv)).find(':selected').data('obj');
             if (!Array.isArray(args)) args = [args];
+            if (dat && typeof dat.Info === 'object' && dat.Info.language === 'javascript') {
+                var func = eval('(' + dat.Info.function + ')');
+                return func(args, cbck);
+            }
             return nedm.get_database(db_name).send_command( { cmd_name : cmd_name,
               arguments : args,
               callback : cbck,
@@ -122,12 +141,13 @@
                  vars.selectmenu('refresh', true);
                });
              };
-             tthis.save = function(adiv) {
+             tthis.save = function(adiv, proc) {
+               proc = proc || function(o) { return o; };
                return {
                  db_name : $('.all_dbs', $(adiv)).find(':selected').val(),
                  var_name : $('.var_name', $(adiv)).find(':selected').val(),
-                 var_min : parseFloat($('.var_min', $(adiv)).val()),
-                 var_max : parseFloat($('.var_max', $(adiv)).val())
+                 var_min : parseFloat(proc($('.var_min', $(adiv)).val())),
+                 var_max : parseFloat(proc($('.var_max', $(adiv)).val()))
                };
              };
              tthis.set = function(adiv, obj) {
@@ -135,9 +155,9 @@
                $('.var_min', $(adiv)).val(obj.var_min);
                $('.var_max', $(adiv)).val(obj.var_max);
              };
-             tthis.script = function(adiv, cbck) {
+             tthis.script = function(adiv, proc, cbck) {
                var callback = cbck;
-               var obj = tthis.save(adiv);
+               var obj = tthis.save(adiv, proc);
                var db_name = obj.db_name;
                var var_name = obj.var_name;
                var var_min = obj.var_min;
@@ -170,12 +190,15 @@
   "protocol_clone" : """
     <div data-role="collapsible">
         <h2><span class="current_title">(No name)</span> <span class='current_status'></span></h2>
+        <div data-role='controlgroup' data-type='horizontal' class='movement_arrows'>
+          <button class='ui-btn ui-icon-arrow-u ui-btn-icon-notext move_up'>Move Up</button>
+          <button class='ui-btn ui-icon-arrow-d ui-btn-icon-notext move_down'>Move Down</button>
+          <button class='ui-btn ui-icon-delete ui-btn-icon-notext protocol_remove'>Remove</button>
+        </div>
         <div data-role='controlgroup' data-type='horizontal'>
             <input type="text" class='step_name' value="(No name)">
             <select class='all_dbs'></select>
             <select class='protocol_type'></select>
-            <button class='ui-btn ui-icon-delete ui-btn-icon-notext protocol_remove'>Remove
-            </button>
         </div>
         <div class='protocol_settings'></div>
         <div>
@@ -204,6 +227,49 @@
     </div>
 </div>
 """,
+  "protocol_table" : """
+     <div class='protocol_table'></div>
+     <div data-role='controlgroup' data-type='horizontal'>
+       <button class="ui-btn ui-icon-plus ui-btn-icon-left add_protocol_line">Add protocol line</button>
+       <button class="ui-btn add_loop_line">Add loop</button>
+     </div>
+""",
+  "loop_code" : """
+   <div class="ui-body ui-body-a ui-corner-all">
+     <h3>Loop settings</h3>
+     <div data-role="collapsible" data-theme="b">
+       <h2>Code</h2>
+       <div class='code_editor left'></div>
+       <div data-role='controlgroup' data-type='horizontal'>
+         <button class="ui-btn ui-icon-info ui-btn-icon-left help">Help</button>
+         <button class="ui-btn ui-icon-recycle ui-btn-icon-left check">Check output</button>
+       </div>
+       <div data-role="popup" class="ui-content check_output">
+       </div>
+       <div data-role="popup" class="ui-content loop_description">
+		 <p>The code written is in javascript or JSON and must be either a list
+(array) or a function that returns a list.  The list should define objects in it, e.g.:
+         <br><br>
+         <code>[{something : 1, a : 'a'}, {something : 2, a : 'b'}]</code>
+         <br><br>
+         and later the variables can be referenced as e.g. <code>{{something}}</code> or <code>{{a}}</code>.
+         If a function is to be used, it should have the form:
+         <br><br>
+         <code>
+         function() {
+           return [{something : 1, a : 'a'}, {something : 2, a : 'b'}];
+}</code>
+         <br><br>
+		 where of course more complex calculations may done.  To test whether
+or not the function works, run the process with "Dry Run" selected.
+For an example measurement using system functions, see:
+<a href='#' class='example_measurement'>example measurement</a>.
+</p>
+       </div>
+     </div>
+   </div>
+""",
+
   "html" : """
 <div>
     <div class='entire_protocol'>
@@ -215,13 +281,12 @@
         </div>
       </div>
       <div>
-         <div class='current_protocol ui-disabled'>
-            <div class='protocol_table'>
-            </div>
+         <div class='ui-body ui-body-a current_protocol ui-disabled'>
+            <h2>Protocol</h2>
             <div data-role='controlgroup' data-type='horizontal'>
-              <button class="ui-btn ui-icon-plus ui-btn-icon-left add_protocol_line">Add protocol line</button>
               <button class="ui-btn run_process">Run process</button>
               <button class="ui-btn stop_process ui-disabled">Stop process</button>
+              <label><input type="checkbox" class="dry_run_process"/>Dry run</label>
             </div>
          </div>
       </div>
@@ -261,12 +326,22 @@
       <div data-role='controlgroup' class='save_div' data-type='horizontal'>
         <label><input type='checkbox' class="overwrite_doc">Overwrite</label>
         <button class="ui-btn save_measurement">Save Measurement</button>
+        <button class="ui-btn delete_measurement" disabled>Delete</button>
       </div>
       <p>
         When creating a new measurement (not Overwriting), attachments will *not* be transfered to the new document.
       </p>
     </div>
 </div>
+<div data-role="popup" id="measurementsDeleteConfirm" data-overlay-theme="b" data-theme="a"
+  class="ui-corner-all ui-content center" data-dismissible="false">
+    <h1>Delete measurement?</h1>
+    <h3 class="ui-title">Are you sure you want to delete this measurement?</h3>
+    <p>This action cannot be undone.</p>
+    <a href="#" class='cancel_button' data-role="button" data-inline="true" data-rel="back" data-theme="a">Cancel</a>
+    <a href="#" class='delete_button' data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Delete</a>
+</div>
+
 
 """,
 "script" : """
@@ -274,10 +349,127 @@
       // Grab the line to clone before jquery mobile changes it
       var line_clone = $.parseHTML(docobj.protocol_clone.trim());
       var download_clone = $.parseHTML(docobj.download_clone.trim());
+      var loop_clone = $.parseHTML(docobj.protocol_table.trim());
+      var loop_code_clone = $.parseHTML(docobj.loop_code.trim());
       var prot_sel = $('.protocol_type', $(line_clone));
       var toastr = require("toastr");
       var command_obj = {};
       var this_db = nedm.get_database();
+
+      // Set the link
+      function set_load_example(ev) {
+         $(ev.currentTarget).closest('[data-role=popup]').popup('close');
+         load_with_docid("measurement_example");
+      }
+
+      theCurrentPage.find('.example_measurement').on('click', set_load_example);
+
+      function add_loop_code_window($after) {
+          var $code_div = $(loop_code_clone).clone();
+          $after.after($code_div);
+          var $popUp = $code_div.find('[data-role=popup]')
+              .css({
+                width : '80%',
+                'max-width' : '800px'
+              }).popup();
+          $popUp.find('.example_measurement').on('click', set_load_example);
+          $code_div.trigger('create');
+          var ed = ace.edit($code_div.find('.code_editor')[0]);
+          ed.getSession().setMode('ace/mode/javascript');
+          ed.setTheme('ace/theme/xcode');
+          $code_div.find('.code_editor').data({ edit : ed });
+          $('.help', $code_div).on('click', function(ev) {
+            $popUp.filter('.loop_description').popup("open");
+          });
+          $('.check', $code_div).on('click', function(ev) {
+            var fo = $popUp.filter('.check_output');
+            fo.empty();
+            try {
+              parse_loop_code($code_div.find('.code_editor')).forEach(function(o) {
+                 fo.append("<code>" + JSON.stringify(o) + ",</code><br>");
+              });
+            } catch (e) {
+              fo.append("<p>Error: " + e.name + "<br>Message: " + e.message + "</p>");
+            }
+            fo.filter('.check_output').popup("open");
+          });
+          $code_div.on('collapsibleexpand', function() {
+            ed.resize();
+          });
+      }
+
+      function add_loop_after($after) {
+          var $nc = $(loop_clone).clone();
+          $after.after($nc)
+                .siblings('[data-role=controlgroup]')
+                .controlgroup();
+          $('.add_protocol_line', $after.siblings('[data-role=controlgroup]')).on("click", function(ev) {
+            add_protocol_line_fn($(ev.currentTarget).parents('[data-role=controlgroup]').siblings('.protocol_table'));
+          });
+          $('.add_loop_line', $after.siblings('[data-role=controlgroup]')).on("click", function(ev) {
+            var pt = $(ev.currentTarget).parents('[data-role=controlgroup]').siblings('.protocol_table');
+            add_protocol_line_fn(pt);
+            $('.movement_arrows ~ ', pt.children(':last-child')).remove();
+            $('.current_title', pt.children(':last-child')).text('Loop');
+            add_loop_after($('.movement_arrows', pt.children(':last-child')));
+            add_loop_code_window($('.movement_arrows', pt.children(':last-child')));
+          });
+      }
+
+      function parse_loop_code($code_editor, proc) {
+          proc = proc || function(o) { return o; };
+          /* jshint -W061 */
+          var v_c = eval('(' + proc($code_editor.data('edit').getSession().getValue() || '[]') + ')');
+          if (typeof v_c === 'function') {
+            v_c = v_c();
+          }
+          if (!Array.isArray(v_c)) {
+            throw {name : "Not array", message : "object must either be an array or create an array"};
+          }
+          return v_c;
+      }
+
+
+
+      add_loop_after($('.current_protocol > h2', thediv));
+
+      function moveUp(ev) {
+        var $el = $(ev.currentTarget).closest(".protocol_clone_act");
+        $el.prev().before($el);
+      }
+      function moveDown(ev) {
+        var $el = $(ev.currentTarget).closest(".protocol_clone_act");
+        $el.next().after($el);
+      }
+
+      var add_protocol_line_fn = function(proto_table, obj) {
+         var nc = $(line_clone).clone();
+         nc.removeClass('protocol_clone').addClass('protocol_clone_act');
+         nc.show();
+         var curr_number = proto_table.children(".protocol_clone_act").length;
+         $('.protocol_remove', $(nc)).on("click", remove_function);
+         $('.step_name', $(nc)).on("change", function(e) {
+           $(".current_title", $(nc)).text($(e.currentTarget).val());
+         });
+         $('.protocol_type', $(nc)).on("change", handle_type_change);
+         $('.all_dbs', $(nc)).on("change", handle_type_change);
+         $('.move_up', $(nc)).on("click", moveUp);
+         $('.move_down', $(nc)).on("click", moveDown);
+         proto_table.append(nc);
+         proto_table.trigger("create");
+         $('select.protocol_type', $(nc)).selectmenu('refresh');
+         if (obj) {
+           for (var k in obj) {
+             var o = obj[k];
+             $('select.all_dbs', $(nc)).val(o.db_name).trigger('change');
+             $('select.protocol_type', $(nc)).val(k).trigger('change');
+             $('.step_name', $(nc)).val(o.name).trigger('change');
+             check_protocol(nc, o);
+             command_obj[k].set(nc, o);
+             if (o.status) $('.status_output', $(nc)).text(o.status);
+           }
+         }
+      };
 
       // Database cache, caches the available databases
       function DatabaseCache() {
@@ -314,7 +506,6 @@
         var all_dbs = [];
         var that = this;
         this.get_db = function(aname) {
-          if (!(aname in all_dbs)) return null;
           return all_dbs[aname];
         };
         this.add_db = function(aname) {
@@ -351,58 +542,12 @@
       };
 
 
-      var add_protocol_line_fn = function(obj) {
-         var nc = $(line_clone).clone();
-         nc.removeClass('protocol_clone').addClass('protocol_clone_act');
-         nc.show();
-         var curr_number = $(".protocol_table").children(".protocol_clone_act").length;
-         $('.protocol_remove', $(nc)).on("click", remove_function);
-         $('.step_name', $(nc)).on("change", function(e) {
-           $(".current_title", $(nc)).text($(e.currentTarget).val());
-         });
-         $('.protocol_type', $(nc)).on("change", handle_type_change);
-         $('.all_dbs', $(nc)).on("change", handle_type_change);
-         $('.protocol_table', $(thediv)).append(nc);
-         $('.protocol_table', $(thediv)).trigger("create");
-         $('.protocol_type', $(nc)).trigger("change");
-         if (obj) {
-           for (var k in obj) {
-             var o = obj[k];
-             $('.all_dbs', $(nc)).filter(':input').val(o.db_name).trigger('change');
-             $('.protocol_type', $(nc)).filter(':input').val(k).trigger('change');
-             $('.step_name', $(nc)).val(o.name).trigger('change');
-             check_protocol(nc, o);
-             command_obj[k].set(nc, o);
-             if (o.status) $('.status_output', $(nc)).text(o.status);
-           }
-         }
-      };
-
-      $('.add_protocol_line', $(thediv)).on("click", function() {
-        add_protocol_line_fn();
-      });
       var load_database_info = function(adb) {
           var my_db = central_cache.get_db(adb);
-          nedm.get_database(adb).getView("execute_commands", "export_commands",
-            { opts : {
-              reduce : false
-            }},
-            function(e, o) {
-              var set_obj = {};
-              if (!e) set_obj = o.rows;
-              my_db.set_commands(set_obj);
-          });
-          nedm.get_database(adb).getView(
-            "slow_control_time", "slow_control_time",
-            { opts : {
-              group_level : 1
-            }},
-            function(e, o) {
-              var set_obj = [];
-              if (!e) set_obj = o.rows;
-              my_db.set_variables(set_obj);
-          });
+          nedm.get_database(adb).getCommands( my_db.set_commands );
+          nedm.get_database(adb).getVariableNames( my_db.set_variables );
       };
+
       nedm.get_database_info(function(all_dbs) {
          var adbs = $('.all_dbs', $(line_clone));
          for (var x in all_dbs) {
@@ -414,47 +559,123 @@
       });
 
       var should_stop = false;
+      var protocol_run = [];
       var abort_step;
       var run_process = function(e) {
          should_stop = false;
-         var process_list = $('.protocol_table');
-         var disable_list = [ $(e.currentTarget), process_list, $('.add_protocol_line', $(thediv))];
+         var dry_run = $('.dry_run_process', thediv).is(':checked');
+         var process_list = $('.current_protocol > .protocol_table', thediv);
+         var disable_list = [ $(e.currentTarget), process_list, $('.add_protocol_line,.dry_run_process', $(thediv))];
          disable_list.forEach( function(o) { o.addClass("ui-disabled"); });
          $(".stop_process", $(thediv)).removeClass("ui-disabled");
          abort_step = null;
-         var run_step = function(astep) {
-             var as = $(astep);
-             as.collapsible("expand");
-             var cl = $('.protocol_type', as).find(":selected").val();
-             var func = command_obj[cl].script;
-             $(".current_status", as).addClass("nedm-status-button-loading");
-             abort_step = func( as, function(err, obj) {
-               var nxt = $(as).next(".protocol_clone_act");
-               $(".current_status", as).removeClass("nedm-status-button-loading");
-               var msg;
-               if (!err) {
-                 $(".current_status", as).addClass("nedm-status-button-g");
-                 msg = obj.return;
+         protocol_run = [];
+         var error_seen;
+         function run_list(alist, var_context, cbck) {
+           var v_c = (var_context || [{}]).slice();
+           var cur_list = alist.slice();
+           var cur_v_c = v_c[0];
+           v_c.shift();
+           function run_next(success) {
+             if (success) {
+               if (cur_list.length > 0) {
+                 var o = cur_list[0];
+                 cur_list.shift();
+                 run_step(o, cur_v_c, run_next);
+               } else if (v_c.length > 0) {
+                 run_list(alist, v_c, cbck);
                } else {
-                 msg = "Error: " + err.error + ", reason: " + err.reason;
+                 if(cbck) cbck(true);
+                 else {
+                   disable_list.forEach( function(o) { o.removeClass("ui-disabled"); });
+                   $(".stop_process", $(thediv)).addClass("ui-disabled");
+                 }
                }
-               $('.status_output', as).text(msg);
-               if (nxt.length > 0 && !should_stop && !err) {
-                 run_step(nxt);
+             } else {
+               if (cbck) {
+                 cbck(false);
                } else {
                  disable_list.forEach( function(o) { o.removeClass("ui-disabled"); });
                  $(".stop_process", $(thediv)).addClass("ui-disabled");
-                 if (err) {
-                   $(".current_status", as).addClass("nedm-status-button-r");
-                   nedm.show_error_window(err.reason, err.error);
+                 if (error_seen) {
+                   nedm.show_error_window(error_seen.reason, error_seen.error);
                  }
                }
-             });
-         };
+             }
+           }
+           run_next(true);
+         }
+         function updateStatus(as, success) {
+           var $cs = as.find('.current_status').first();
+           $cs.removeClass("nedm-status-button-loading");
+           if (success) {
+             $cs.addClass("nedm-status-button-g");
+             as.collapsible("collapse");
+           } else {
+             $cs.addClass("nedm-status-button-r");
+           }
+         }
+
+         var handlebars = require("handlebars");
+         function run_step(astep, var_context, cbck) {
+             var as = $(astep);
+             as.collapsible("expand");
+             as.find(".current_status").first().addClass("nedm-status-button-loading");
+
+             function proc(o) {
+               return handlebars.compile(o)(var_context);
+             }
+             if ($('.protocol_table', as).length !== 0) {
+               var v_c;
+               try {
+                 v_c = parse_loop_code(as.find('.code_editor').first(), proc);
+                 v_c = v_c.map( function(o) {
+                   for (var k in var_context) {
+                     if (!o[k]) {
+                       o[k] = var_context[k];
+                     }
+                   }
+                   return o;
+                 });
+               } catch (e) {
+                 toastr.error(e.message, e.name);
+                 updateStatus(as, false);
+                 cbck(false);
+                 return;
+               }
+               run_list(as.find('.protocol_table').first().children(".protocol_clone_act").toArray(), v_c, function(success) {
+                 updateStatus(as, success);
+                 cbck(success);
+               });
+               return;
+             }
+             var cl = $('.protocol_type', as).find(":selected").val();
+             var func = command_obj[cl].script;
+             protocol_run[protocol_run.length] = command_obj[cl].save(as, proc);
+             if (dry_run) {
+               updateStatus(as, true);
+               cbck(true);
+             } else {
+               abort_step = func( as, proc, function(err, obj) {
+                 var msg;
+                 if (!err) {
+                   msg = obj.return;
+                 } else {
+                   msg = "Error: " + err.error + ", reason: " + err.reason;
+                   error_seen = err;
+                 }
+                 protocol_run[protocol_run.length-1].msg = msg;
+                 protocol_run[protocol_run.length-1].success= !err;
+                 updateStatus(as, !err);
+                 $('.status_output', as).text(msg);
+                 cbck(!(should_stop || err));
+               });
+             }
+         }
          $(".current_status", process_list).each( function () {
            $(this).removeClass("nedm-status-button-r nedm-status-button-g nedm-status-button-loading");
          });
-         run_step($(process_list).children(".protocol_clone_act")[0]);
+         run_list($(process_list).children(".protocol_clone_act").toArray());
       };
       $('.run_process', $(thediv)).on("click", run_process);
       $('.stop_process', $(thediv)).on("click", function(e) {
@@ -563,8 +784,7 @@
       // Get direct properties
       var save_id = function(anid) {
         $(thediv).data('current_doc', anid);
-        var msg = anid;
-        if (anid === null) msg = '(Not saved)';
+        var msg = anid || '(Not saved)';
         $('.measurement_status', $(thediv)).text(msg);
       };
       var set_measurement_name = function(aname) {
@@ -699,81 +919,107 @@
         }
         return passed;
       };
+      $('.delete_measurement').on('click', function(ev) {
+        var $dc = theCurrentPage.find('#measurementsDeleteConfirm');
+        var doc = $(this).data('doc');
+        $('.delete_button', $dc).off().on('click', function() {
+          nedm.get_database().removeDoc( doc , function(e, o) {
+            if(e) {
+              nedm.show_error_window(e.error, e.reason);
+            } else {
+              toastr.info("Success", "Document: " + o.id + " removed");
+              // Load in open object
+              load_from_object({});
+            }
+
+          });
+        });
+        theCurrentPage.find('#measurementsDeleteConfirm').popup('open');
+      });
       // Save measurement
       $('.save_measurement').on('click', function(ev) {
         var protocol_list = [];
         var tthis = $(ev.currentTarget);
-        function get_information(astep) {
-          var as = $(astep);
-          if (as.length === 0) {
-            $('.entire_protocol', $(thediv)).addClass('ui-disabled');
-            var adoc;
-            try {
-              adoc = alldoc_editor.get();
-            } catch (e) {
-              toastr.error("JSON in 'All information' improperly formatted.", "Formatting error");
-              $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
-              return;
-            }
-
-            var newdoc = {
-              type : "measurement",
-              log : cmt.data('editor').getSession().getValue(),
-              protocol : protocol_list,
-              measurement_name : $('.set_measurement_name', $(thediv)).val()
+        function get_information(astep, alist) {
+          var as = astep;
+          if (as.length === 0) return;
+          if ($('.protocol_table', as).length !== 0) {
+            var new_list = [];
+            get_information($('.protocol_table', as).children(".protocol_clone_act").first(), new_list);
+            alist[alist.length] = {
+             javascript: as.find('.code_editor').first().data('edit').getSession().getValue(),
+              protocol : new_list
             };
-            for (var k in newdoc) {
-              adoc[k] = newdoc[k];
-            }
-            var call_func = function(thed, cbck) {
-              return this_db.updateDoc(thed, "nedm_default", "insert_with_timestamp", cbck);
-            };
-            if ($(".overwrite_doc", $(thediv)).prop("checked")) {
-              // Try to post it
-              call_func = function(thed, cbck) {
-                return this_db.saveDoc(thed, cbck);
-              };
-            } else {
-              // Remove id info from *this* document
-              ["_id", "_rev", "created_by", "_attachments"].forEach(function(o) {
-                if (adoc[o]) delete adoc[o];
-              });
-            }
-            call_func(adoc, function(err, obj) {
-                  $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
-                  if (err) {
-                    toastr.error(JSON.stringify(err), "Save doc error");
-                    return;
-                  }
-                  if (obj.error) {
-                    toastr.error(JSON.stringify(obj.error), "Save doc error");
-                    return;
-                  }
-                  this_db.getDoc(obj.id,
-                    function(e, o) {
-                      if (e) {
-                        toastr.error(JSON.stringify(err), "Error reloading document");
-                        return;
-                      }
-                      load_from_object(o);
-                  });
-            });
           } else {
             var cl = $('.protocol_type', as).find(":selected").val();
             if (!check_protocol(as)) {
-              nedm.show_error_window('Errors in ' + $('.step_name', as).val(), "Not saved");
-              return;
+              throw { reason : "Errors in " + $('.step_name', as).val(), error : "Not saved"};
             }
             var obj = {};
             obj[cl] = command_obj[cl].save(as);
             obj[cl].name = $('.step_name', as).val();
             obj[cl].status = $('.status_output', as).text();
-            protocol_list[protocol_list.length] = obj;
-            get_information($(as).next(".protocol_clone_act"));
+            alist[alist.length] = obj;
           }
+          get_information($(as).next(".protocol_clone_act"), alist);
         }
-        var process_list = $('.protocol_table');
-        get_information($(process_list).children(".protocol_clone_act")[0]);
+        try {
+          get_information($('.current_protocol > .protocol_table').children(".protocol_clone_act").first(), protocol_list);
+        } catch (e) {
+          toastr.error(e.reason, e.error);
+          return;
+        }
+        $('.entire_protocol', $(thediv)).addClass('ui-disabled');
+        var adoc;
+        try {
+          adoc = alldoc_editor.get();
+        } catch (e) {
+          toastr.error("JSON in 'All information' improperly formatted.", "Formatting error");
+          $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
+          return;
+        }
+
+        var newdoc = {
+          type : "measurement",
+          log : cmt.data('editor').getSession().getValue(),
+          protocol : protocol_list,
+          measurement_run : protocol_run,
+          measurement_name : $('.set_measurement_name', $(thediv)).val()
+        };
+        for (var k in newdoc) {
+          adoc[k] = newdoc[k];
+        }
+        var call_func = function(thed, cbck) {
+          this_db.updateDoc(thed, "nedm_default", "insert_with_timestamp", cbck);
+        };
+        if ($(".overwrite_doc", $(thediv)).prop("checked")) {
+          // Try to post it
+          call_func = function(thed, cbck) {
+            this_db.saveDoc(thed, cbck);
+          };
+        } else {
+          // Remove id info from *this* document
+          ["_id", "_rev", "created_by", "_attachments"].forEach(function(o) {
+            if (adoc[o]) delete adoc[o];
+          });
+        }
+        call_func(adoc, function(err, obj) {
+              $('.entire_protocol', $(thediv)).removeClass('ui-disabled');
+              var err_msg = err || obj.error;
+              if (err_msg) {
+                toastr.error(JSON.stringify(err_msg), "Save doc error");
+              } else {
+                this_db.getDoc(obj.id,
+                  function(e, o) {
+                    if (e) {
+                      toastr.error(JSON.stringify(err), "Error reloading document");
+                    } else {
+                      load_from_object(o);
+                    }
+                });
+              }
+        });
+
       });
       //*****************************************************
       // Load measurement
@@ -782,12 +1028,28 @@
         cmt.data('editor').getSession().setValue(obj.log);
         alldoc_editor.set(obj);
         // Do protocol
-        $('.protocol_table').children('.protocol_clone_act').each(function() {
+        var $proto_table = $('.current_protocol > .protocol_table', thediv);
+        $proto_table.children('.protocol_clone_act').each(function() {
           $(this).remove();
         });
+
+        function add_protocol($pt, prot) {
+          if (Array.isArray(prot) || prot.protocol) {
+            var js = prot.javascript || "";
+            var ptc = prot.protocol || prot;
+            $('.add_loop_line', $pt.siblings()).trigger('click');
+            var $new_pt = $('.protocol_table', $pt.children().last());
+            $new_pt.parent().find('.code_editor').first().data('edit').getSession().setValue(js);
+            for (var i = 0;i<ptc.length;i++) {
+              add_protocol($new_pt, ptc[i]);
+            }
+          } else {
+            add_protocol_line_fn($pt, prot);
+          }
+        }
         if (obj.protocol) {
           for (var i = 0;i<obj.protocol.length;i++) {
-            add_protocol_line_fn(obj.protocol[i]);
+            add_protocol($proto_table, obj.protocol[i]);
           }
         }
         // Remove old attachments
@@ -814,6 +1076,9 @@
                   .val(obj.measurement_name || "(No name)")
                   .trigger('change');
         save_id(obj._id);
+        $('.delete_measurement', $(thediv))
+          .prop('disabled', (typeof obj._id === 'undefined'))
+          .data('doc', obj);
       };
       var load_with_docid = function(doc_id) {
         this_db.getDoc(doc_id,

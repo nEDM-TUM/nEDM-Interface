@@ -22,13 +22,13 @@ var GetNumberParts = math_lib.GetNumberParts;
  * @param {Object} database object
  * @public
  */
-exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
+exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb, opts) {
 
     // Private variables
     var myDB = adb;
     var data = [];
-    var graph = new dygraphs.Dygraph($adiv, data,
-                {
+    if (!opts) opts = {};
+    var defaults = {
                     drawPoints: true,
                     showRoller: false,
                         labels: ['Time'].concat(data_name),
@@ -36,7 +36,13 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
                xAxisLabelWidth: 60,
                         height: dygraphs.Dygraph.DEFAULT_HEIGHT, // explicitly set
                  zoomCallback : RecalcAxisLabels
-                });
+    };
+    for (var k in defaults) {
+      if (!(k in opts)) {
+        opts[k] = defaults[k];
+      }
+    }
+    var graph = new dygraphs.Dygraph($adiv, data, opts);
 
     var name = data_name;
     var group_level = 9;
@@ -49,6 +55,15 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     var until_time;
     var time_prev;
     var myBaseURL = $('.ui-page-active').data('url');
+
+    /**
+     * show the particular container (if hidden)
+     *
+     * @param {Object} ev
+     * @param {Object} ui
+     * @private
+     */
+    this.graph = graph;
 
     /**
      * show the particular container (if hidden)
@@ -264,7 +279,7 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
     /**
 	 * Return name (variables)
      *
-     * @return {Number} group level
+     * @return {Array} list of names
      * @public
      */
 
@@ -407,8 +422,11 @@ exports.MonitoringGraph = function ($adiv, data_name, since_time_in_secs, adb) {
         }
 
         function UpdateProgress(var_name) {
+          if (!callback) {
+              return function(evt) {};
+          }
           return function(evt) {
-            callback( {
+             callback( {
               variable : var_name,
               progress : evt
             });

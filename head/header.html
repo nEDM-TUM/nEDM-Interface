@@ -13,6 +13,14 @@
          data-role='button' class="ui-btn-icon-notext">Toggle sidebar</a>
       <a href="#" data-icon="gear" data-role='button'
          class="ui-btn-icon-notext db-status-button">Status</a>
+      <a href="#" data-icon="refresh"
+         data-role='button' class="ui-btn-icon-notext db-updates-refresh" style="display; none" disabled>Refresh live updates</a>
+      <a href="#masterListener" data-role='button' data-rel="popup" data-transition="pop"
+         class="ui-btn ui-icon-arrow-d ui-btn-icon-notext ui-corner-all masterListener"
+         style="display: none;">Master</a>
+      <div data-role="popup" id="masterListener" class="ui-content">
+        <p> This is the <strong>master</strong> listener. </p>
+      </div>
     </div>
     <a href="/nedm_head/_design/nedm_head/login.html" data-rel="dialog" data-icon="check" id="loginbtn" class="ui-btn-right">Login</a>
     <a href="#" id="logoutbtn" data-icon="delete" onClick="logout()" class="ui-btn-right">Logout</a>

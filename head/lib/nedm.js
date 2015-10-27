@@ -17,6 +17,7 @@ var events = require("events");
 var dygraphs = require("dygraph-combined");
 var toastr = require("toastr");
 var cookie = require("js-cookie");
+require("gridster-js");
 cookie.json = true;
 
 /**
@@ -33,10 +34,18 @@ function UpdateButtons() {
       if (user_status === null) {
           loginbtn.show();
           logoutbtn.hide();
+          $('.db-updates-refresh').off()
+                    .hide()
+                    .prop("disabled", true);
+
       } else {
           logoutbtn.text("Logout (" + user_status + ")");
           logoutbtn.show();
           loginbtn.hide();
+          $('.db-updates-refresh').prop("disabled", false)
+                   .show()
+                   .off()
+                   .on("click", RefreshUpdates);
       }
       $("a[id*=homebtn]").attr("href", using_prefix);
     });
@@ -90,21 +99,31 @@ function UpdateDBStatus(ev, ui) {
     {
            iconClass : " ",
         tapToDismiss : false,
+        containerId  : "db-status-id",
         hideDuration : 300,
              timeOut : 0,
      extendedTimeOut : 0,
            closeHtml : '<button>_</button>',
-       positionClass : "toast-bottom-left",
-            onHidden : function() { my_but.show().removeClass('ui-disabled');
-                                    db_status.shown_toastr_status = null; }
+       positionClass : "toast-bottom-full-width",
+            onHidden : function() {
+              $('.db-status-button').show().removeClass('ui-disabled');
+              db_status.shown_toastr_status = null; }
     });
     $new_div.controlgroup();
-    my_but.hide();
+    var $blinkers = $new_div.find('.ui-controlgroup-controls');
+    var width = $blinkers.width();
+    var pos = $blinkers.position();
+    $new_div.after($('<div/>').addClass('log').css({
+      'left' : width + 20 + pos.left + 'px',
+      'top' : pos.top + 'px',
+      'height' : $blinkers.height() + 'px'
+    }));
+    $('.db-status-button').hide();
   }
   // Populate with DB info
   function getDBInfo(dbs) {
     db_status.$toastr_content =
-                   $('<div/>').addClass('ui-grid-b nedm-db-status');
+                   $('<div/>').addClass('ui-grid-b nedm-db-status ui-controlgroup ui-controlgroup-vertical ui-corner-all');
     var tmp = [ "ui-block-a", "ui-block-b", "ui-block-c" ];
     var i = 0;
     for (var db in dbs) {
@@ -120,8 +139,7 @@ function UpdateDBStatus(ev, ui) {
   if (!db_status.shown_toastr_status) {
     // temp set to avoid anything else setting
     db_status.shown_toastr_status = true;
-    var my_but = $(ev.currentTarget);
-    my_but.addClass('ui-disabled');
+    $('.db-status-button').addClass('ui-disabled');
 
     if (db_status.$toastr_content) {
       defineToasterStatus(db_status.$toastr_content);
@@ -283,6 +301,7 @@ function RequestLockDatabase(callback) {
 
 // Internal EventEmitter object
 var _emitter = new events.EventEmitter();
+var _pageEvents = new events.EventEmitter();
 
 /**
  * Handles aggregate database messages (changes feed)
@@ -314,10 +333,12 @@ function HandleLocalStorage(ev) {
   if (useLocalStorage && !localStorage.aggregate_feed_running) {
     // Means another tab died
     window.removeEventListener('storage', HandleLocalStorage);
+    ResetLocalStorage(true);
     ListenToDBChanges();
+  } else {
+    if (ev.key !== "nedm_aggregate") return;
+    HandleDatabaseChanges( { data : ev.newValue }, true );
   }
-  if (ev.key !== "nedm_aggregate") return;
-  HandleDatabaseChanges( { data : ev.newValue }, true );
 }
 
 /**
@@ -332,13 +353,36 @@ function StartFeed() {
   aggr.listen_to_changes_feed(HandleDatabaseChanges, { since : "now" });
 }
 
+/**
+ * Refreshes updates by removing aggregate feed running
+ *
+ * @private
+ */
+
+function RefreshUpdates() {
+  // This function is called by a button press
+  localStorage.removeItem('aggregate_feed_running');
+
+  // The previous removeItem call calls the following function in all tabs.  We
+  // call it explicitly here.
+  HandleLocalStorage( { key : "" } );
+}
+
+/**
+ * Reset the local storage, and cancels feed if shutdown is true.
+ *
+ * @private
+ */
+
 function ResetLocalStorage(shutdown) {
    if (iAmActiveListener) {
-     localStorage.removeItem('aggregate_feed_running');
-     iAmActiveListener = false;
-     if (shutdown) {
-       get_database('nedm%2Faggregate').cancel_changes_feed( HandleDatabaseChanges );
+     if (localStorage.aggregate_feed_running) {
+       localStorage.removeItem('aggregate_feed_running');
      }
+     iAmActiveListener = false;
+   }
+   if (shutdown) {
+     get_database('nedm%2Faggregate').cancel_changes_feed( HandleDatabaseChanges );
    }
 }
 
@@ -363,12 +407,14 @@ function ListenToDBChanges() {
              if (should_listen) {
                localStorage.aggregate_feed_running = "true";
                iAmActiveListener = true;
+               $('.masterListener').show();
                toastr.info("This window is now the master aggregate listener", _agg_msg_title);
                StartFeed();
              } else {
-               // Call again, it will just listen to storage events
-               ListenToDBChanges();
+               $('.masterListener').hide();
              }
+             // Call again, it will just listen to storage events
+             ListenToDBChanges();
            });
         }
       } else {
@@ -773,6 +819,26 @@ function Dygraph($adiv, data, opts) {
     return new dygraphs.Dygraph($adiv, data, o);
 }
 
+/**
+ * Set and return global settings.  Internally, these settings should be
+ * persistent when closing a browser.
+ *
+ * @param {String} key - key to save global setting
+ * @param {Object|String|Number} [value] - value to set.  If not given, function reads out current value.
+ *
+ * @return {Object|String|Number} current globalSetting associated with key.  undefined if not found.
+ */
+
+function globalSetting(key, value) {
+  var settings = JSON.parse(localStorage.nedm_settings || '{}');
+  if ( typeof value !== 'undefined' ) {
+    settings[key] = value;
+    localStorage.nedm_settings = JSON.stringify(settings);
+    return value;
+  }
+  return settings[key];
+}
+
 var to_export = {
         Dygraph : Dygraph,
         keyFromDate : keyFromDate,
@@ -785,10 +851,77 @@ var to_export = {
         get_current_db_name : get_current_db_name,
         registerUser : registerUser,
         validate : validate,
+        addLogMessage : addLogMessage,
+        page : _pageEvents,
         remove_db_updates : remove_db_updates,
         on_db_updates : on_db_updates,
+        globalSetting : globalSetting,
+        startWebSocketListener : startWebSocketListener,
+        stopWebSocketListener : stopWebSocketListener,
         MonitoringGraph : require("lib/monitoring_graph").MonitoringGraph
 };
+
+/**
+* Listen to a web socket
+* @param {String} url - url and port name
+* @param {String} [prepend] - prepends to output log
+*
+* @constructor
+* @private
+*/
+function WebSocketListen(url, prepend) {
+  var pre = prepend || "";
+  var tthis = this;
+  var x = new WebSocket(url);
+  x.onmessage = function(msg) {
+    addLogMessage(prepend + ' : ' + JSON.parse(msg.data).msg);
+  };
+  this.stop = function() {
+    x.close();
+  };
+  x.onerror = function() {
+    stopWebSocketListener(url);
+  };
+}
+
+var _listening_websockets = {};
+var _current_websocket_settings = globalSetting("websocket_listeners") || {};
+
+for (var k in _current_websocket_settings) {
+  startWebSocketListener(k, _current_websocket_settings[k]);
+}
+
+/**
+* Start websocket listener
+* @param {String} url - url and port name
+* @param {String} [prepend] - prepends to output log
+*
+* @public
+*/
+function startWebSocketListener(url, prepend) {
+  if (_listening_websockets[url]) return;
+  _listening_websockets[url] = new WebSocketListen(url, prepend);
+  _listening_websockets[url].error = function() {
+    stopWebSocketListener(url);
+  };
+  _current_websocket_settings[url] = prepend;
+  globalSetting("websocket_listeners", _current_websocket_settings);
+}
+
+/**
+* Stop websocket listener
+* @param {String} url - url and port name
+*
+* @public
+*/
+function stopWebSocketListener(url) {
+  if (!_listening_websockets[url]) return;
+  _listening_websockets[url].stop();
+  delete _listening_websockets[url];
+  delete _current_websocket_settings[url];
+  globalSetting("websocket_listeners", _current_websocket_settings);
+}
+
 
 /**
 * Defines an interface for a given database
@@ -804,10 +937,10 @@ function nEDMDatabase(db_name) {
   }
 
   /**
-  * Helper function, gets most recent value of a variable
+  * Gets current database, or other database
   *
-  * @param {String} var_name - name of variable
-  * @param {module:lib/update_db.DBRequestCallback} callback 
+  * @param {String} [db_name] - name of database, when not given then the current database
+  * @return {nEDMDB}
   *
   * @public
   */
@@ -819,7 +952,7 @@ function nEDMDatabase(db_name) {
   * Helper function, gets most recent value of a variable
   *
   * @param {String} var_name - name of variable
-  * @param {module:lib/update_db.DBRequestCallback} callback 
+  * @param {module:lib/update_db.DBRequestCallback} callback
   *
   * @public
   */
@@ -830,7 +963,7 @@ function nEDMDatabase(db_name) {
   /**
    * Helper function, sends command to current database
    *
-   * @param {module:lib/update_db.CommandObject} o - command
+   * @param {module:lib/update_db.CommandObject} o - Object to send command
    * @return {Object}
    * @public
    */
@@ -844,6 +977,21 @@ function nEDMDatabase(db_name) {
 //  exports[k] = to_export[k];
 //}
 exports.nEDMDatabase = nEDMDatabase;
+
+/**
+ * Appends the message to the logging facility (available in status)
+ *
+ * @param {string} msg
+ * @public
+ */
+function addLogMessage(msg) {
+  var $status_log = $('#db-status-id .log')
+  if ($status_log.length === 0) return;
+  $status_log.append('<p>' + msg + '</p>')
+             .scrollTop($status_log[0].scrollHeight);
+}
+
+
 
 
 // Now call basic elements
@@ -864,9 +1012,15 @@ $(document).on('mobileinit', function() {
     ud.on_cloudant(false);
 
   }
-  $(document).on('pageinit', function(x, y) {
+  $(document).on('pagecreate', function(x, y) {
       UpdateHeader(x, y);
       BuildDBList(x, y);
+  });
+
+  $(document).on('pagecontainershow', function() {
+     var tmp = Array.prototype.slice.call(arguments);
+     tmp.unshift('load');
+     _pageEvents.emit.apply(_pageEvents, tmp);
   });
 
   // Handle page load fails from couchDB, forward to error handling.

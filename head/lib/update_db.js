@@ -26,6 +26,13 @@
  */
 
 /**
+ * Returns an object with all commands
+ * @callback module:lib/update_db.CommandsCallback
+ * @param {Array} rowsOfCommands
+ */
+
+
+/**
  * Information from changes feed
  *
  * @callback module:lib/update_db.ChangesFeedCallback
@@ -74,6 +81,66 @@ function BuildURL(options) {
 
 var old_db = require("db");
 var old_use = old_db.use;
+
+/**
+ * Returns a function for handling ajax responses from jquery and calls
+ * the callback with the data or appropriate error.
+ *
+ * @param {Function} callback(err,response)
+ * @api private
+ */
+
+function onComplete(options, callback) {
+    return function (req) {
+        var resp;
+        var ctype = req.getResponseHeader('Content-Type');
+        if (ctype === 'application/json' || ctype === 'text/json') {
+            try {
+                resp = req.responseJSON;
+            }
+            catch (e) {
+                return callback(e);
+            }
+        }
+        else {
+            if (options.expect_json) {
+                try {
+                    resp = req.responseJSON;
+                }
+                catch (ex) {
+                    return callback(
+                        new Error('Expected JSON response, got ' + ctype)
+                    );
+                }
+            }
+            else {
+                resp = req.responseText;
+            }
+        }
+        if (req.status === 401) {
+            exports.emit('unauthorized', req);
+        }
+        if (req.status === 200 || req.status === 201 || req.status === 202) {
+            callback(null, resp);
+        }
+        else if (resp && (resp.error || resp.reason)) {
+            var err = new Error(resp.reason || resp.error);
+            err.error = resp.error;
+            err.reason = resp.reason;
+            err.code = resp.code;
+            err.status = req.status;
+            callback(err);
+        }
+        else {
+            // TODO: map status code to meaningful error message
+            var err2 = new Error('Returned status code: ' + req.status);
+            err2.status = req.status;
+            callback(err2);
+        }
+    };
+}
+
+
 
 /**
  * Extension of db.DB
@@ -217,8 +284,6 @@ function nEDMDB(url) {
                limit : 1}}, callback);
         };
 
-        db.old_request = db.request;
-
         /**
           * Guess current database (most of the time this shouldn't be used)
           * @function guessCurrent
@@ -347,7 +412,11 @@ function nEDMDB(url) {
           * @public
           */
         db.request = function(req, callback) {
-          if (!callback || typeof callback !== 'object') return this.old_request(req, callback);
+          req.dataType = 'json';
+          if (typeof callback !== 'object') {
+            req.complete = onComplete(req, callback);
+            return $.ajax(req);
+          }
           var cbck = callback;
           if (cbck.progress) {
             req.xhr = function() {
@@ -360,9 +429,8 @@ function nEDMDB(url) {
               return xhr;
             };
           }
-          if (callback.success) callback = callback.success;
-          else callback = null;
-          return this.old_request(req, callback);
+          req.complete = onComplete(req, callback.success);
+          return $.ajax(req);
         };
 
         /**
@@ -614,7 +682,11 @@ function nEDMDB(url) {
           * @param {module:lib/update_db.VariableNamesCallback} callback
           * @public
           */
+        var _varNameCache;
         db.getVariableNames = function(callback) {
+          if (_varNameCache) {
+            return callback(_varNameCache);
+          }
           this.getView('slow_control_time', 'slow_control_time',
             { opts : { stale : 'ok',
                  group_level : 1
@@ -622,13 +694,41 @@ function nEDMDB(url) {
             },
             function (e, o) {
                   if (e !== null ) {
-                    callback([]);
+                    _varNameCache = [];
                   } else {
-                    callback(o.rows.map(function(x) { return x.key[0]; }));
+                    _varNameCache = o.rows.map(function(x) { return x.key[0]; });
                   }
+                  db.getVariableNames(callback);
             }
           );
         };
+         /**
+          * Get all commands in a particular database
+          * @function getCommands
+          * @memberof nEDMDB#
+          * @param {module:lib/update_db.CommandsCallback} callback
+          * @public
+          */
+        var _commandCache;
+        db.getCommands = function(callback) {
+          if (_commandCache) {
+            return callback(_commandCache);
+          }
+          this.getView('execute_commands', 'export_commands',
+            { opts : { reduce : false } },
+            function (e, o) {
+                  if (e !== null ) {
+                    _commandCache = [];
+                  } else {
+                    _commandCache = o.rows;
+                  }
+                  db.getCommands(callback);
+            }
+          );
+        };
+
+
+
 
 
         /**
@@ -641,7 +741,7 @@ function nEDMDB(url) {
          * @function listen_to_changes_feed
          * @memberof nEDMDB#
          *
-         * @param {module:lib/update_db.ChangesFeedCallback} callback(EventSource) - gets message from EventSource object
+         * @param {module:lib/update_db.ChangesFeedCallback} callback - gets message from EventSource object
          * @options {Object} options - Options to pass to changes feed
          * @public
          */
@@ -671,7 +771,7 @@ function nEDMDB(url) {
          * @function cancel_changes_feed
          * @memberof nEDMDB#
          *
-         * @param {module:lib/update_db.ChangesFeedCallback} callback(EventSource) - gets message from EventSource object
+         * @param {module:lib/update_db.ChangesFeedCallback} callback - gets message from EventSource object
          * @public
          */
         db.cancel_changes_feed = function(callback) {
@@ -682,6 +782,16 @@ function nEDMDB(url) {
             open_changes_feeds[url].removeListener(callback);
             callback_functions.callbacks.splice(index, 1);
             callback_functions.urls.splice(index, 1);
+            var delete_urls = [];
+            for (url in open_changes_feeds) {
+                if ( callback_functions.urls.indexOf( url ) === -1 ) {
+                  delete_urls.push(url);
+                }
+            }
+            delete_urls.forEach( function(url) {
+                open_changes_feeds[url].close();
+                delete open_changes_feeds[url];
+            });
         };
 
         /**
@@ -942,7 +1052,7 @@ function nEDMDB(url) {
 
 
 exports.UseDB = nEDMDB
-old_db.use = UseDB;
+old_db.use = exports.UseDB;
 exports.on_cloudant = function(avar) {
   on_cloudant = avar;
 };
