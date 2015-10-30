@@ -30,6 +30,10 @@ href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
      <div class='past_measurements ui-disabled'>
      </div>
    </div>
+   <div data-role="controlgroup" data-type="horizontal">
+     <label><input type='checkbox' class='autoupdate' checked="checked"/>Auto update</label>
+   </div>
+
 </div>
 
 """,
@@ -63,11 +67,21 @@ href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
           if (obj.results.length > 0) {
             the_cal.trigger('refresh');
           }
-          changes_listener = changes_since_rev();
+          if ($('.autoupdate', $(thediv)).is(':checked')) {
+            changes_listener = changes_since_rev();
+          } else {
+            changes_listener = null;
+          }
         }
       });
     };
     changes_listener = changes_since_rev();
+
+    $('.autoupdate', $(thediv)).on('click', function(ev) {
+        if ($('.autoupdate', $(thediv)).is(':checked') && !changes_listener) {
+          changes_listener = changes_since_rev();
+        }
+    });
 
     var is_calling_view = false;
     var list_of_callbacks = {};
