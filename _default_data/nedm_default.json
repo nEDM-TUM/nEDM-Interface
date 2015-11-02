@@ -31,12 +31,14 @@
         }
         var _ref = JSON.parse(req.body);
         var k;
+        var handled = [];
         if (req.query.remove) {
           if (!doc.external_docs) {
             return [null, JSON.stringify({msg : 'No attachments', error : true})];
           }
           for (k in _ref) {
             if (doc.external_docs[k]) {
+              handled[handled.length] = doc.external_docs[k];
               delete doc.external_docs[k];
             }
           }
@@ -45,10 +47,11 @@
             doc.external_docs = {};
           }
           for (k in _ref) {
+            handled[handled.length] = doc.external_docs[k];
             doc.external_docs[k] = _ref[k];
           }
         }
-        return [doc, JSON.stringify({attachments : doc.external_docs, id : doc._id, ok : true})];
+        return [doc, JSON.stringify({attachments : handled, id : doc._id, ok : true})];
     }
 """,
     "insert_with_timestamp" : """function(doc, req) {
