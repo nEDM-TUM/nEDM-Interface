@@ -4,9 +4,16 @@
   "views" : {
      "all" : {
        "map" : """function(doc) {
-           if (!doc._attachments) return;
-           for (var k in doc._attachments) {
-             emit([doc._id, k], doc._attachments[k].length);
+           var k;
+           if (doc._attachments) { 
+             for (k in doc._attachments) {
+               emit([doc._id, k], doc._attachments[k].length);
+             }
+           }
+           if (doc.external_docs) { 
+             for (k in doc.external_docs) {
+               emit([doc._id, k], doc.external_docs[k].size);
+             }
            }
         }""",
         "reduce" : "_stats"
