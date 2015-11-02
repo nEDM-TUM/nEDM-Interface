@@ -12,7 +12,7 @@
            }
            if (doc.external_docs) { 
              for (k in doc.external_docs) {
-               emit([doc._id, k], doc.external_docs[k].size);
+               emit([doc._id, k], doc.external_docs[k].size || 0);
              }
            }
         }""",
