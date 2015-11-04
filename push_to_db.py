@@ -287,7 +287,7 @@ def main(server = None):
             print ".nedmrc found, but not formatted properly.  Ignoring..."
             pass
     elif server is None:
-        server = "http://localhost:5984"
+        server = "localhost:5984"
 
     dbnames = [(db, os.path.basename(db)) for db
                  in glob.glob("subsystems/*") if os.path.isdir(db)]
