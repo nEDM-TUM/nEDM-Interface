@@ -31,7 +31,7 @@ href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
      </div>
    </div>
    <div data-role="controlgroup" data-type="horizontal">
-     <label><input type='checkbox' class='autoupdate' checked="checked"/>Auto update</label>
+     <label><input type='checkbox' class='autoupdate'/>Auto update</label>
    </div>
 
 </div>
@@ -75,8 +75,6 @@ href="https://gist.github.com/a068d39ed9fdb501c72d">script (Python)</a>.
         }
       });
     };
-    changes_listener = changes_since_rev();
-
     $('.autoupdate', $(thediv)).on('click', function(ev) {
         if ($('.autoupdate', $(thediv)).is(':checked') && !changes_listener) {
           changes_listener = changes_since_rev();
