@@ -286,8 +286,10 @@ def main(server = None):
         except ValueError:
             print ".nedmrc found, but not formatted properly.  Ignoring..."
             pass
-    elif server is None:
-        server = "localhost:5984"
+    else:
+        print("No .nedmrc file found in current directory")
+        if server is None:
+            server = "localhost:5984"
 
     dbnames = [(db, os.path.basename(db)) for db
                  in glob.glob("subsystems/*") if os.path.isdir(db)]
