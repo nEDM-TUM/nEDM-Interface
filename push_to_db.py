@@ -5,6 +5,7 @@ import os
 import glob
 from check_jshint import check_string
 import re
+import traceback
 try:
     import pexpect
     import json
@@ -176,9 +177,10 @@ def check_dict(adic):
         elif type(v) == type("") and re.search("\w*function", v):
             try:
                 check_string(v, ["W025"])
-            except Exception, e:
+            except:
                 print "\n  Error in: \n", k
-                raise e
+                traceback.print_exc()
+                raise
 
 def check_javascript(adoc):
     anid = adoc["_id"]
@@ -212,9 +214,10 @@ def upload_data(host, db_name, folder, check_js):
         if base_n == "_security.json" : continue
         try:
             bulk_docs.append(eval(open(af).read()))
-        except Exception as e:
+        except:
             print "Error with file: ", af
-            raise(e)
+            traceback.print_exc()
+            raise
 
     # We need to deal with possible conflicts
     # Here we grab the rev number from current documents
