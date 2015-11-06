@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: Attachments</title>
+    <title>JSDoc: Tutorial: Validate functions (security) in nEDM</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,45 +17,26 @@
 
 <div id="main">
 
-    <h1 class="page-title">Tutorial: Attachments</h1>
+    <h1 class="page-title">Tutorial: Validate functions (security) in nEDM</h1>
 
     <section>
 
 <header>
     
+    <ul>
+        <li><a href="tutorial-couchdb_validate_default.html">Default nEDM validate function</a></li>
+    
+        <li><a href="tutorial-couchdb_validate_measurement.html">Measurements system validate function</a></li>
+    
+        <li><a href="tutorial-couchdb_validate_raspberry.html">Raspberry Pi validate function</a></li>
+    </ul>
+    
 
-    <h2>Attachments</h2>
+    <h2>Validate functions (security) in nEDM</h2>
 </header>
 
 <article>
-    <h2><a href="https://github.com/nEDM-TUM/nEDM-Interface/blob/master/_default_data/attachments.json"><code>_design/attachments</code></a></h2><p>This view allows determining which documents have attachments and how much data
-is being taken up by those attachments.</p>
-<h3><code>all</code></h3><p>This handles documents attached using <a href="http://docs.couchdb.org/en/1.6.1/api/document/attachments.html">CouchDB's attachment
-mechanism</a>
-(which generally should not be used in the nEDM systems) and those using the
-<a href="/FileServer-Docker/subsystems/APIUsage.html">FileServer</a>.</p>
-<ul>
-<li><code>map</code><pre class="prettyprint source lang-javascript"><code>function(doc) {
- var k;
- if (doc._attachments) {
-   for (k in doc._attachments) {
-     emit([doc._id, k], doc._attachments[k].length);
-   }
- }
- if (doc.external_docs) {
-   for (k in doc.external_docs) {
-     emit([doc._id, k], doc.external_docs[k].size || 0);
-   }
- }
-}</code></pre></li>
-<li><code>reduce</code>: <a href="http://docs.couchdb.org/en/1.6.1/couchapp/ddocs.html#reducefun-builtin"><code>_stats</code></a></li>
-</ul>
-<h3>Query examples</h3><p>This is generally only used for offline querying</p>
-<ul>
-<li>Get total attachment size in <code>nedm/measurements</code>:
-<a href="http://raid.nedm1/nedm%2Fmeasurements/_design/attachments/_view/all?stale=update_after">http://raid.nedm1/nedm%2Fmeasurements/_design/attachments/_view/all?stale=update_after</a>.</li>
-<li>In <code>pynedm</code>:</li>
-</ul>
+    
 </article>
 
 </section>
