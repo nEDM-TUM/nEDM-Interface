@@ -11,7 +11,7 @@
     } 
   },
   "couchdb" : {
-    "title" : "CouchDB basics for nEDM",
+    "title" : "Database functionality (+ security)",
     "children" : {
       "couchdb_view" : {
         "title" : "View functions in nEDM",
