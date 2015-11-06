@@ -11,4 +11,4 @@ Usage: $0 DIRECTORY
 EOF`" >&2
   exit 1
 fi
-jsdoc -d $1 --readme ./README.md -u ./tutorials head/lib/*.js
+jsdoc -d $1 -p --readme ./README.md -u ./tutorials head/lib/*.js
