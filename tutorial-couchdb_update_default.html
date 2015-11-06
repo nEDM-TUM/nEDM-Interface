@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: List functions in nEDM</title>
+    <title>JSDoc: Tutorial: Default nEDM update functions</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,29 +17,42 @@
 
 <div id="main">
 
-    <h1 class="page-title">Tutorial: List functions in nEDM</h1>
+    <h1 class="page-title">Tutorial: Default nEDM update functions</h1>
 
     <section>
 
 <header>
     
-    <ul>
-        <li><a href="tutorial-couchdb_list_convert.html">Conversion to CSV</a></li>
-    
-        <li><a href="tutorial-couchdb_list_extremes.html">Latest values of all variables</a></li>
-    
-        <li><a href="tutorial-couchdb_list_page.html">Displaying control pages</a></li>
-    </ul>
-    
 
-    <h2>List functions in nEDM</h2>
+    <h2>Default nEDM update functions</h2>
 </header>
 
 <article>
-    <p>List functions are CouchDB's way of formatting results from a list.  Think of
-them like a <a href="tutorial-couchdb_show.html"><code>show</code></a> function for views.</p>
-<p>Click on the above links to get more information about the list functions in
-use in the nEDM interface.</p>
+    <h2><a href="https://github.com/nEDM-TUM/nEDM-Interface/blob/master/_default_data/nedm_default.json"><code>_design/nedm_default</code></a></h2><p>This is a default set of update functions that <em>all</em> databases share.</p>
+<h3><code>insert_with_timestamp</code></h3><p>This is a default function which should always be used when inserting documents
+in the database.  It does the following:</p>
+<ul>
+<li>If the document does <em>not</em> exist:<ul>
+<li>Add a timestamp</li>
+<li>Add the field <code>created_by</code> (if it doesn't exist)</li>
+<li>Save in the database</li>
+</ul>
+</li>
+<li><p>If the document <em>does</em> exist:</p>
+<ul>
+<li>If <code>?overwrite=true</code> was passed in then remove old information in document</li>
+<li>Otherwise update the document with information from the request body.</li>
+<li>Update the timestamp</li>
+</ul>
+</li>
+<li><p>Usage:</p>
+<ul>
+<li>It is used inside of <a href="/Python-Slow-Control/api/html/utils.html#pynedm.utils.ProcessObject.write_document_to_db"><code>pyendm.ProcessObject.write_document_to_db</code></a>.</li>
+</ul>
+</li>
+</ul>
+<h3><code>attachment</code></h3><p>This is used by the python backend of the <a href="/FileServer-Docker">File Server</a> to
+associate new files with a particular document.  See its usage in <a href="https://github.com/nEDM-TUM/FileServer-Docker/blob/master/handle_req.py">this code</a>.</p>
 </article>
 
 </section>

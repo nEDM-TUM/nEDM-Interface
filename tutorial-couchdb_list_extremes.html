@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: List functions in nEDM</title>
+    <title>JSDoc: Tutorial: Latest values of all variables</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,29 +17,51 @@
 
 <div id="main">
 
-    <h1 class="page-title">Tutorial: List functions in nEDM</h1>
+    <h1 class="page-title">Tutorial: Latest values of all variables</h1>
 
     <section>
 
 <header>
     
-    <ul>
-        <li><a href="tutorial-couchdb_list_convert.html">Conversion to CSV</a></li>
-    
-        <li><a href="tutorial-couchdb_list_extremes.html">Latest values of all variables</a></li>
-    
-        <li><a href="tutorial-couchdb_list_page.html">Displaying control pages</a></li>
-    </ul>
-    
 
-    <h2>List functions in nEDM</h2>
+    <h2>Latest values of all variables</h2>
 </header>
 
 <article>
-    <p>List functions are CouchDB's way of formatting results from a list.  Think of
-them like a <a href="tutorial-couchdb_show.html"><code>show</code></a> function for views.</p>
-<p>Click on the above links to get more information about the list functions in
-use in the nEDM interface.</p>
+    <h2><a href="https://github.com/nEDM-TUM/nEDM-Interface/blob/master/_default_data/extremes.json"><code>_default/extremes</code></a></h2><p>The list function filters out extremes (e.g. latest/earliest values).  This is
+simply a convenience function and moves some work to the server instead of the
+browser.</p>
+<pre class="prettyprint source lang-javascript"><code>function(head, req) {
+   provides(&quot;json&quot;, function() {
+     var keys = {};
+     var lab, row, extreme_time = null;
+     while( (row = getRow()) ) {
+       lab = row.key.pop(); 
+       if (!extreme_time) {
+         extreme_time = row.key;
+       }
+       if (keys[lab]) { 
+         continue;
+       }
+       keys[lab] = { value : row.value, time : row.key};
+     }
+     send(JSON.stringify({extreme_time : extreme_time, keys : keys}));
+   });
+}</code></pre><h2>Example usage</h2><p>See how it's used in <a href="module-lib_update_db.html">module:lib/update_db</a> to only get the most recent
+values:</p>
+<pre class="prettyprint source lang-javascript"><code>// ..
+db.getList(&quot;extremes&quot;, &quot;extremes&quot;, &quot;slow_control_time_label&quot;, &quot;slow_control_time_label&quot;,
+  opts,
+  function(e, o) {
+    if (e === null && o.extreme_time) {
+      latest_time = o.extreme_time;
+      latest_time.push({});
+      _callback_emitters.emit(&quot;latest&quot;, o.keys);
+    }
+    latest_callback_called = false;
+  }
+);
+// ..</code></pre>
 </article>
 
 </section>

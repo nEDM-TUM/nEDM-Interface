@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: List functions in nEDM</title>
+    <title>JSDoc: Tutorial: Displaying control pages</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,29 +17,24 @@
 
 <div id="main">
 
-    <h1 class="page-title">Tutorial: List functions in nEDM</h1>
+    <h1 class="page-title">Tutorial: Displaying control pages</h1>
 
     <section>
 
 <header>
     
-    <ul>
-        <li><a href="tutorial-couchdb_list_convert.html">Conversion to CSV</a></li>
-    
-        <li><a href="tutorial-couchdb_list_extremes.html">Latest values of all variables</a></li>
-    
-        <li><a href="tutorial-couchdb_list_page.html">Displaying control pages</a></li>
-    </ul>
-    
 
-    <h2>List functions in nEDM</h2>
+    <h2>Displaying control pages</h2>
 </header>
 
 <article>
-    <p>List functions are CouchDB's way of formatting results from a list.  Think of
-them like a <a href="tutorial-couchdb_show.html"><code>show</code></a> function for views.</p>
-<p>Click on the above links to get more information about the list functions in
-use in the nEDM interface.</p>
+    <h2><a href="https://github.com/nEDM-TUM/nEDM-Interface/blob/master/_default_data/page.json"><code>_default/page</code></a></h2><h3><code>controls</code></h3><p>Provides a list of control functions for a given database.  This is generally
+never called directly from the browser, but rather is called during a rewrite.</p>
+<p>This means, calling the following URL:</p>
+<pre class="prettyprint source"><code>/page/control/adb</code></pre><p>actual calls the URL endpoint:</p>
+<pre class="prettyprint source"><code>/adb/_design/page/_list/controls/controls/controls</code></pre><p>See the
+<a href="https://github.com/nEDM-TUM/nEDM-Interface/blob/master/head/lib/rewrites.js">rewrites.js</a>
+document for more information.</p>
 </article>
 
 </section>
