@@ -74,7 +74,7 @@
         "title" : "Filter functions in nEDM"
       },
       "couchdb_validate" : {
-        "title" : "Validate functions (security) in nEDM",
+        "title" : "Security (validate functions) in nEDM",
         "children" : {
           "couchdb_validate_default" : {
             "title" : "Default nEDM validate function"
