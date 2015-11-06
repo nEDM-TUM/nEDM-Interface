@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: View functions in nEDM</title>
+    <title>JSDoc: Tutorial: Logs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,34 +17,55 @@
 
 <div id="main">
 
-    <h1 class="page-title">Tutorial: View functions in nEDM</h1>
+    <h1 class="page-title">Tutorial: Logs</h1>
 
     <section>
 
 <header>
     
-    <ul>
-        <li><a href="tutorial-couchdb_view_doc_types.html">Document types</a></li>
-    
-        <li><a href="tutorial-couchdb_view_data.html">Slow-control data</a></li>
-    
-        <li><a href="tutorial-couchdb_view_control.html">Controls</a></li>
-    
-        <li><a href="tutorial-couchdb_view_exported_cmds.html">Exported Commands</a></li>
-    
-        <li><a href="tutorial-couchdb_view_logs.html">Logs</a></li>
-    
-        <li><a href="tutorial-couchdb_view_attachments.html">Attachments</a></li>
-    </ul>
-    
 
-    <h2>View functions in nEDM</h2>
+    <h2>Logs</h2>
 </header>
 
 <article>
-    <p>View functions are the main tool used to query information about documents
-in the database.  This page outlines which view functions are in use globally
-in the nEDM interface.</p>
+    <h2><a href="https://github.com/nEDM-TUM/nEDM-Interface/blob/master/_default_data/log.json"><code>_design/log</code></a></h2><p>This view handles log that are associated with documents, or conversely
+documents that are associated with logs.  For example, a log document may be
+associated with data documents like:</p>
+<pre class="prettyprint source lang-javascript"><code>{
+    &quot;type&quot; : &quot;log&quot;,
+    &quot;dataids&quot; : [
+      // .. this is a list of ids of data documents
+    ]
+    // ..
+}</code></pre><p>Any other document may be associated associated with log documents like:</p>
+<pre class="prettyprint source lang-javascript"><code>{
+    &quot;type&quot; : &quot;data&quot;,  // This could also be any other type
+    &quot;logids&quot; : [
+      // .. this is a list of ids of log documents
+    ]
+    // ..
+}</code></pre><p>This view then normalizes how one gets documents associated with a particular
+log. </p>
+<h3><code>controls</code></h3><ul>
+<li><code>map</code><pre class="prettyprint source lang-javascript"><code>function(doc) {
+ if (!doc.type) return;
+ var i;
+ if (doc.type === &quot;log&quot;) {
+   emit([doc._id, &quot;log&quot;], null);
+   if (doc.dataids) {
+     for(i = 0;i&lt;doc.dataids.length;i++) {
+       emit([doc._id, &quot;data&quot;], {_id : doc.dataids[i]});
+     }
+   }
+ }
+ if (!doc.logids) return;
+ for(i = 0;i&lt;doc.logids.length;i++) {
+   emit([doc.logids[i], doc.type], null);
+ }
+}</code></pre></li>
+<li><code>reduce</code>: <a href="http://docs.couchdb.org/en/1.6.1/couchapp/ddocs.html#reducefun-builtin"><code>_count</code></a></li>
+</ul>
+<h3>Query examples</h3>
 </article>
 
 </section>
