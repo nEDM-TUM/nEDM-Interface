@@ -129,7 +129,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line633">line 633</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line679">line 679</a>
     </li></ul></dd>
     
 
@@ -150,6 +150,137 @@
 
     
         <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="~addLogMessage"><span class="type-signature">(inner) </span>addLogMessage<span class="signature">(msg)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Appends the message to the logging facility (available in status)
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>msg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line987">line 987</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
             
@@ -207,7 +338,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line615">line 615</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line661">line 661</a>
     </li></ul></dd>
     
 
@@ -338,7 +469,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line723">line 723</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line769">line 769</a>
     </li></ul></dd>
     
 
@@ -488,7 +619,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line507">line 507</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line553">line 553</a>
     </li></ul></dd>
     
 
@@ -641,7 +772,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line525">line 525</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line571">line 571</a>
     </li></ul></dd>
     
 
@@ -680,6 +811,215 @@ in path
     <dd>
         
 <span class="param-type"><a href="nEDMDB.html">nEDMDB</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~globalSetting"><span class="type-signature">(inner) </span>globalSetting<span class="signature">(key, value<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object|String|Number}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Set and return global settings.  Internally, these settings should be
+persistent when closing a browser.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">key to save global setting</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">String</span>
+|
+
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">value to set.  If not given, function reads out current value.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line832">line 832</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    current globalSetting associated with key.  undefined if not found.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">String</span>
+|
+
+<span class="param-type">Number</span>
 
 
     </dd>
@@ -794,7 +1134,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line753">line 753</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line799">line 799</a>
     </li></ul></dd>
     
 
@@ -947,7 +1287,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line739">line 739</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line785">line 785</a>
     </li></ul></dd>
     
 
@@ -1100,7 +1440,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line400">line 400</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line446">line 446</a>
     </li></ul></dd>
     
 
@@ -1300,7 +1640,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line470">line 470</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line516">line 516</a>
     </li></ul></dd>
     
 
@@ -1431,7 +1771,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line413">line 413</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line459">line 459</a>
     </li></ul></dd>
     
 
@@ -1592,7 +1932,312 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line710">line 710</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line756">line 756</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~startWebSocketListener"><span class="type-signature">(inner) </span>startWebSocketListener<span class="signature">(url, prepend<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Start websocket listener
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">url and port name</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>prepend</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">prepends to output log</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line901">line 901</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~stopWebSocketListener"><span class="type-signature">(inner) </span>stopWebSocketListener<span class="signature">(url)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Stop websocket listener
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>url</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">url and port name</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line917">line 917</a>
     </li></ul></dd>
     
 
@@ -1769,7 +2414,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line451">line 451</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line497">line 497</a>
     </li></ul></dd>
     
 
@@ -1932,7 +2577,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line380">line 380</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line426">line 426</a>
     </li></ul></dd>
     
 
@@ -2053,7 +2698,7 @@ in path
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line387">line 387</a>
+        <a href="nedm.js.html">nedm.js</a>, <a href="nedm.js.html#line433">line 433</a>
     </li></ul></dd>
     
 
@@ -2099,7 +2744,7 @@ in path
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta3</a> on Wed Aug 05 2015 12:28:41 GMT+0200 (CEST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta3</a> on Fri Nov 06 2015 11:12:02 GMT+0100 (CET)
 </footer>
 
 <script> prettyPrint(); </script>
