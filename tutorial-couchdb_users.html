@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: Security (validate functions) in nEDM</title>
+    <title>JSDoc: Tutorial: Users, updating and adding</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,35 +17,33 @@
 
 <div id="main">
 
-    <h1 class="page-title">Tutorial: Security (validate functions) in nEDM</h1>
+    <h1 class="page-title">Tutorial: Users, updating and adding</h1>
 
     <section>
 
 <header>
     
-    <ul>
-        <li><a href="tutorial-couchdb_validate_default.html">Default nEDM validate function</a></li>
-    
-        <li><a href="tutorial-couchdb_validate_measurement.html">Measurements system validate function</a></li>
-    
-        <li><a href="tutorial-couchdb_validate_raspberry.html">Raspberry Pi validate function</a></li>
-    </ul>
-    
 
-    <h2>Security (validate functions) in nEDM</h2>
+    <h2>Users, updating and adding</h2>
 </header>
 
 <article>
-    <p>Validate functions are used in CouchDB to validate changes on an old document
-or the insertion of a new document.  In this sense, they provide the security
-for the system, allowing generally all users to read and only users with
-particular rights to write or update documents.</p>
-<p>See the child pages to see the particular validation functions used in the nEDM
-Interface.  Note that, during insertion or update of a document, <em>all</em>
-validation functions must return successfully.  As a performance consideration,
-it's important to note that the validation functions are run over all documents
-as they are posted/updated.  For this reason, the validate functions should be
-kept as slim and quick as possible.</p>
+    <p>Adding a user to the nEDM-Interface is as simple as adding an entry to the
+<code>&quot;_users&quot;</code> database.</p>
+<p>Ideally, one does the following:</p>
+<ol>
+<li>The new user chooses a name and password by going to the <a href="http://db.nedm1">login
+window</a> and ensuring that <code>New user</code> is checked.</li>
+<li>The administrator edits then the corresponding document in the
+<a href="http://raid.nedm1/_utils/database.html?_users"><code>users</code></a> database, adding the
+<code>&quot;nedm_user_role&quot;</code> to the set of roles.  (This allows read-access to all nedm
+databases.)</li>
+<li>If other roles are necessary, e.g. the user should have write access to
+other systems, then the administrator must add the relevant roles.  For
+example, for write access to the <code>&quot;nedm/cs_laser&quot;</code> system, the user would need
+to have the role <code>&quot;cs_laser_writer&quot;</code>.  For more details see the
+<a href="tutorial-couchdb_validate.html">security documentation</a>.</li>
+</ol>
 </article>
 
 </section>
