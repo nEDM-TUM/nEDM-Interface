@@ -89,6 +89,9 @@
       },
       "couchdb_changes" : {
         "title" : "Changes feed in nEDM"
+      },
+      "couchdb_users" : {
+        "title" : "Users, updating and adding"
       }
     }
   }
