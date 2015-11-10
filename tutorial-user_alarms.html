@@ -27,86 +27,16 @@
     <h3>Tutorials</h3><ul><li><a href="tutorial-admin.html">Common administration tasks</a></li><li><a href="tutorial-build_documentation.html">Build/Update Documentation</a></li><li><a href="tutorial-build_site.html">Building site components</a></li><li><a href="tutorial-couchdb.html">Database functionality (+ security)</a></li><li><a href="tutorial-user.html">User guide</a></li></ul><br><h3>Modules</h3><ul><li><a href="module-lib_math.html">lib/math</a></li><li><a href="module-lib_monitoring_graph.html">lib/monitoring_graph</a></li><li><a href="module-lib_nedm.html">lib/nedm</a></li><li><a href="module-lib_update_db.html">lib/update_db</a></li></ul><br><h3>Classes</h3><ul><li><a href="Dygraph.html">Dygraph</a></li><li><a href="module-lib_monitoring_graph.MonitoringGraph.html">MonitoringGraph</a></li><li><a href="module-lib_nedm-nEDMDatabase.html">nEDMDatabase</a></li><li><a href="module-lib_nedm-WebSocketListen.html">WebSocketListen</a></li><li><a href="nEDMDB.html">nEDMDB</a></li></ul><br><h3>Externals</h3><ul><li><a href="external-DB.html">DB</a></li><li><a href="module-db.html">db</a></li><li><a href="module-dygraph-combined.html">dygraph-combined</a></li><li><a href="module-events.html">events</a></li><li><a href="module-jquery-mobile.html">jquery-mobile</a></li><li><a href="module-jquery-mobile-datebox.html">jquery-mobile-datebox</a></li><li><a href="module-js-cookie.html">js-cookie</a></li><li><a href="module-session.html">session</a></li><li><a href="module-toastr.html">toastr</a></li></ul><br>
   </header>
     
+<section>
 
+<h2>Alarms</h2>
 
+    
 
 
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * Module exporting some helpful math functions
- * @module lib/math
- */
 
-/**
- * binary search function to find an index in an array
- * @function bs
- *
- * @param {Array} haystack
- * @param {Object|Number} needle - key being searched for
- * @param {Function} comparator
- * @param {Number} alow - low guess (index) where the needle is
- * @param {Number} ahigh - high guess (index) where the needle is
- * @return {Number} index when found, otherwise ~low
- * @public
- */
-exports.bs = function (haystack, needle, comparator, alow, ahigh) {
-  if(!Array.isArray(haystack))
-    throw new TypeError("first argument to binary search is not an array");
-
-  if(typeof comparator !== "function")
-    throw new TypeError("third argument to binary search is not a function");
-
-  var low  = alow;
-  var mid  = 0;
-  var high = ahigh;
-  var cmp  = 0;
-
-  while(low &lt;= high) {
-    /* Note that "(low + high) >>> 1" may overflow, and results in a typecast
-     * to double (which gives the wrong results). */
-    mid = low + (high - low >> 1);
-    cmp = comparator(haystack[mid], needle);
-
-    /* Too low. */
-    if(cmp &lt; 0)
-      low  = mid + 1;
-
-    /* Too high. */
-    else if(cmp > 0)
-      high = mid - 1;
-
-    /* Key found. */
-    else
-      return mid;
-  }
-
-  /* Key not found. */
-  return ~low;
-}
-
-/**
- * Returns mantissa, exponent from a float
- *
- * @param {Float} x
- * @return {Object} mantissa, exponent
- * @public
- */
-exports.GetNumberParts = function(x) {
-    var sig = x > 0 ? 1 : -1;
-    x = Math.abs(x);
-    var exp = Math.floor(Math.log(x)/Math.LN10);
-    var man = x/Math.pow(10, exp);
-    return {mantissa: sig*man, exponent: exp};
-}
-
-</code></pre>
-        </article>
-    </section>
-
-
-
+</section>
 
 
 <br class="clear">
