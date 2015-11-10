@@ -34,7 +34,36 @@
     
 
 
-    
+    <h3>Front page</h3><p>The front page provides the main access point to the rest of the interface.</p>
+<p><img src="frontpage.png" alt="front page"></p>
+<p>In particular, the <em>lights</em> indicate the status of each database/system:</p>
+<ul>
+<li>Yellow - not yet determined</li>
+<li>Green - Control active (heartbeat has been written in the last 10 seconds),
+Writing active (a document with <code>type=&quot;data&quot;</code> has been written in the last 10
+seconds.</li>
+<li>Red - Control and/or Writing not active</li>
+</ul>
+<p>Logging in and out can be done using the button in the upper right hand corner.</p>
+<p>Other buttons of interest:</p>
+<ul>
+<li><code>Home</code> - returns to the front page</li>
+<li><code>Refresh live updates</code> - if live updates are no longer occuring (perhaps
+another browser window was closed and the <a href="tutorial-couchdb_changes.html">changes feed</a>
+is not responding any more), then this will reset them.</li>
+<li><code>Toggle sidebar</code> - hide/show the sidebar.  This allows more screen to be used
+for e.g. plotting, which can be useful for smaller screened devices.</li>
+<li><code>Status</code> - show the status screen.  This shows <em>live</em> which databases are
+writing in addition to any log messages from <code>pynedm</code> devices (see the
+<a href="tutorial-user_settings.html">settings page</a>).</li>
+</ul>
+<p>The status screen is shown:</p>
+<p><img src="frontpage_status.png" alt="front page w/ status"></p>
+<p>It may be 'minimized' with the minimize button on its upper right hand corner.</p>
+<p>The toolbar has been toggled and the live updates have been refreshed:
+(<em>Master</em> windows, or those listening to the changes feeds directly have the
+down-pointing arrow in the upper toolbar.)</p>
+<p><img src="frontpage_toggle_live.png" alt="front page w/ toggled toolbar, changes feed"></p>
 
 </section>
 
