@@ -1,0 +1,17 @@
+<section>
+
+<h2><?js= header ?></h2>
+
+    <?js if (children.length > 0) { ?>
+    <h3>Available pages:<h3>
+    <ul><?js
+        var self = this;
+        children.forEach(function(t) { ?>
+        <li><?js= self.tutoriallink(t.name) ?></li>
+    <?js }); ?></ul>
+    <?js } ?>
+
+
+    <?js= content ?>
+
+</section>
