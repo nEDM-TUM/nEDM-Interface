@@ -15,3 +15,14 @@ example, for write access to the `"nedm/cs_laser"` system, the user would need
 to have the role `"cs_laser_writer"`.  For more details see the
 [security documentation]{@tutorial couchdb_validate}.
 
+#### Raspberry Pis
+
+Raspberry Pi devices need to have user with roles:
+
+```javascript
+[
+  "rasperries_writer",
+  "nedm_user_role"
+]
+```
+

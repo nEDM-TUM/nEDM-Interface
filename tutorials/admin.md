@@ -11,16 +11,20 @@ Basic steps to update:
 
 ```bash
 > ssh nedmdaq@mini.nedm1
-$ cd Interface/nEDM-Interface 
+$ cd Interface/nEDM-Interface
 $ git checkout master
 $ git pull # pulls most recent changes from github
 $ python push_to_db.py raid.nedm1
 No .nedmrc file found in current directory
 Pushing to:  subsystems/active_coil_compensation
     Checking sec/data
-Username: 
+Username:
 Password:
 ...
 ```
 You must enter the Username (e.g. `"admin"`) and the correspond Password once.
+
+### Add users
+
+See [here]{@tutorial couchdb_users}.
 
