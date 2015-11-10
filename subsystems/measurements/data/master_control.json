@@ -6,6 +6,11 @@
 <br><br>
 For an example measurement using system functions, see:
 <a href='#' class='example_measurement'>example measurement</a>.
+
+To save file(s) to a measurement document with a script see:
+
+<script src="https://gist.github.com/mgmarino/04d92217d227dc99520d.js"></script>
+
 """,
   "order" : 1,
   "protocol_types" : {
