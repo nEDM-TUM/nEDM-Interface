@@ -10,6 +10,29 @@
        }
     } 
   },
+  "user" : {
+    "title" : "User guide",
+    "children" : {
+      "user_frontpage" : {
+        "title" : "Front page"
+      },
+      "user_monitor" : {
+        "title" : "Monitoring pages"
+      },
+      "user_control" : {
+        "title" : "Control pages"
+      },
+      "user_overview" : {
+        "title" : "Overview"
+      },
+      "user_alarms" : {
+        "title" : "Alarms"
+      },
+      "user_settings" : {
+        "title" : "Settings"
+      }
+    }
+  },
   "build_documentation" : {
     "title" : "Build/Update Documentation"
   },
