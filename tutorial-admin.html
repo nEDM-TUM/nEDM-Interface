@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: External: module:dygraph-combined</title>
+    <title>JSDoc: Tutorial: Common administration tasks</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,107 +17,38 @@
 
 <div id="main">
 
-    <h1 class="page-title">External: module:dygraph-combined</h1>
+    <h1 class="page-title">Tutorial: Common administration tasks</h1>
 
-    
-
-
-
-
-<section>
+    <section>
 
 <header>
     
-        <h2>
-        module:dygraph-combined
-        </h2>
-        
-    
+
+    <h2>Common administration tasks</h2>
 </header>
 
 <article>
-    <div class="container-overview">
-    
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="external.js.html">external.js</a>, <a href="external.js.html#line5">line 5</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="http://dygraphs.com/jsdoc/symbols/Dygraph.html">http://dygraphs.com/jsdoc/symbols/Dygraph.html</a></li>
-        </ul>
-    </dd>
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-
-    
+    <h3>Pushing updates to production server</h3><p>Updates should be pushed to the <code>master</code> branch of the repository.  Pushing
+these updates can be done in principle from any machine with access to
+http://raid.nedm1, but it is best done from the Osthalle local network to avoid
+issues with network latency.  In addition, one should use a fresh folder (where
+no user changes are present) to avoid the accidental pushing of
+non-production-ready code. Such a fresh folder is available on <code>mini.nedm1</code>.
+Basic steps to update:</p>
+<pre class="prettyprint source lang-bash"><code>> ssh nedmdaq@mini.nedm1
+$ cd Interface/nEDM-Interface 
+$ git checkout master
+$ git pull # pulls most recent changes from github
+$ python push_to_db.py raid.nedm1
+No .nedmrc file found in current directory
+Pushing to:  subsystems/active_coil_compensation
+    Checking sec/data
+Username: 
+Password:
+...</code></pre><p>You must enter the Username (e.g. <code>&quot;admin&quot;</code>) and the correspond Password once.</p>
 </article>
 
 </section>
-
-
-
 
 </div>
 
