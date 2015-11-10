@@ -21,6 +21,9 @@ Request/release digitizer: Request a digitizer or release one that is currently 
 Stop/start: Start or stop the readout of the digitizer.
 <br><br>
 
+Auto repeat: automatically restart the next measurement.  This is useful when used in conjunction with the trigger (which can end runs).
+<br><br>
+
 Select channels: select which channels are viewed on the oscilloscope.  *This doesn't affect the saved channels!*
 <br><br>
 
