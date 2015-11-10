@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Tutorial: Security (validate functions) in nEDM</title>
+    <title>JSDoc: Tutorial: Build/Update Documentation</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,35 +17,33 @@
 
 <div id="main">
 
-    <h1 class="page-title">Tutorial: Security (validate functions) in nEDM</h1>
+    <h1 class="page-title">Tutorial: Build/Update Documentation</h1>
 
     <section>
 
 <header>
     
-    <ul>
-        <li><a href="tutorial-couchdb_validate_default.html">Default nEDM validate function</a></li>
-    
-        <li><a href="tutorial-couchdb_validate_measurement.html">Measurements system validate function</a></li>
-    
-        <li><a href="tutorial-couchdb_validate_raspberry.html">Raspberry Pi validate function</a></li>
-    </ul>
-    
 
-    <h2>Security (validate functions) in nEDM</h2>
+    <h2>Build/Update Documentation</h2>
 </header>
 
 <article>
-    <p>Validate functions are used in CouchDB to validate changes on an old document
-or the insertion of a new document.  In this sense, they provide the security
-for the system, allowing generally all users to read and only users with
-particular rights to write or update documents.</p>
-<p>See the child pages to see the particular validation functions used in the nEDM
-Interface.  Note that, during insertion or update of a document, <em>all</em>
-validation functions must return successfully.  As a performance consideration,
-it's important to note that the validation functions are run over all documents
-as they are posted/updated.  For this reason, the validate functions should be
-kept as slim and quick as possible.</p>
+    <p>The easiest way to build/update the documentation is to clone this repository
+in another folder and checkout the <code>gh-pages</code> branch.</p>
+<p>For example:</p>
+<pre class="prettyprint source lang-bash"><code>$ pwd
+/path/to/nEDM-Interface
+$ cd ..
+$ git clone git@github.com:nEDM-TUM/nEDM-Interface.git nEDM-Interface-Docs
+$ cd nEDM-Interface-Docs
+$ git checkout gh-pages</code></pre><p>Then, update the documentation, tutorials, etc. and update the documentation:</p>
+<pre class="prettyprint source lang-bash"><code>$ pwd
+/path/to/nEDM-Interface
+$ ./build-documentation.sh ../nEDM-Interface-Docs
+$ cd ../nEDM-Interface-Docs
+$ git add .
+$ git commit -m 'Update documentation'
+$ git push # publish to the website</code></pre>
 </article>
 
 </section>
