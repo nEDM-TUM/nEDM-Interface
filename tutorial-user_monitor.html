@@ -34,7 +34,33 @@
     
 
 
-    
+    <h2>Monitor pages</h2><p>Monitor pages from each subsystem provide a way to monitor <em>live</em> data
+arriving, as well as plot past data records.</p>
+<p>The monitor pages for a given susbsystem are always available at:</p>
+<pre class="prettyprint source lang-bash"><code>http://db.nedm1/page/monitor/nedm/[sub_system_name]</code></pre><p>The variables shown and the size of the plots will be saved in <code>localStorage</code>
+and loaded the next time the browser is opened.  (<em>Note</em> : it is not yet
+possible to save the time ranges, so all variables/plots saved in this way will
+be loaded as <em>live</em> with a ten-minute window.)</p>
+<p>A basic page looks like the following:</p>
+<p><img src="monitor.png" alt="monitor screen shot"></p>
+<p>One can add variables using the drop-down selector on the bottom right.  Click
+on <code>Add to selected graph</code> to add those to the graph selected in the drop-down
+selector on the bottom left.  To see which number corresponds to which plot,
+click on <code>Show window numbers</code>:</p>
+<p><img src="monitor_plot_numbers.png" alt="monitor screen shot w/ numbers"></p>
+<p>One can edit the layout, including moving the plots side-to-side or changing
+their size by clicking on <code>Edit layout</code>.  (Drag from the bottom-righthand
+corner of each plot to change the size, and click on the minus to the lift to
+remove the plot.)</p>
+<p><img src="monitor_edit_layout.png" alt="monitor screen shot edit layout"></p>
+<p>Finally, to adjust the time range of the variables, or to remove variables from
+the plot, click on <code>Adjust variables</code>.  This will open up a view for each plot
+as shown in the following:</p>
+<p><img src="monitor_adjust.png" alt="monitor screen shot adjust layout"></p>
+<p>To note, click on <code>Live</code> to set the plot to update on the arrival of new data.
+<em>IMPORTANT</em>: when selecting a large time range, use the averaging (either over
+minutes, hours, day, or months) functions.  The extremes will still be shown as
+shaded regions, so that this is still an effective way to search for outliers.</p>
 
 </section>
 
