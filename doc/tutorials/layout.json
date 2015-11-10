@@ -16,20 +16,23 @@
       "user_frontpage" : {
         "title" : "Front page"
       },
+      "user_overview" : {
+        "title" : "Overview"
+      },
+      "user_settings" : {
+        "title" : "Settings"
+      },
+      "user_alarms" : {
+        "title" : "Alarms"
+      },
       "user_monitor" : {
         "title" : "Monitoring pages"
       },
       "user_control" : {
         "title" : "Control pages"
       },
-      "user_overview" : {
-        "title" : "Overview"
-      },
-      "user_alarms" : {
-        "title" : "Alarms"
-      },
-      "user_settings" : {
-        "title" : "Settings"
+      "user_special" : {
+        "title" : "Special pages: Measurements and Raspberry Pis"
       }
     }
   },
