@@ -10,6 +10,9 @@
        }
     } 
   },
+  "build_documentation" : {
+    "title" : "Build/Update Documentation"
+  },
   "admin" : {
     "title" : "Common administration tasks"
   },
