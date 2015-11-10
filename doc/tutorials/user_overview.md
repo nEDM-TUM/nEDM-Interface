@@ -16,3 +16,7 @@ The page also provides an interface to add variables to be shown.  *However*,
 the user must be an admin user (or a user with write access to the database
 `nedm_head`) to be able to submit a new variable.
 
+One additional way to add a "permanent" overview variable (i.e. one that cannot
+be deleted), is by adding it to the `"overview_vars_default"` document in the
+[repository](https://github.com/nEDM-TUM/nEDM-Interface/blob/master/head/data/overview_vars_default.json). 
+
