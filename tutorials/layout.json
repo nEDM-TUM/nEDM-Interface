@@ -10,6 +10,9 @@
        }
     } 
   },
+  "admin" : {
+    "title" : "Common administration tasks"
+  },
   "couchdb" : {
     "title" : "Database functionality (+ security)",
     "children" : {
