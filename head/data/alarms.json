@@ -21,7 +21,7 @@
                   <td class='alarm_last_event'>No events</td>
                   <td class='alarm_more_info'><button class='ui-btn ui-icon-carat-r ui-btn-icon-notext'>More info
                   </button>
-                  <div data-role='popup' data-theme='a' class='alarmpopup' >
+                  <div data-role='popup' data-theme='a' class='alarmpopup ui-content' >
                     <a href='#' data-rel='back' data-role='button' data-theme='a' data-icon='delete' data-iconpos='notext' class='ui-btn-right'>Close</a>
                     <a href='#' data-role='button' data-icon='nedm-stopped' data-iconpos='right' class='load_more_data'>Load 5 more alarms...</a>
                     <table data-role='table' data-mode='reflow' class='ui-responsive alarm_table_fired'>
