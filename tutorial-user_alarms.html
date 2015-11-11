@@ -24,7 +24,7 @@
     <p><a href="/nEDM-Interface">nEDM Interface</a></p>
     <p><a href="https://github.com/nEDM-TUM/nEDM-Interface">Repository</a></p>
 
-    <h3>Tutorials</h3><ul><li><a href="tutorial-admin.html">Common administration tasks</a></li><li><a href="tutorial-build_documentation.html">Build/Update Documentation</a></li><li><a href="tutorial-build_site.html">Building site components</a></li><li><a href="tutorial-couchdb.html">Database functionality (+ security)</a></li><li><a href="tutorial-user.html">User guide</a></li></ul><br><h3>Modules</h3><ul><li><a href="module-lib_math.html">lib/math</a></li><li><a href="module-lib_monitoring_graph.html">lib/monitoring_graph</a></li><li><a href="module-lib_nedm.html">lib/nedm</a></li><li><a href="module-lib_update_db.html">lib/update_db</a></li></ul><br><h3>Classes</h3><ul><li><a href="Dygraph.html">Dygraph</a></li><li><a href="module-lib_monitoring_graph.MonitoringGraph.html">MonitoringGraph</a></li><li><a href="module-lib_nedm-nEDMDatabase.html">nEDMDatabase</a></li><li><a href="module-lib_nedm-WebSocketListen.html">WebSocketListen</a></li><li><a href="nEDMDB.html">nEDMDB</a></li></ul><br><h3>Externals</h3><ul><li><a href="external-DB.html">DB</a></li><li><a href="module-db.html">db</a></li><li><a href="module-dygraph-combined.html">dygraph-combined</a></li><li><a href="module-events.html">events</a></li><li><a href="module-jquery-mobile.html">jquery-mobile</a></li><li><a href="module-jquery-mobile-datebox.html">jquery-mobile-datebox</a></li><li><a href="module-js-cookie.html">js-cookie</a></li><li><a href="module-session.html">session</a></li><li><a href="module-toastr.html">toastr</a></li></ul><br>
+    <h3>Tutorials</h3><ul><li><a href="tutorial-admin.html">Common administration tasks</a></li><li><a href="tutorial-build_site.html">Building site components</a></li><li><a href="tutorial-couchdb.html">Database functionality (+ security)</a></li><li><a href="tutorial-user.html">User guide</a></li></ul><br><h3>Modules</h3><ul><li><a href="module-lib_math.html">lib/math</a></li><li><a href="module-lib_monitoring_graph.html">lib/monitoring_graph</a></li><li><a href="module-lib_nedm.html">lib/nedm</a></li><li><a href="module-lib_update_db.html">lib/update_db</a></li></ul><br><h3>Classes</h3><ul><li><a href="Dygraph.html">Dygraph</a></li><li><a href="module-lib_monitoring_graph.MonitoringGraph.html">MonitoringGraph</a></li><li><a href="module-lib_nedm-nEDMDatabase.html">nEDMDatabase</a></li><li><a href="module-lib_nedm-WebSocketListen.html">WebSocketListen</a></li><li><a href="nEDMDB.html">nEDMDB</a></li></ul><br><h3>Externals</h3><ul><li><a href="external-DB.html">DB</a></li><li><a href="module-db.html">db</a></li><li><a href="module-dygraph-combined.html">dygraph-combined</a></li><li><a href="module-events.html">events</a></li><li><a href="module-jquery-mobile.html">jquery-mobile</a></li><li><a href="module-jquery-mobile-datebox.html">jquery-mobile-datebox</a></li><li><a href="module-js-cookie.html">js-cookie</a></li><li><a href="module-session.html">session</a></li><li><a href="module-toastr.html">toastr</a></li></ul><br>
   </header>
     
 <section>
@@ -34,7 +34,70 @@
     
 
 
-    
+    <h2>Alarms page</h2><p><a href="http://db.nedm1/page/alarms">http://db.nedm1/page/alarms</a></p>
+<p>This page provides an interface to define alarms, which are small scripts that
+run periodically to check values of variables in the database.  The daemon in
+charge of running this is part of the
+<a href="/CouchDB-Docker/subsystems/Maintenance.html#alarm-daemon">CouchDB Docker</a> and
+the code to it may be found in that repository.</p>
+<p>To learn about writing alarm code, <a href="#writing">skip to that section</a>.</p>
+<h3>Interface</h3><p>The front page of the interface collects all alarms from the different
+subsystems and displays them:</p>
+<p><img src="alarms.png" alt="alarms front page"></p>
+<p>By clicking on the <code>Info</code> button, one can get information about when recent
+alarms have occurred:</p>
+<p><img src="alarms_info.png" alt="alarms more info"></p>
+<p>One can click on the <code>Code</code> buttons to view a screen where one can see/edit the
+code, title, description, and emails.  To edit an alarm document, one must
+have write access to the relevant database.</p>
+<p><img src="alarms_edit.png" alt="alarms edit"></p>
+<p>Submitting an alarm is similar to editing an old one, just open the collapsible
+at the bottom of the page.  To submit an alarm document, one must have write
+access to the relevant database.</p>
+<p><img src="alarms_new.png" alt="alarms new"></p>
+<p><a name="writing"></a></p>
+<h3>Writing alarm code</h3><p>Example code for an alarm:</p>
+<pre class="prettyprint source lang-python"><code>_last_value = None
+def main(db):
+    global _last_value
+    lv = _last_value
+    _last_value = latest_value('run_status', 6)['rows'][0]['value']['max']
+    if lv is None: return
+    if lv == 0 and _last_value == 1:
+        raise AlarmEvent('Coil run begun', 'run_status has changed')</code></pre><p>Points to note:</p>
+<ul>
+<li>all alarms need to have a <code>main</code> function</li>
+<li>all alarms have access to the function <code>latest_value</code>, which grabs
+information about a single variable from the database.  This function looks
+like:<pre class="prettyprint source lang-python"><code>def latest_value(var_name, group_level=100):
+  &quot;&quot;&quot;
+  Get the latest value of a given variable, this returns the output from the
+  _stat function, which will look like:
+    { u'rows': [
+                 {u'value': {u'count': 1,
+                             u'max': 8.35961456298828,
+                             u'sum': 8.35961456298828,
+                             u'sumsqr': 69.88315564172574,
+                             u'min': 8.35961456298828},
+                  u'key': [u'Bx', 2014, 4, 4, 13, 7, 22]}
+               ]
+    }
+  If a group_level is given &lt;=6, then the values will be agregated.  (This is an
+  efficient way to look e.g. for extremes over the last minute/hour/day/etc.)
+  &quot;&quot;&quot;</code></pre></li>
+<li>all alarms need to raise certain exceptions to notify a change in alarm
+state.  The available exceptions (with rising levels of criticality):<ul>
+<li><code>AlarmWarning</code></li>
+<li><code>AlarmError</code></li>
+<li><code>AlarmCritical</code></li>
+</ul>
+</li>
+</ul>
+<p>All exceptions should be called like:</p>
+<pre class="prettyprint source lang-python"><code>if alarm_condition == True:
+    AlarmError(&quot;error seen here&quot;, &quot;More descriptive text about the error&quot;)</code></pre><p>Alarm scripts should <em>always</em> raise exceptions if an alarm condition exists.
+The alarm daemon keeps track of the state and only sends emails when the state
+changes (e.g. an alarm appears, the criticality changes, or the alarm clears).</p>
 
 </section>
 
