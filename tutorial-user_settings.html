@@ -34,7 +34,32 @@
     
 
 
-    
+    <h2>Settings page</h2><p><a href="http://db.nedm1/page/settings">http://db.nedm1/page/settings</a></p>
+<p>The settings page provides a central location to see a summary of information
+contained in the different databases/subsystems.  The following information is
+presented on the site:</p>
+<ul>
+<li>Name of subsystem (full name)</li>
+<li>Variables (e.g. those in <code>&quot;data&quot;</code> documents) available in the database.</li>
+<li>Available command names</li>
+<li><a href="#listeners">Listeners</a></li>
+</ul>
+<p><em>Note</em> that the information on this page is always up-to-date.  This can lead
+to slow load times for some of the databases.</p>
+<p>An example of the page:</p>
+<p><img src="settings.png" alt="settings screen shot"></p>
+<h3>Listeners</h3><p>Listeners are devices that are listening (i.e. via
+<a href="/Python-Slow-Control/#logging-server"><code>pynedm</code></a> and are exporting their
+logging information via WebSocket (see
+<a href="/Python-Slow-Control/api/html/log.html#pynedm.log.BroadcastLogHandler">the pynedm API docs</a>
+for more details).</p>
+<p>Logging data shows up in the <code>Status</code> window on the right side (which appears
+by clicking on <code>Status</code> in the toolbar), and will continue showing up even if
+one navigates away from the &quot;Settings&quot; page.  The status of the loggers (i.e.
+whether the browser has subscribed to the WebSocket) is saved in
+<code>localStorage</code>, meaning it is preserved when the browser is restarted.</p>
+<p>An example of what this looks like in the wild:</p>
+<p><img src="settings_log_info.png" alt="settings screen shot w/ logging"></p>
 
 </section>
 
