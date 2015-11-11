@@ -34,7 +34,95 @@
     
 
 
-    
+    <h2>&quot;Special&quot; pages</h2><p>These pages are special subsystems in the nEDM Interface:</p>
+<ul>
+<li><a href="#measurements">Measurement</a></li>
+<li><a href="#raspberries">Raspberry Pis</a></li>
+</ul>
+<p><a name="measurements"></a></p>
+<h3>Measurements</h3><p><a href="http://db.nedm1/page/control/nedm/measurements">http://db.nedm1/page/control/nedm/measurements</a></p>
+<p>The measurements page provides an interface for:</p>
+<ul>
+<li>Viewing previously saved measurements</li>
+<li>Making new measurement &quot;protocols&quot; using commands from different subsystems</li>
+<li>Downloading files from measurements</li>
+<li>Editing/deleting previous measurements</li>
+</ul>
+<p>There are two main controls, including a calendar and a single measurement interface.</p>
+<p><img src="measurment_calendar.png" alt="measurements calendar"></p>
+<p>The calendar shows where particular measurements have occured.  Clicking on a
+date will produce a list under the calendar.  Clicking on an entry in this list
+will load the measurement in the single measurement interface.  <em>Note</em> that by
+selecting <code>Auto update</code>, the measurements page will reload new measurements
+when they are uploaded to the database.</p>
+<p>The single measurement interface looks like:</p>
+<p><img src="measurment_single.png" alt="measurements interface"></p>
+<p>One sees on this page several entries including:</p>
+<ul>
+<li>Name - name of measurement</li>
+<li>Saved - document <code>&quot;id&quot;</code></li>
+<li>Protocol - interface for creating/editing a protocol,
+see the inline help on the measurements page for more information.</li>
+<li>Log - view/edit log and name of measurement</li>
+<li>All information - the full document saved in the database</li>
+<li>Attached files - files attached to this document</li>
+</ul>
+<h4>Interface to measurements with <a href="/Python-Slow-Control"><code>pynedm</code></a></h4><p>On the measurements page it is only possible to singly delete measurements
+and download files one at a time.  It is also currently not possible to upload
+files to the interface (this would be a valuable improvement of the interface).</p>
+<p>However, all this functionality can be performed using
+<a href="/Python-Slow-Control"><code>pynedm</code></a>:</p>
+<ul>
+<li>Find many measurements: <script src="https://gist.github.com/mgmarino/a068d39ed9fdb501c72d.js"></script></li>
+<li>Post files to a document: <script src="https://gist.github.com/mgmarino/04d92217d227dc99520d.js"></script></li>
+<li>Deleting a measurement or more measurements: <script src="https://gist.github.com/mgmarino/991396f0ef26ae4b9e4d.js"></script></li>
+</ul>
+<p><a name="raspberries"></a></p>
+<h3>Raspberry Pis</h3><p><a href="http://db.nedm1/page/control/nedm/raspberries">http://db.nedm1/page/control/nedm/raspberries</a></p>
+<p>The Raspberry Pi page provides an interface for editing/creating code that will
+be run on nEDM Raspberry Pis.  (To setup a Raspberry Pi to run with this system, see the
+<a href="/System-Overview/subsystems/Raspberry-Pis.html#setup">documentation here</a>.)</p>
+<p>The page looks like:</p>
+<p><img src="raspberry.png" alt="raspberry front page"></p>
+<p>On this page, one has:</p>
+<ul>
+<li>a drop down select menu of the available Raspberry Pis (listed with their MAC ids)</li>
+<li>a status area showing when the last heartbeat from the device arrived</li>
+<li>a button to open a console</li>
+<li>list of the running code (green means script is running, red means it is not)</li>
+<li>log showing current logging information</li>
+</ul>
+<h4>Adding, editing code</h4><p>A new script can be created by clicking on <code>New script</code>.  One can edit this
+script by opening the collapsible, which looks like:</p>
+<p><img src="raspberry_scripts.png" alt="raspberry editing"></p>
+<p>In this view one sees the name of the script, and the code to be edited.  There
+is a drop-down menu where one can select the particular python module to be
+edited.  Removing a module can be done by clicking on <code>Remove module</code>.
+(<em>Note</em>, there must always be a module named <code>main</code> with a function named
+<code>main</code> inside.)</p>
+<p>Adding a new module is done by:</p>
+<ol>
+<li>Typing the name into the text field.</li>
+<li>Clicking on <code>New module with name:</code></li>
+</ol>
+<p>Selecting <code>Export modules globally</code> makes the modules in this script available
+to other scripts on the same Raspberry Pi.  This can be useful if a class is
+used by many different scripts.</p>
+<p><code>Save</code> saves the script (and restarts <em>all</em> scripts on the particular Raspberry Pi).
+<code>Remove</code> removes the scripts (and restarts <em>all</em> scripts on the particular Raspberry Pi).</p>
+<p>Note that one needs write access to the raspberries database to do this, and
+that it is stronly recommended to give the user only write access to the
+Raspberry Pis s/he needs.  See the documentation here:</p>
+<ul>
+<li><a href="tutorial-couchdb_validate_raspberry.html">Limited Users</a></li>
+<li><a href="tutorial-couchdb_users.html">General</a></li>
+</ul>
+<h4>Accessing the Raspberry Pi terminal</h4><p>By clicking on <code>Launch Terminal</code>, one has access to an <code>ssh</code>-like session.
+This can be useful for updating the software on the Raspberry Pis (remembering
+that they all use a Netboot system, see
+<a href="/System-Overview/subsystems/Raspberry-Pis.html#netbooting">here</a> and
+<a href="/System-Overview/subsystems/Raspberry-Pis.html#running">here</a>).</p>
+<p><img src="raspberry_console.png" alt="raspberry terminal"></p>
 
 </section>
 
