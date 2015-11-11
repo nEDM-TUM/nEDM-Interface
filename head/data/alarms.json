@@ -190,9 +190,8 @@ def main(db):
             else toastr.info("Success");
         });
     };
-    var editor = null;
-    $(document).on('pageinit', function(ev) {
-      if ( $(ev.target).attr('data-url').indexOf("page/alarms") === -1 ) return;
+    var editor;
+    nedm.page.once("load", function() {
       get_alarm_info();
       var db_sel = $('.alarm_database_select').filter(':input');
       nedm.get_database_info( function(dbs) {
