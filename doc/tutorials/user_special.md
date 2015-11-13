@@ -4,6 +4,7 @@ These pages are special subsystems in the nEDM Interface:
 
 * [Measurements](#measurements)
 * [Raspberry Pis](#raspberries)
+* [NMR Waveform generation](#waveform)
 
 <a name="measurements"></a>
 ### Measurements
@@ -117,3 +118,8 @@ that they all use a Netboot system, see
 [here](/System-Overview/subsystems/Raspberry-Pis.html#running)).
 
 ![raspberry terminal](raspberry_console.png)
+
+<a name="waveform"></a>
+### NMR Waveform generation
+
+[http://db.nedm1/page/control/nedm/waveform](http://db.nedm1/page/control/nedm/waveform)
