@@ -123,3 +123,20 @@ that they all use a Netboot system, see
 ### NMR Waveform generation
 
 [http://db.nedm1/page/control/nedm/waveform](http://db.nedm1/page/control/nedm/waveform)
+
+This page gives an interface to the WebSocket daemon which controls the NMR
+generation.  (This is currently running on the Mac mini: 192.168.1.113 and is
+decribed in more detail [here](/Slow-Control-Misc/subsystems/Waveform.html).)
+_Note_, this interface and the corresponding WebSocket server daemon still need
+to be tested extensively before they are ready for production!
+
+With this interface NMR waveforms can be generated and saved in the database.
+Selecting, viewing, and triggering waveforms can be performed:
+
+[!waveform head](waveform.png)
+
+In addition, waveforms may be generated and saved in the database.  At the
+moment, only NMR pulses for He *and* Xe together are programmable.
+
+[!waveform create](waveform_create.png)
+
