@@ -133,10 +133,10 @@ to be tested extensively before they are ready for production!
 With this interface NMR waveforms can be generated and saved in the database.
 Selecting, viewing, and triggering waveforms can be performed:
 
-[!waveform head](waveform.png)
+![waveform head](waveform.png)
 
 In addition, waveforms may be generated and saved in the database.  At the
 moment, only NMR pulses for He *and* Xe together are programmable.
 
-[!waveform create](waveform_create.png)
+![waveform create](waveform_create.png)
 
