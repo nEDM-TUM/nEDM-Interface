@@ -1,0 +1,127 @@
+{
+  "build_site" : {
+    "title" : "Building site components",
+    "children" : {
+       "build_control" : {
+         "title" : "Building control sites"
+       },
+       "build_page" : {
+         "title" : "Build single pages" 
+       }
+    } 
+  },
+  "user" : {
+    "title" : "User guide",
+    "children" : {
+      "user_frontpage" : {
+        "title" : "Front page"
+      },
+      "user_overview" : {
+        "title" : "Overview"
+      },
+      "user_settings" : {
+        "title" : "Settings"
+      },
+      "user_alarms" : {
+        "title" : "Alarms"
+      },
+      "user_monitor" : {
+        "title" : "Monitoring pages"
+      },
+      "user_control" : {
+        "title" : "Control pages"
+      },
+      "user_special" : {
+        "title" : "Special pages: Measurements and Raspberry Pis"
+      }
+    }
+  },
+  "admin" : {
+    "title" : "Common administration tasks"
+  },
+  "couchdb" : {
+    "title" : "Database functionality (+ security)",
+    "children" : {
+      "couchdb_view" : {
+        "title" : "View functions in nEDM",
+        "children" : {
+          "couchdb_view_doc_types" : {
+            "title" : "Document types"
+          },
+          "couchdb_view_data" : {
+            "title" : "Slow-control data"
+          },
+          "couchdb_view_control" : {
+            "title" : "Controls"
+          },
+          "couchdb_view_exported_cmds" : {
+            "title" : "Exported Commands"
+          },
+          "couchdb_view_logs" : {
+            "title" : "Logs"
+          },
+          "couchdb_view_attachments" : {
+            "title" : "Attachments"
+          },
+          "couchdb_view_measurements" : {
+            "title" : "Measurements system view functions"
+          },
+          "couchdb_view_raspberries" : {
+            "title" : "Raspberry PI view functions"
+          }
+        }
+      },
+      "couchdb_show" : {
+        "title" : "Show functions in nEDM"
+      },
+      "couchdb_list" : {
+        "title" : "List functions in nEDM",
+        "children" : {
+          "couchdb_list_convert" : {
+             "title" : "Conversion to CSV"
+          },
+          "couchdb_list_extremes" : {
+             "title" : "Latest values of all variables"
+          },
+          "couchdb_list_page" : {
+             "title" : "Displaying control pages"
+          }
+        }
+      },
+      "couchdb_update" : {
+        "title" : "Update functions in nEDM",
+        "children" : {
+          "couchdb_update_default" : {
+            "title" : "Default nEDM update functions"
+          },
+          "couchdb_update_aggregate" : {
+            "title" : "Insert or update aggregate documents"
+          }
+        }
+      },
+      "couchdb_filter" : {
+        "title" : "Filter functions in nEDM"
+      },
+      "couchdb_validate" : {
+        "title" : "Security (validate functions) in nEDM",
+        "children" : {
+          "couchdb_validate_default" : {
+            "title" : "Default nEDM validate function"
+          },
+          "couchdb_validate_measurement" : {
+            "title" : "Measurements system validate function"
+          },
+          "couchdb_validate_raspberry" : {
+            "title" : "Raspberry Pi validate function"
+          }
+        }
+      },
+      "couchdb_changes" : {
+        "title" : "Changes feed in nEDM"
+      },
+      "couchdb_users" : {
+        "title" : "Users, updating and adding"
+      }
+    }
+  }
+}

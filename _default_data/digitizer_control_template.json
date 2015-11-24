@@ -21,6 +21,9 @@ Request/release digitizer: Request a digitizer or release one that is currently 
 Stop/start: Start or stop the readout of the digitizer.
 <br><br>
 
+Auto repeat: automatically restart the next measurement.  This is useful when used in conjunction with the trigger (which can end runs).
+<br><br>
+
 Select channels: select which channels are viewed on the oscilloscope.  *This doesn't affect the saved channels!*
 <br><br>
 
@@ -138,6 +141,7 @@ class MyTrigger(Trigger):
             <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
                 <option>Select channels:</option>
             </select>
+            <label><input type='checkbox' class='auto_repeat'/>Auto repeat</label>
             <progress class="progressBar" value="0" max="100"></progress>
         </div>
         <div data-role='collapsible' class='fft_window'>
@@ -688,6 +692,9 @@ class MyTrigger(Trigger):
           $('.stopButton', $(thediv)).button("option", "disabled", true);
           $('.adv_options', $(thediv)).removeClass("ui-disabled");
           $('.cardOn', $(thediv)).button("option", "disabled", false);
+          if ($('.auto_repeat', $(thediv)).is(':checked')) {
+            $('.startButton', $(thediv)).trigger('click');
+          }
       }
 
       function getChannels(obj) {
