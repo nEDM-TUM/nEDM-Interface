@@ -104,7 +104,7 @@
             <div data-role='fieldcontain'>
                 <fieldset data-role='controlgroup' data-type='horizontal'>
                     <button class='set_value_class setTemp'>Set Temp (V)</button>
-                    <input type='text' class='input_val temp_val' size='1' value='2.9' data-wrapper-class='controlgroup-textinput ui-btn'>
+                    <input type='text' class='input_val temp_val' size='5' value='2.9' data-wrapper-class='controlgroup-textinput ui-btn'>
                 </fieldset>
             </div>
           </div>
