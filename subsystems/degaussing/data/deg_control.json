@@ -32,9 +32,9 @@
             <div class='ui-field-contain'>
                 <fieldset data-role='controlgroup'>
                     <legend>Choose a coil set:</legend>
-                    <input type='radio' name='rb_coilset' id='rb_set1a' value='msr_inner' checked='checked'>
+                    <input type='radio' name='rb_coilset' id='rb_set1a' value='msr_inner'>
                     <label for='rb_set1a'>MSR inner layer</label>
-                    <input type='radio' name='rb_coilset' id='rb_set2a' value='msr_all'>
+                    <input type='radio' name='rb_coilset' id='rb_set2a' value='msr_all' checked='checked'>
                     <label for='rb_set2a'>MSR complete</label>
                     <input type='radio' name='rb_coilset' id='rb_set3a' value='insert_all'>
                     <label for='rb_set3a'>Insert complete (w/o cylinder)</label>
