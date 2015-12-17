@@ -2,8 +2,7 @@
   "_id" : "subsystem_information",
   "prettyname" : "Waveform",
   "pages" : {
-        "Control" : "control.html",
-        "Monitor" : "monitor.html"
+        "Control" : "control.html"
   }
 
 }

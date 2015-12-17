@@ -21,6 +21,9 @@ input, button {
     padding-top:.22em;
     padding-bottom:.22em;
 }
+.page-input {
+    width: 50px;
+}
 
 th.db_name {
     vertical-align:middle;
@@ -314,4 +317,8 @@ td .loading {
 
 label.inline {
   display: inline-block !important;
+}
+
+.alarmcodepopup {
+  min-width: 700px;
 }

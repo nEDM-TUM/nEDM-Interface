@@ -21,6 +21,9 @@ Request/release digitizer: Request a digitizer or release one that is currently 
 Stop/start: Start or stop the readout of the digitizer.
 <br><br>
 
+Auto repeat: automatically restart the next measurement.  This is useful when used in conjunction with the trigger (which can end runs).
+<br><br>
+
 Select channels: select which channels are viewed on the oscilloscope.  *This doesn't affect the saved channels!*
 <br><br>
 
@@ -75,6 +78,34 @@ class MyTrigger(Trigger):
         # Don't write to file
         return False
 </code></pre>
+  Finally, we can request more complicated actions, including opening a new
+file and requesting ranges to be saved:<br><br>
+<pre><code>
+class MyTrigger(Trigger):
+    def __init__(self):
+        self.i = 0
+
+    def trigger(self, v):
+        self.i += 1
+        # After 10 buffers, stop
+        if self.i > 10: raise EndReadoutNow
+        retList = [
+          (0, 10), # Save only the first ten entries of this buffer
+          OpenNewReadoutFile, # Open a new file
+          (11, 20), # Save the next ten entries
+          OpenNewReadoutFile, # Open a new file
+        ]
+        # One could also perform:
+        # return [
+        #   None, # Save all data
+        #   OpenNewReadoutFile, # Open new file
+        # ]
+        # Note that the entries of *all* selected channels will be saved.  It
+        # is only possible to select the to-be-saved channels at the beginning
+        # of the run.
+        return retList
+</code></pre>
+
 
 """,
   "html" : """
@@ -110,6 +141,7 @@ class MyTrigger(Trigger):
             <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
                 <option>Select channels:</option>
             </select>
+            <label><input type='checkbox' class='auto_repeat'/>Auto repeat</label>
             <progress class="progressBar" value="0" max="100"></progress>
         </div>
         <div data-role='collapsible' class='fft_window'>
@@ -660,6 +692,9 @@ class MyTrigger(Trigger):
           $('.stopButton', $(thediv)).button("option", "disabled", true);
           $('.adv_options', $(thediv)).removeClass("ui-disabled");
           $('.cardOn', $(thediv)).button("option", "disabled", false);
+          if ($('.auto_repeat', $(thediv)).is(':checked')) {
+            $('.startButton', $(thediv)).trigger('click');
+          }
       }
 
       function getChannels(obj) {

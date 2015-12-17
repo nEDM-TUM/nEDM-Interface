@@ -6,6 +6,11 @@
 <br><br>
 For an example measurement using system functions, see:
 <a href='#' class='example_measurement'>example measurement</a>.
+
+To save file(s) to a measurement document with a script see:
+
+<script src="https://gist.github.com/mgmarino/04d92217d227dc99520d.js"></script>
+
 """,
   "order" : 1,
   "protocol_types" : {
@@ -187,6 +192,7 @@ For an example measurement using system functions, see:
       """
     }
   },
+  "max_shown_files" : 10,
   "protocol_clone" : """
     <div data-role="collapsible">
         <h2><span class="current_title">(No name)</span> <span class='current_status'></span></h2>
@@ -318,6 +324,12 @@ For an example measurement using system functions, see:
           <h2>Attached files</h2>
           <div class="actual_file_list">
           </div>
+          <div data-role='controlgroup' class='navigate_files ui-disabled' data-type='horizontal'>
+            <button class="ui-btn ui-icon-arrow-l ui-btn-icon-notext go_left">Back</button>
+            <input type="text" data-wrapper-class="controlgroup-textinput page-input ui-btn" value="0" class='page'>
+            <button class="ui-btn ui-icon-arrow-r ui-btn-icon-notext go_right">Forward</button>
+            of <span class="total_pages"></span> total page(s).
+          </div>
         </div>
 
       </div>
@@ -326,12 +338,22 @@ For an example measurement using system functions, see:
       <div data-role='controlgroup' class='save_div' data-type='horizontal'>
         <label><input type='checkbox' class="overwrite_doc">Overwrite</label>
         <button class="ui-btn save_measurement">Save Measurement</button>
+        <button class="ui-btn delete_measurement" disabled>Delete</button>
       </div>
       <p>
         When creating a new measurement (not Overwriting), attachments will *not* be transfered to the new document.
       </p>
     </div>
 </div>
+<div data-role="popup" id="measurementsDeleteConfirm" data-overlay-theme="b" data-theme="a"
+  class="ui-corner-all ui-content center" data-dismissible="false">
+    <h1>Delete measurement?</h1>
+    <h3 class="ui-title">Are you sure you want to delete this measurement?</h3>
+    <p>This action cannot be undone.</p>
+    <a href="#" class='cancel_button' data-role="button" data-inline="true" data-rel="back" data-theme="a">Cancel</a>
+    <a href="#" class='delete_button' data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Delete</a>
+</div>
+
 
 """,
 "script" : """
@@ -774,8 +796,7 @@ For an example measurement using system functions, see:
       // Get direct properties
       var save_id = function(anid) {
         $(thediv).data('current_doc', anid);
-        var msg = anid;
-        if (anid === null) msg = '(Not saved)';
+        var msg = anid || '(Not saved)';
         $('.measurement_status', $(thediv)).text(msg);
       };
       var set_measurement_name = function(aname) {
@@ -910,6 +931,23 @@ For an example measurement using system functions, see:
         }
         return passed;
       };
+      $('.delete_measurement').on('click', function(ev) {
+        var $dc = theCurrentPage.find('#measurementsDeleteConfirm');
+        var doc = $(this).data('doc');
+        $('.delete_button', $dc).off().on('click', function() {
+          nedm.get_database().removeDoc( doc , function(e, o) {
+            if(e) {
+              nedm.show_error_window(e.error, e.reason);
+            } else {
+              toastr.info("Success", "Document: " + o.id + " removed");
+              // Load in open object
+              load_from_object({});
+            }
+
+          });
+        });
+        theCurrentPage.find('#measurementsDeleteConfirm').popup('open');
+      });
       // Save measurement
       $('.save_measurement').on('click', function(ev) {
         var protocol_list = [];
@@ -973,7 +1011,7 @@ For an example measurement using system functions, see:
           };
         } else {
           // Remove id info from *this* document
-          ["_id", "_rev", "created_by", "_attachments"].forEach(function(o) {
+          ["_id", "_rev", "created_by", "_attachments", "external_docs"].forEach(function(o) {
             if (adoc[o]) delete adoc[o];
           });
         }
@@ -995,6 +1033,89 @@ For an example measurement using system functions, see:
         });
 
       });
+
+      function AllFiles(obj) {
+        var o = obj || {};
+        var eds = o.external_docs || {};
+        var all_files = Object.keys(eds || {});
+        var pat = /-([0-9]+)\.dig/;
+        all_files.sort( function(a, b) {
+          var num_a = pat.exec(a);
+          var num_b = pat.exec(b);
+          if (num_b && num_a) {
+            return parseInt(num_a[1]) - parseInt(num_b[1]);
+          } else return a-b;
+        });
+        var total_pages = parseInt(all_files.length/docobj.max_shown_files) + 1;
+        var shown_page = -1;
+        $('.total_pages', $(thediv)).text(total_pages);
+
+        function show_page(apage) {
+          var the_page = apage || 1;
+          if (the_page < 1) the_page = 1;
+          if (the_page > total_pages) the_page = total_pages;
+
+          if (the_page == 1) {
+            $('.go_left', $(thediv)).addClass('ui-disabled');
+          } else {
+            $('.go_left', $(thediv)).removeClass('ui-disabled');
+          }
+          if (the_page == total_pages) {
+            $('.go_right', $(thediv)).addClass('ui-disabled');
+          } else {
+            $('.go_right', $(thediv)).removeClass('ui-disabled');
+          }
+          $('.page-input :input', $(thediv)).val(the_page);
+
+          if (the_page === shown_page) return;
+          shown_page = the_page;
+
+          $('.actual_file_list', $(thediv)).empty();
+          var base_obj = {
+            id : o._id,
+            db : "nedm%2F" + this_db.db_name()
+          };
+          var start_page = (the_page - 1) * docobj.max_shown_files;
+          var consider_array = all_files.slice(start_page, start_page + docobj.max_shown_files);
+          for( var i = 0;i<consider_array.length;i++) {
+            var k = consider_array[i];
+            base_obj.name = eds[k].ondiskname;
+            add_file_fn(
+               { name : k,
+               length : eds[k].size,
+               params : {
+                   href : "/_attachments/" + base_obj.db + "/" + base_obj.id + "/" + base_obj.name,
+             downsample : k.split('.').pop() === "dig"
+              }
+            });
+          }
+        }
+
+
+        $('.go_left', $(thediv)).off().on('click', function() {
+          show_page(parseInt($('.page-input :input', $(thediv)).val()) - 1);
+        });
+        $('.go_right', $(thediv)).off().on('click', function() {
+          show_page(parseInt($('.page-input :input', $(thediv)).val()) + 1);
+        });
+        $('.page-input :input', $(thediv)).off().on('change', function(ev) {
+          var pg = parseInt($(ev.currentTarget).val());
+          if (!isNaN(pg)) {
+            show_page(pg);
+          } else {
+            $('.page-input :input', $(thediv)).val(shown_page);
+          }
+        });
+
+        if (total_pages == 1) {
+          $('.navigate_files', $(thediv)).addClass('ui-disabled');
+        } else {
+          $('.navigate_files', $(thediv)).removeClass('ui-disabled');
+        }
+        show_page();
+      }
+
+      var curr_files = new AllFiles();
       //*****************************************************
       // Load measurement
       var load_from_object = function(obj) {
@@ -1026,30 +1147,14 @@ For an example measurement using system functions, see:
             add_protocol($proto_table, obj.protocol[i]);
           }
         }
-        // Remove old attachments
-        $('.actual_file_list', $(thediv)).empty();
-        var base_obj = {
-          id : obj._id,
-          db : "nedm%2F" + this_db.db_name()
-        };
-        if (obj.external_docs) {
-          for (k in obj.external_docs) {
-            base_obj.name = obj.external_docs[k].ondiskname;
-            add_file_fn(
-               { name : k,
-               length : obj.external_docs[k].size,
-               params : {
-                   href : "/_attachments/" + base_obj.db + "/" + base_obj.id + "/" + base_obj.name,
-             downsample : k.split('.').pop() === "dig"
-              }
-            });
-          }
-        }
-
+        curr_files = new AllFiles(obj);
         $('.set_measurement_name', $(thediv))
                   .val(obj.measurement_name || "(No name)")
                   .trigger('change');
         save_id(obj._id);
+        $('.delete_measurement', $(thediv))
+          .prop('disabled', (typeof obj._id === 'undefined'))
+          .data('doc', obj);
       };
       var load_with_docid = function(doc_id) {
         this_db.getDoc(doc_id,

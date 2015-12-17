@@ -10,7 +10,7 @@
       <div class='squid_control ui-block-a'>
         <h3>Squid controls</h3>
         <div class='squid_status'>
-        <table style='text-align:center'>
+        <table style='text-align:center' width='90%' align='center'>
           <tr>
             <td>X1</td>
             <td>Y1</td>
@@ -20,47 +20,66 @@
             <td>Z2</td>
           </tr>
           <tr>
-            <td class='X1_squid_status_light control_status nedm-status-r'></td>
-            <td class='Y1_squid_status_light control_status nedm-status-r'></td>
-            <td class='Z1_squid_status_light control_status nedm-status-r'></td>
-            <td class='X2_squid_status_light control_status nedm-status-r'></td>
-            <td class='Y2_squid_status_light control_status nedm-status-r'></td>
-            <td class='Z2_squid_status_light control_status nedm-status-r'></td>
-          </tr>
-          <tr>
-            <td><input type='text' size='1' class='output_text X1' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
-            <td><input type='text' size='1' class='output_text Y1' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
-            <td><input type='text' size='1' class='output_text Z1' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
-            <td><input type='text' size='1' class='output_text X2' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
-            <td><input type='text' size='1' class='output_text Y2' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
-            <td><input type='text' size='1' class='output_text Z2' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
+            <td align='center'><div class='X1_squid_status_light control_status nedm-status-r'></div></td>
+            <td align='center'><div class='Y1_squid_status_light control_status nedm-status-r'></div></td>
+            <td align='center'><div class='Z1_squid_status_light control_status nedm-status-r'></div></td>
+            <td align='center'><div class='X2_squid_status_light control_status nedm-status-r'></div></td>
+            <td align='center'><div class='Y2_squid_status_light control_status nedm-status-r'></div></td>
+            <td align='center'><div class='Z2_squid_status_light control_status nedm-status-r'></div></td>
           </tr>
         </table>
         </div>
-        <div class='ui-grid-a'>
-          <div class='ui-block-a'>
-            <select style="margin-left : auto; margin-right : auto;" class="set_squid_mode" data-role="slider">
-                <option value="amp">Amp</option>
-                <option value="fll">FLL</option>
-            </select>
-          </div>
-          <div class='ui-block-b'>
-            <button class='squid_adjust'>Open Settings</button>
-          </div>
-        </div>
       </div>
       <div class='hv_control ui-block-b ui-responsive'>
-        <a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
         <h3>Field control</h3>
         <button class='pulse'>Send pulse</button>
-        <div class='ui-grid-b'>
+      </div>
+    </div>
+    <div class='ui-grid-a'>
+      <div class='squid_control ui-block-a'>
+        <table style='text-align:center' width='90%' align='center'>
+          <tr>
+            <td><input type='text' class='output_text X1' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
+            <td><input type='text' class='output_text Y1' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
+            <td><input type='text' class='output_text Z1' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
+            <td><input type='text' class='output_text X2' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
+            <td><input type='text' class='output_text Y2' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
+            <td><input type='text' class='output_text Z2' data-wrapper-class='controlgroup-textinput ui-btn' disabled></td>
+          </tr>
+        </table>
+      </div>
+      <div class='ui-block-b'>
+          <div data-role='controlgroup' data-type='horizontal'>
+            <select required class='msr_coil'>
+              <option value='x'>Bx</option>
+              <option value='y'>By</option>
+              <option value='z'>Bz</option>
+            </select>
+            <input type='text' class='input_val msr_curr' size='10' data-wrapper-class='controlgroup-textinput ui-btn'>
+            <button class='set_msr_field'>Set I (&#956;A)</button>
+          </div>
+      </div>
+    </div>
+    <div class='ui-grid-a'>
+      <div class='ui-block-a ui-grid-a'>
+        <div class='ui-block-a'>
+            <h4>Lock Squids</h4>
+        </div>
+        <div class='ui-block-b'>
+        <select style="margin-left : auto; margin-right : auto;" class="set_squid_mode" data-role="slider">
+            <option value="amp">Amp</option>
+            <option value="fll">FLL</option>
+        </select>
+        </div>
+      </div>
+      <div class='ui-block-b ui-grid-b'>
           <div class='ui-block-a'>
             <h4>Field switch</h4>
           </div>
           <div class='ui-block-b'>
             <select style="margin-left : auto; margin-right : auto;" class="set_coil_switch" data-role="slider">
-              <option value="1">Coil 1</option>
-              <option value="2">Coil 2</option>
+              <option value='1'>Coil 1</option>
+              <option value='2'>Coil 2</option>
             </select>
           </div>
           <div class='ui-block-c'>
@@ -69,20 +88,20 @@
               <option value='0'>&#937;</option>
             </select>
           </div>
-        </div>
-        <div data-role='fieldcontain'>
-          <div data-role='controlgroup' data-type='horizontal'>
-            <select required class='msr_coil'>
-              <option value='x'>Bx</option>
-              <option value='y'>By</option>
-              <option value='z'>Bz</option>
-            </select>
-            <input type='text' class='input_val msr_curr' size='1' data-wrapper-class='controlgroup-textinput ui-btn'>
-            <button class='set_msr_field'>Set I (&#956;A)</button>
-          </div>
-        </div>
       </div>
     </div>
+    <div class='ui-grid-a'>
+        <div class='ui-block-a squid_control'>
+            <a href='#SquidAdjustPopup' data-rel='popup' class='squid_control ui-btn ui-corner-all'>Squid Settings</a>
+        </div>
+        <div class='ui-block-b'>
+            <a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
+        </div>
+    </div>
+</div>
+
+<div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='SquidAdjustPopup' class='ui-content'>
+    <h3>Squid Settings</h3>
 </div>
 
 <div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='HVPopup' class='ui-content'>
@@ -93,49 +112,93 @@
         <h4>Positive</h4>
         <div data-role='controlgroup' data-type='horizontal'>
             <select style="margin-left : auto; margin-right : auto;" class="set_hv1_status" data-role="slider">
-                <option value="0">OFF</option>
-                <option value="1">ON</option>
+                <option value=0>OFF</option>
+                <option value=1>ON</option>
             </select>
             <div style='float:left' class='hv1_status_light control_status nedm-status-r'> </div>
+        </div>
+        <div class='ui-grid-a'>
+            <div class='ui-block-a'>
+                <p style='text-align:center'>Current HV1 value (kV)</p>
+            </div>
+            <div class='ui-block-b'>
+                <input type='text' size='1' class='output_text cur_hv1' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            </div>
         </div>
       </div>
       <div class='hv_2_control ui-block-b'>
         <h4>Negative</h4>
         <div data-role='controlgroup' data-type='horizontal'>
             <select style="margin-left : auto; margin-right : auto;" class="set_hv2_status" data-role="slider">
-                <option value="0">OFF</option>
-                <option value="1">ON</option>
+                <option value=0>OFF</option>
+                <option value=1>ON</option>
             </select>
             <div style='float:left' class='hv2_status_light control_status nedm-status-r'> </div>
         </div>
+        <div class='ui-grid-a'>
+            <div class='ui-block-a'>
+                <p style='text-align:center'>Current HV2 value (kV)</p>
+            </div>
+            <div class='ui-block-b'>
+                <input type='text' size='1' class='output_text cur_hv2' data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+            </div>
+        </div>
       </div>
+    </div>
+    <div class='hv_control ui-grid-e' data-role='fieldcontain'>
+        <div class='hv_1_control ui-block-a'>
+            <p>Set HV value (kV)</p>
+            <input type='text' size='1' class='output_HV_value_1' value=0.0 data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+        </div>
+        <div class='hv_1_control ui-block-b'>
+            <p>Set step size (kV)</p>
+            <input type='text' size='1' class='output_HV_step_1' value=0.1 data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+        </div>
+        <div class='hv_1_control ui-block-c'>
+            <p>Ramp time (s)</p>
+            <input type='text' size='1' class='output_HV_ramptime_1' value=0 data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+        </div>
+        <div class='hv_1_control ui-block-d'>
+            <p>Set HV value (kV)</p>
+            <input type='text' size='1' class='output_HV_value_2' value=0.0 data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+        </div>
+        <div class='hv_1_control ui-block-e'>
+            <p>Set step size (kV)</p>
+            <input type='text' size='1' class='output_HV_step_2' value=0.1 data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+        </div>
+        <div class='hv_1_control ui-block-f'>
+            <p>Ramp time (s)</p>
+            <input type='text' size='1' class='output_HV_ramptime_2' value=0 data-wrapper-class='controlgroup-textinput ui-btn' disabled>
+        </div>
     </div>
     <div class='hv_control ui-grid-c' data-role='fieldcontain'>
         <div class='hv_1_control ui-block-a'>
             <button class='set_value_class set_hexe_hv hv1'>Set HV (kV)</button>
-            <button class='set_value_class set_hexe_hv_ramptime hv1' value='10'>Set ramp time (s)</button>
+            <button class='set_value_class set_hexe_hv_step hv1' value='10'>Set step size (kV/0.5s)</button>
         </div>
         <div class='hv_1_control ui-block-b'>
             <input type='text' class='input_val hexe_hv1_value' size='1' data-wrapper-class='controlgroup-textinput ui-btn'>
-            <input type='text' class='input_val hexe_hv1_ramptime' size='1' value=30 data-wrapper-class='controlgroup-textinput ui-btn'>
+            <input type='text' class='input_val hexe_hv1_step' size='1' value=0.1 data-wrapper-class='controlgroup-textinput ui-btn'>
         </div>
         <div class='hv_2_control ui-block-c'>
             <input type='text' class='input_val hexe_hv2_value' size='1' data-wrapper-class='controlgroup-textinput ui-btn'>
-            <input type='text' class='input_val hexe_hv2_ramptime' size='1' value = 30 data-wrapper-class='controlgroup-textinput ui-btn'>
+            <input type='text' class='input_val hexe_hv2_step' size='1' value = 0.1 data-wrapper-class='controlgroup-textinput ui-btn'>
         </div>
         <div class='hv_2_control ui-block-d'>
             <button class='set_value_class set_hexe_hv hv2'>Set HV (kV)</button>
-            <button class='set_value_class set_hexe_hv_ramptime hv2' value='10'>Set ramp time (s)</button>
+            <button class='set_value_class set_hexe_hv_step hv2' value='10'>Set step size (kV/0.5s)</button>
         </div>
     </div>
     <div class='hv_control ui-grid-a'>
         <div data-role='controlgroup' data-type='horizontal' class='hv_1_control ui-block-a'>
-            <button class='set_value_class hv1 hexe_hv_ramp' value='ramp_down'>Ramp down</button>
-            <button class='set_value_class hv1 hexe_hv_ramp' value='ramp_up'>Ramp up</button>
+            <button class='set_value_class hv1 hexe_hv_ramp' value='ramp'>Ramp</button>
+            <button class='set_value_class hv1 hexe_hv_ramp' value='zero'>Zero</button>
+            <button class='set_value_class hv1 hexe_hv_ramp' value='stop'>Stop</button>
         </div>
         <div data-role='controlgroup' data-type='horizontal' class='hv_2_control ui-block-b'>
-            <button class='set_value_class hv2 hexe_hv_ramp' value='ramp_down'>Ramp down</button>
-            <button class='set_value_class hv2 hexe_hv_ramp' value='ramp_up'>Ramp up</button>
+            <button class='set_value_class hv2 hexe_hv_ramp' value='ramp'>Ramp</button>
+            <button class='set_value_class hv2 hexe_hv_ramp' value='zero'>Zero</button>
+            <button class='set_value_class hv2 hexe_hv_ramp' value='stop'>Stop</button>
         </div>
     </div>
     <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
@@ -152,6 +215,8 @@ function($theDiv, anobj) {
     $(':input').removeClass('ui-disabled');
     };
 
+    var toastr = require("toastr");
+
     var squid_stati = {squid_x1_status:'X1', squid_x2_status:'X2', squid_y1_status:'Y1', squid_y2_status:'Y2', squid_z1_status:'Z1', squid_z2_status:'Z2'};
     var squid_voltages = {squid_x1_v:'X1', squid_x2_v:'X2', squid_y1_v:'Y1', squid_y2_v:'Y2', squid_z1_v:'Z1', squid_z2_v:'Z2'};
 
@@ -159,11 +224,11 @@ function($theDiv, anobj) {
         for (var v in recent_vars) {
             if (squid_stati[v]) {
               var stat = recent_vars[v];
-              if (stat.value === 0){
+              if (stat.value == 1.0){
                   $('.' + squid_stati[v] + '_squid_status_light').removeClass('control_status nedm-status-g');
                   $('.' + squid_stati[v] + '_squid_status_light').addClass('control_status nedm-status-r');
               }
-              if (stat.value == 1){
+              if (stat.value === 0.0){
                   $('.' + squid_stati[v] + '_squid_status_light').removeClass('control_status nedm-status-r');
                   $('.' + squid_stati[v] + '_squid_status_light').addClass( 'control_status nedm-status-g');
               }
@@ -183,7 +248,7 @@ function($theDiv, anobj) {
         nedm.get_database('nedm%2Fhexe_edm').on("latest", check_squids);
     });
 
-    var init_switches = [{name:'squid_mode', s:'.set_squid_mode'}, {name:'active_coil', s:'.set_coil_switch'}, {name:'magnicon_on', s:'.set_coil_res'}, {name:'hv_enable_1', s:'.set_hv1_status'}, {name:'hv_enable_2', s:'.set_hv2_status'}];
+    var init_switches = {squid_mode:'.set_squid_mode', hv_enable_1:'.set_hv1_status', hv_enable_2:'.set_hv2_status'};
 
     function init_switch(switchname) {
         return function(e,o) {
@@ -196,7 +261,7 @@ function($theDiv, anobj) {
 
     $(function() {
         for (var i in init_switches) {
-            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(i.name, init_switch(i.s));
+            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(i, init_switch(init_switches[i]));
         }
     });
 
@@ -231,6 +296,42 @@ function($theDiv, anobj) {
             $(ev.currentTarget).button("option", "disabled", false);
             }
         });
+    });
+
+    function init_coils(coilx) {
+        return function(e,o) {
+            if (e !== null) return;
+            if (o.rows.length != 1) return;
+            if (o.rows[0].value === 0 && coilx === 0) {
+                $('.set_coil_res').val(0);
+                $('.set_coil_res').slider('refresh');
+            }
+            else if (o.rows[0].value == 1 && coilx === 0) {
+                $('.set_coil_res').val(1);
+                $('.set_coil_res').slider('refresh');
+                $('.set_coil_switch').val(2);
+                $('.set_coil_switch').slider('refresh');
+            }
+            else if (o.rows[0].value === 0 && coilx == 1) {
+                $('.set_coil_res').val(1);
+                $('.set_coil_res').slider('refresh');
+                $('.set_coil_switch').val(1);
+                $('.set_coil_switch').slider('refresh');
+            }
+            else {
+                toastr.error("Undefined coil status or both coils on");
+            }
+        };
+    }
+
+    function check_coily(e,o) {
+        if (e !== null) return;
+        if (o.rows.length != 1) return;
+        nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value ('MSRcoil2', initcoils(o.rows[0].value));
+    }
+
+    $(function() {
+        nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('MSRcoil1', check_coily);
     });
 
     var coil_switch_select = "1";
@@ -286,11 +387,11 @@ function($theDiv, anobj) {
         for (var v in hv_stati) {
             if (recent_vars[v]) {
                 var stat = recent_vars[v];
-                if (stat.value === 0){
+                if (stat.value === 0.0){
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-g');
                   $('.' + hv_stati[v] + '_status_light ').addClass('control_status nedm-status-r');
                 }
-                else if (stat.value == 1){
+                else if (stat.value == 1.0){
                   $('.' + hv_stati[v] + '_status_light ').removeClass('control_status nedm-status-r');
                   $('.' + hv_stati[v] + '_status_light ').addClass( 'control_status nedm-status-g');
                 }
@@ -302,7 +403,19 @@ function($theDiv, anobj) {
         nedm.get_database('nedm%2Fhexe_edm').on("latest", check_hv_status);
     });
 
-    var toastr = require("toastr");
+    var current_hvs = {hv_monitor_1:'cur_hv1', hv_monitor_2:'cur_hv2'};
+
+    function update_hv_value(recent_vars) {
+        for (var v in current_hvs) {
+            if (recent_vars[v]) {
+              $('.' + current_hvs[v]).val(recent_vars[v].value);
+            }
+        }
+    }
+
+    $(function() {
+        nedm.get_database('nedm%2Fhexe_edm').on("latest", update_hv_value);
+    });
 
     $('.set_hv1_status').on('change', function() {
         disable_all();
@@ -329,7 +442,52 @@ function($theDiv, anobj) {
     });
 
     var hv_value = [0.0, 0.0];
-    var hv_ramptime = [30, 30];
+    var hv_stepsize = [0.1, 0.1];
+    var hv_stop = false;
+
+    function calc_ramptime_1(e, o) {
+        if (e !== null) {
+              $('.output_HV_ramptime_1').val('unknown');
+              toastr.error("Can't calculate ramp time - Error reading current HV value");
+            }
+        if (o.rows.length != 1) {
+              $('.output_HV_ramptime_1').val('unknown');
+              toastr.error("Can't calculate ramp time - Error reading current HV value");
+            }
+        else {
+            val_old = Math.abs(o.rows[0].value);
+            calc = 0;
+            if (hv_value[0] >= val_old) {
+                calc = (hv_value[0] - val_old)/(2*hv_stepsize[0]);
+            }
+            else {
+                calc = (val_old - hv_value[0])/(2*hv_stepsize[0]);
+            }
+            $('.output_HV_ramptime_1').val(calc);
+        }
+    }
+
+    function calc_ramptime_2(e, o) {
+        if (e !== null) {
+              $('.output_HV_ramptime_2').val('unknown');
+              toastr.error("Can't calculate ramp time - Error reading current HV value");
+            }
+        if (o.rows.length != 1) {
+              $('.output_HV_ramptime_2').val('unknown');
+              toastr.error("Can't calculate ramp time - Error reading current HV value");
+            }
+        else {
+            val_old = Math.abs(o.rows[0].value);
+            calc = 0;
+            if (hv_value[1] >= val_old) {
+                calc = (hv_value[1] - val_old)/(2*hv_stepsize[1]);
+            }
+            else {
+                calc = (val_old - hv_value[0])/(2*hv_stepsize[1]);
+            }
+            $('.output_HV_ramptime_2').val(calc);
+        }
+    }
 
     $('.set_hexe_hv').on('click', function() {
         var v = 0.0;
@@ -337,26 +495,34 @@ function($theDiv, anobj) {
           v = parseFloat($('.hexe_hv1_value').val());
           hv_value[0] = v;
           toastr.info('HV value set for HV1');
+          $('.output_HV_value_1').val(hv_value[0]);
+          nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('hv_monitor_1', calc_ramptime_1);
         }
         else {
           v = parseFloat($('.hexe_hv2_value').val());
           hv_value[1] = v;
           toastr.info('HV value set for HV2');
+          $('.output_HV_value_2').val(hv_value[1]);
+          nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('hv_monitor_2', calc_ramptime_2);
         }
         return;
     });
 
-    $('.set_hexe_hv_ramptime').on('click', function() {
-        var t = 30.0;
+    $('.set_hexe_hv_step').on('click', function() {
+        var t = 0.1;
         if ($(this).hasClass('hv1')) {
-          t = parseFloat($('.hexe_hv1_ramptime').val());
-          hv_ramptime[0] = t;
-          toastr.info('Ramp time set for HV1');
+          t = parseFloat($('.hexe_hv1_step').val());
+          hv_stepsize[0] = t;
+          toastr.info('Step size set for HV1');
+          $('.output_HV_step_1').val(hv_stepsize[0]);
+          nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('hv_monitor_1', calc_ramptime_1);
         }
         else {
-          t = parseFloat($('.hexe_hv2_ramptime').val());
-          hv_ramptime[1] = t;
-          toastr.info('Ramp time set for HV2');
+          t = parseFloat($('.hexe_hv2_step').val());
+          hv_stepsize[1] = t;
+          toastr.info('Step size set for HV2');
+          $('.output_HV_step_2').val(hv_stepsize[1]);
+          nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('hv_monitor_2', calc_ramptime_2);
         }
         return;
     });
@@ -364,7 +530,6 @@ function($theDiv, anobj) {
     var time_out = null;
 
     function ramp_up(start, step, end, no) {
-        toastr.info('Starting ramp');
         var args = [];
         if (start < end) {
             args = [no, start];
@@ -384,42 +549,23 @@ function($theDiv, anobj) {
         }
     }
 
-    function ramp_down(start, step, no) {
-        function is_safe(e,o) {
-            if (e !== null) {
-              toastr.error('No HV value saved, not safe!');
-              return false;
-            }
-            if (o.rows.length != 1) {
-              toastr.error('Not able to retrieve HV value, not safe!');
-              return false;
-            }
-            if (o.rows[0].value > start) return true;
-            else {
-              toastr.error('HV value smaller than ramp start, not safe!');
-              return false;
-            }
+    function ramp_down(start, step, end, no) {
+        var args = [];
+        if (start > end) {
+            args = [no, start];
+            nedm.send_command({cmd_name: 'set_high_voltage',
+            arguments: args,
+            timeout: 5000
+            });
+            var newstart = start - step;
+            time_out = setTimeout(ramp_down, 500, newstart, step, end, no);
         }
-        var to_check = 'hv_monitor_' + no;
-        if (nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(to_check, is_safe)) {
-          toastr.info('Starting ramp');
-          var args = [];
-          if (start > 0) {
-              args = [no, start];
-              nedm.send_command({cmd_name: 'set_high_voltage',
-              arguments: args,
-              timeout: 5000
-              });
-              var newstart = start - step;
-              time_out = setTimeout(ramp_down, 500, newstart, step, no);
-          }
-          else {
-              args = [no, 0];
-              nedm.send_command({cmd_name: 'set_high_voltage',
-              arguments: args,
-              timeout: 5000
-              });
-          }
+        else {
+            args = [no, end];
+            nedm.send_command({cmd_name: 'set_high_voltage',
+            arguments: args,
+            timeout: 5000
+            });
         }
     }
 
@@ -429,18 +575,43 @@ function($theDiv, anobj) {
         var hv_supply = false;
         var fin = false;
         if ($(this).hasClass('hv1')) {
-          step_size = hv_value[0]/(2*hv_ramptime[0]);
+          step_size = hv_stepsize[0];
           hv_supply = '1';
           fin = hv_value[0];
         }
         else {
-          step_size = hv_value[1]/(2*hv_ramptime[1]);
+          step_size = hv_stepsize[1];
           hv_supply = '2';
           fin = hv_value[1];
         }
         if (time_out) clearTimeout(time_out);
-        if ($(this).val() == 'ramp_up') ramp_up(step_size, step_size, fin, hv_supply);
-        if ($(this).val() == 'ramp_down') ramp_down(fin - step_size, step_size, hv_supply); 
+        function ramp(e,o) {
+            if (e !== null) {
+                toastr.error("Can't read current HV value!");
+            }
+            if (o.rows.length != 1) {
+                toastr.error("Can't read current HV value!");
+            }
+            else {
+                var v = Math.abs(o.rows[0].value);
+                if (fin >= v) {
+                    ramp_up(v, step_size, fin, hv_supply);
+                }
+                else {
+                    ramp_down(v, step_size, fin, hv_supply);
+                }
+            }
+        }
+        var check_hv = 'hv_monitor_' + hv_supply;
+        if ($(this).val() == 'ramp') {
+            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(check_hv, ramp);
+        }
+        else if ($(this).val() == 'zero') {
+            step_size=1.0;
+            fin=0.0;
+            nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value(check_hv, ramp);
+        }
+        else clearTimeout(time_out);
         enable_all();
     });
 
