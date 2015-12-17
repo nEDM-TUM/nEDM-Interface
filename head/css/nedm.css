@@ -73,6 +73,10 @@ th.db_name {
         background-image: url(images/YellowLight.png);
 }
 
+div.nedmpopup {
+        padding: 5px;
+}
+
 @media only screen and (-webkit-min-device-pixel-ratio: 2) {
     .ui-icon-nedm-loading:after {
 	    background: url(images/light-loader-highres.gif) no-repeat rgba(0, 0, 0, 0.0);

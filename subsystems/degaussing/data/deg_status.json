@@ -1,0 +1,40 @@
+{
+    "_id"   : "deg_status",
+    "type"  : "control",
+    "title" : "Degaussing status",
+    "description" : "Indicates whether degaussing is running or not, green means degaussing in progress",
+    "order" : 0,
+    "html"  : """
+        <div class='ui-field-contain'>
+            <table style="margin-left: auto; margin-right:auto" >
+                <tr class="state">
+                    <th class="label">Run status</th>
+                    <td><div class='control-status nedm-status-r'></div></td>
+                </tr>
+            </table>
+        </div>
+    """,
+    "script" : """
+        function( $theDiv, anobj ) {
+            nedm.get_database().get_most_recent_value("degaussing_state", function(err, latest) {
+                if (!err) {
+                    console.log(err);
+                }
+                nedm.get_database().on('latest', set_status);
+            });
+
+            function set_status(latest){
+                console.log(latest.degaussing_state.value);
+                if (latest.degaussing_state.value === 0) {
+                    $('.control-status').removeClass("nedm-status-g");
+                    $('.control-status').addClass("nedm-status-r");
+                }
+                if (latest.degaussing_state.value == 1) {
+                    $('.control-status').removeClass("nedm-status-r");
+                    $('.control-status').addClass("nedm-status-g");
+                }
+            }
+            
+        }
+    """
+}
