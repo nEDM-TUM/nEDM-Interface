@@ -342,7 +342,7 @@ function($theDiv, anobj) {
         if (coil_or_resistor == '1') {
             disable_all();
             var args = [coil_switch_select];
-            nedm.send_command({cmd_name: 'field_switch',
+            nedm.get_database('nedm%2Finternal_coils').send_command({cmd_name: 'set_coil',
             arguments: args,
             timeout: 5000,
             callback: function(e,o) {
@@ -358,7 +358,7 @@ function($theDiv, anobj) {
         var args = [];
         if (coil_or_resistor == '1') args = [coil_switch_select];
         else args = ['0'];
-        nedm.send_command({cmd_name: 'field_switch',
+        nedm.get_database('nedm%2Finternal_coils').send_command({cmd_name: 'set_coil',
         arguments: args,
         timout:5000,
         callback: function(e,o) {
