@@ -31,7 +31,7 @@
         </div>
       </div>
       <div class='hv_control ui-block-b ui-responsive'>
-        <h3>Field control</h3>
+        <h3>Field controls</h3>
         <button class='pulse'>Send NMR pulse</button>
       </div>
       <div class='squid_control ui-block-a'>
@@ -79,31 +79,50 @@
             <h4>Field switch</h4>
           </div>
           <div class='ui-block-b' data-type='horizontal'>
-			<label>Coil 1</label>
-            <select style="margin-left : auto; margin-right : auto;" class="set_coil1_switch" data-role="slider">
-              <option value='0'>&#937;</option>
+			<label>Coil 1/2</label>
+            <select style="margin-left : auto; margin-right : auto;" class="set_coil_switch" data-role="slider">
               <option value='1'>Coil 1</option>
-            </select>
-          </div>
-          <div class='ui-block-c' data-type='horizontal'>
-			<label>Coil 2</label>
-            <select style='margin-left:auto; margin-right:auto' class='set_coil2_switch' data-role='slider'>
-              <option value='0'>&#937;</option>
               <option value='2'>Coil 2</option>
             </select>
           </div>
+          <div class='ui-block-c' data-type='horizontal'>
+			<label>Coils/Resistors</label>
+            <select style='margin-left:auto; margin-right:auto' class='set_coil_res' data-role='slider'>
+              <option value='1'>Coil</option>
+              <option value='0'>&#937;</option>
+            </select>
+          </div>
       </div>
-    </div>
-    <div class='ui-grid-b'>
-		<div class='nmr ui-block-a ui-responsive'>
-			<a href='#NMRPopup' data-rel='popup' class='ui-btn ui-corner-all'>NMR Controls</a>
-		</div>
-        <div class='hvcontrol ui-block-b'>
-            <a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
-        </div>
-        <div class='rail ui-block-c ui-responsive'>
-			<a href='#RailPopup' data-rel='popup' class='ui-btn ui-corner-all'>Rail Controls</a>
-		</div>
+	</div>
+	<div class='ui-grid-a'>
+      <div class='ui-block-a'>
+		  <h3>HV Controls</h3>
+		  <div class='ui-grid-a'>
+			  <div class='ui-block-a'>
+				<a href='#NMRPopup' data-rel='popup' class='ui-btn ui-corner-all'>NMR Controls</a>
+			  </div>
+			  <div class='ui-block-b'>
+				<a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
+			  </div>
+		  </div>
+      </div>
+      <div class='ui-block-b'>
+		  <h3>Rail Controls</h3>
+		  <div class='ui-grid-c'>
+			<div class='ui-block-a'>
+				<button class='set_value_class rail_in'>In</button>
+			</div>
+			<div class='ui-block-b'>
+				<button class='set_value_class rail_out'>Out</button>
+			</div>
+			<div class='ui-block-c'>
+				<button class='set_value_class rail_ref'>Reset</button>
+			</div>
+			<div class='ui-block-d'>
+				<button class='set_value_class rail_stop'>Stop</button>
+			</div>
+		  </div>
+      </div>
     </div>
 </div>
 
@@ -131,20 +150,6 @@
 		<div class='ui-block-a'>
 			<button class='set_value_class nmr_set_para'>Set Parameters</button>
 			<button class='set_value_class nmr_measure'>Measure</button>
-		</div>
-	</div>
-<!--    <div id="graphdiv"></div> -->
-    <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
-</div>
-
-<div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='RailPopup' class='ui-content'>
-    <h3>Rail Controls</h3>
-    <div class='ui-grid-solo'>
-		<div class='ui-block-a'>
-			<button class='set_value_class rail_in'>In</button>
-			<button class='set_value_class rail_out'>Out</button>
-			<button class='set_value_class rail_ref'>Reset</button>
-			<button class='set_value_class rail_stop'>Stop</button>
 		</div>
 	</div>
 <!--    <div id="graphdiv"></div> -->

@@ -140,9 +140,9 @@
 				<input type='text' class='input_val mfc_n2_partial_pressure' data-wrapper-class='controlgroup-textinput ui-btn'  value='50'>
 			</div>
 		</div>
-		<div class='ui-grid-b'>
+		<div class='ui-grid-c'>
 			<div class='ui-block-a'>
-				<h4>MFC selection & flow</h4>
+				<h4>Flow rate & final pressure</h4>
 			</div>
 			<div class='ui-block-b'>
 				<select required class='which_mfc'>
@@ -154,10 +154,16 @@
 			</div>
 			<div class='ui-block-c'>
 				<fieldset data-role='controlgroup' data-type='horizontal'>
-					<button class='set_value_class set_mfc'>Set flow [sccm]</button>
+					<button class='set_value_class set_mfc_flow'>Set flow [sccm]</button>
 					<input type='text' class='input_val mfc_flow' size='1' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
 				</fieldset>
-			</div>	
+			</div>
+			<div class='ui-block-d'>
+				<fieldset data-role='controlgroup' data-type='horizontal'>
+					<button class='set_value_class set_mfc_pres'>Set p [bar]</button>
+					<input type='text' class='input_val mfc_pres' size='1' value='1.0' data-wrapper-class='controlgroup-textinput ui-btn'>
+				</fieldset>
+			</div>
 		</div>
 	</div>
 </div>
