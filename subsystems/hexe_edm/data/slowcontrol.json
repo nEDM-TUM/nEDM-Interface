@@ -249,7 +249,7 @@
 	var last_sync = new Date();
 	var clock_text = $('.last_checked');
 	var time_out = null;
-	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', gas_system_pressure:'pressure_1', pol_coil_current:'pol_coil_current', mfc_he_pres:'mfc_he_pres', mfc_xe_pres:'mfc_xe_pres', mfc_n2_pres:'mfc_n2_pres', mfc_he_flow:'mfc_he_flow', mfc_xe_flow:'mfc_xe_flow', mfc_n2_flow:'mfc_n2_flow', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
+	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', gas_system_pressure:'pressure_1', pol_coil_current:'pol_coil_current', mfc_he_pressure:'mfc_he_pres', mfc_xe_pressure:'mfc_xe_pres', mfc_n2_pressure:'mfc_n2_pres', mfc_he_mass_flow:'mfc_he_flow', mfc_xe_mass_flow:'mfc_xe_flow', mfc_n2_mass_flow:'mfc_n2_flow', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
 
 //    var run_clock = function() {
 //        var time_diff = Math.round(((new Date()) - last_sync)/1000);
@@ -313,7 +313,7 @@
 		else {
 			args[mfc_select] = flow;
 		}
-		nedm.send_command({cmd_name : 'set_mfcs', arguments : args, timeout: 5000,
+		nedm.send_command({cmd_name : 'set_mfcs', arguments : [args], timeout: 5000,
 		callback: function(e,o) {
 			enable_all();
 			}
@@ -330,7 +330,7 @@
 		}
 		else {
 			if (mfc_he_cur > goal || mfc_xe_cur > goal || mfc_n2_cur > goal) {
-				nedm.send_command({cmd_name : 'set_mfcs', arguments : {he:0, xe:0, n2:0}, timeout: 5000,
+				nedm.send_command({cmd_name : 'set_mfcs', arguments : [{he:0, xe:0, n2:0}], timeout: 5000,
 				callback: function(e,o) {
 					enable_all();
 					}
