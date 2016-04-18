@@ -49,15 +49,15 @@
 			<h4>Gas Delivery System</h4>
 		</div>
 		<div class='ui-block-b'>
-			<label>MFC pressure He (mbar)</label>
+			<label>MFC pressure He (bar)</label>
 			<input type='text' size='1' class='output_text mfc_he_pres' disabled>
 		</div>
 		<div class='ui-block-c'>
-			<label>MFC pressure Xe (mbar)</label>
+			<label>MFC pressure Xe (bar)</label>
 			<input type='text' size='1' class='output_text mfc_xe_pres' disabled>
 		</div>
 		<div class='ui-block-d'>
-			<label>MFC pressure N<sub>2</sub> (mbar)</label>
+			<label>MFC pressure N<sub>2</sub> (bar)</label>
 			<input type='text' size='1' class='output_text mfc_n2_pres' disabled>
 		</div>
 		<div class='ui-block-e'>
@@ -129,15 +129,15 @@
 			</div>
 			<div class='ui-block-b'>
 				<label>Helium [&#37]</label>
-				<input type='text' class='input_val mfc_he_partial_pressure' data-wrapper-class='controlgroup-textinput ui-btn' value='800'>
+				<input type='text' class='input_val mfc_he_partial_pressure' data-wrapper-class='controlgroup-textinput ui-btn' value='80'>
 			</div>
 			<div class='ui-block-c'>
 				<label>Xenon [&#37]</label>
-				<input type='text' class='input_val mfc_xe_partial_pressure' data-wrapper-class='controlgroup-textinput ui-btn' value='150'>
+				<input type='text' class='input_val mfc_xe_partial_pressure' data-wrapper-class='controlgroup-textinput ui-btn' value='15'>
 			</div>
 			<div class='ui-block-d'>
 				<label>Nitrogen [&#37]</label>
-				<input type='text' class='input_val mfc_n2_partial_pressure' data-wrapper-class='controlgroup-textinput ui-btn'  value='50'>
+				<input type='text' class='input_val mfc_n2_partial_pressure' data-wrapper-class='controlgroup-textinput ui-btn'  value='5'>
 			</div>
 		</div>
 		<div class='ui-grid-c'>
@@ -243,11 +243,13 @@
 	var enable_all = function() {
 	$(':input').removeClass('ui-disabled');
 	};
+	
+	var toastr = require("toastr");
 
 	var last_sync = new Date();
 	var clock_text = $('.last_checked');
 	var time_out = null;
-	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', gas_system_pressure:'gas_pres', pol_coil_current:'pol_coil_current', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
+	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', gas_system_pressure:'pressure_1', pol_coil_current:'pol_coil_current', mfc_he_pres:'mfc_he_pres', mfc_xe_pres:'mfc_xe_pres', mfc_n2_pres:'mfc_n2_pres', mfc_he_flow:'mfc_he_flow', mfc_xe_flow:'mfc_xe_flow', mfc_n2_flow:'mfc_n2_flow', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
 
 //    var run_clock = function() {
 //        var time_diff = Math.round(((new Date()) - last_sync)/1000);
@@ -297,6 +299,48 @@
 //      refresh_all();
 //      run_clock();
 //    });
+
+	$('.set_mfc_flow').on('click', function() {
+		disable_all();
+		args = {he:0.0, xe:0.0, n2:0.0};
+		mfc_select = $('.which_mfc option:selected').val();
+		flow = $('.mfc_flow').val();
+		if (mfc_select == 'all') {
+			args.he = $('.mfc_he_partial_pressure').val()*flow/100.0;
+			args.xe = $('.mfc_xe_partial_pressure').val()*flow/100.0;
+			args.n2 = $('.mfc_n2_partial_pressure').val()*flow/100.0;
+		}
+		else {
+			args[mfc_select] = flow;
+		}
+		nedm.send_command({cmd_name : 'set_mfcs', arguments : args, timeout: 5000,
+		callback: function(e,o) {
+			enable_all();
+			}
+		});
+	});
+	
+	$('.set_mfc_pres').on('click', function check_mfc_pres() {
+		goal = $('.mfc_pres').val();
+		mfc_he_cur = $('.mfc_he_pres').val();
+		mfc_xe_cur = $('.mfc_xe_pres').val();
+		mfc_n2_cur = $('.mfc_n2_pres').val();
+		if (!mfc_he_cur && !mfc_xe_cur && !mfc_n2_cur) {
+			toastr.error("No pressure data from MFCs, setting final pressure not possible!");
+		}
+		else {
+			if (mfc_he_cur > goal || mfc_xe_cur > goal || mfc_n2_cur > goal) {
+				nedm.send_command({cmd_name : 'set_mfcs', arguments : {he:0, xe:0, n2:0}, timeout: 5000,
+				callback: function(e,o) {
+					enable_all();
+					}
+				});
+			}
+			else {
+				time_out = setTimeout(check_mfc_pres, 1000);
+			}
+		}
+	});
 
 	var heat_vals = ['V', '2.9'];
 
