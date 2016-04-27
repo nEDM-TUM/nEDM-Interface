@@ -6,7 +6,7 @@
     "html" : """
 
 <div>
-    <div class='ui-grid-a'>
+    <div class='ui-grid-a' style='margin-bottom:3em'>
       <div class='squid_control ui-block-a'>
         <h3>Squid controls</h3>
         <div class='squid_status'>
@@ -31,11 +31,9 @@
         </div>
       </div>
       <div class='hv_control ui-block-b ui-responsive'>
-        <h3>Field control</h3>
-        <button class='pulse'>Send pulse</button>
+        <h3>Field controls</h3>
+        <button class='pulse'>Send NMR pulse</button>
       </div>
-    </div>
-    <div class='ui-grid-a'>
       <div class='squid_control ui-block-a'>
         <table style='text-align:center' width='90%' align='center'>
           <tr>
@@ -49,23 +47,27 @@
         </table>
       </div>
       <div class='ui-block-b'>
-          <div data-role='controlgroup' data-type='horizontal'>
-            <select required class='msr_coil'>
-              <option value='x'>Bx</option>
-              <option value='y'>By</option>
-              <option value='z'>Bz</option>
-            </select>
-            <input type='text' class='input_val msr_curr' size='10' data-wrapper-class='controlgroup-textinput ui-btn'>
-            <button class='set_msr_field'>Set I (&#956;A)</button>
+		  <div class='ui-grid-a'>
+		    <div class='ui-block-a' style='width:33%'>
+		      <h4>Magnicons</h4>
+		    </div>
+			<div class='ui-block-b' style='width:67%' data-role='controlgroup' data-type='horizontal'>
+              <select required class='msr_coil'>
+				<option value='x'>B<sub>x</sub></option>
+				<option value='y'>B<sub>y</sub></option>
+				<option value='z'>B<sub>z</sub></option>
+              </select>
+              <input type='text' class='input_val msr_curr' size='5' data-wrapper-class='controlgroup-textinput ui-btn'>
+              <button class='set_msr_field'>Set I (&#956;A)</button>
+            </div>
           </div>
       </div>
-    </div>
-    <div class='ui-grid-a'>
       <div class='ui-block-a ui-grid-a'>
         <div class='ui-block-a'>
-            <h4>Lock Squids</h4>
+			<a href='#SquidAdjustPopup' data-rel='popup' class='squid_control ui-btn ui-corner-all'>Squid Settings</a>
         </div>
-        <div class='ui-block-b'>
+        <div class='ui-block-b' data-type='horizontal'>
+        <label>Lock Squids</label>
         <select style="margin-left : auto; margin-right : auto;" class="set_squid_mode" data-role="slider">
             <option value="amp">Amp</option>
             <option value="fll">FLL</option>
@@ -76,32 +78,82 @@
           <div class='ui-block-a'>
             <h4>Field switch</h4>
           </div>
-          <div class='ui-block-b'>
+          <div class='ui-block-b' data-type='horizontal'>
+			<label>Coil 1/2</label>
             <select style="margin-left : auto; margin-right : auto;" class="set_coil_switch" data-role="slider">
               <option value='1'>Coil 1</option>
               <option value='2'>Coil 2</option>
             </select>
           </div>
-          <div class='ui-block-c'>
+          <div class='ui-block-c' data-type='horizontal'>
+			<label>Coils/Resistors</label>
             <select style='margin-left:auto; margin-right:auto' class='set_coil_res' data-role='slider'>
               <option value='1'>Coil</option>
               <option value='0'>&#937;</option>
             </select>
           </div>
       </div>
-    </div>
-    <div class='ui-grid-a'>
-        <div class='ui-block-a squid_control'>
-            <a href='#SquidAdjustPopup' data-rel='popup' class='squid_control ui-btn ui-corner-all'>Squid Settings</a>
-        </div>
-        <div class='ui-block-b'>
-            <a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
-        </div>
+	</div>
+	<div class='ui-grid-a'>
+      <div class='ui-block-a'>
+		  <h3>HV Controls</h3>
+		  <div class='ui-grid-a'>
+			  <div class='ui-block-a'>
+				<a href='#NMRPopup' data-rel='popup' class='ui-btn ui-corner-all'>NMR Controls</a>
+			  </div>
+			  <div class='ui-block-b'>
+				<a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
+			  </div>
+		  </div>
+      </div>
+      <div class='ui-block-b'>
+		  <h3>Rail Controls</h3>
+		  <div class='ui-grid-c'>
+			<div class='ui-block-a'>
+				<button class='set_value_class rail_in'>In</button>
+			</div>
+			<div class='ui-block-b'>
+				<button class='set_value_class rail_out'>Out</button>
+			</div>
+			<div class='ui-block-c'>
+				<button class='set_value_class rail_ref'>Reset</button>
+			</div>
+			<div class='ui-block-d'>
+				<button class='set_value_class rail_stop'>Stop</button>
+			</div>
+		  </div>
+      </div>
     </div>
 </div>
 
 <div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='SquidAdjustPopup' class='ui-content'>
     <h3>Squid Settings</h3>
+</div>
+
+<div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='NMRPopup' class='ui-content'>
+    <h3>NMR Controls</h3>
+    <div class='ui-grid-b'>
+        <div class='ui-block-a'>
+            <label>Frequency [Hz]:</label>
+            <input type='text' size='1' class='input_val nmr_freq_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+        </div>
+        <div class='ui-block-b'>
+            <label>Amplitude [V]:</label>
+            <input type='text' size='1' class='input_val nmr_amp_val' value='0.2' data-wrapper-class='controlgroup-textinput ui-btn'>
+        </div>
+    	<div class='ui-block-c'>
+            <label>Pulse Length [s]:</label>
+            <input type='text' size='1' class='input_val nmr_dur_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+        </div>
+    </div>
+    <div class='ui-grid-solo'>
+		<div class='ui-block-a'>
+			<button class='set_value_class nmr_set_para'>Set Parameters</button>
+			<button class='set_value_class nmr_measure'>Measure</button>
+		</div>
+	</div>
+<!--    <div id="graphdiv"></div> -->
+    <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
 </div>
 
 <div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='HVPopup' class='ui-content'>
@@ -613,6 +665,71 @@ function($theDiv, anobj) {
         }
         else clearTimeout(time_out);
         enable_all();
+    });
+    
+    $('.rail_in').on('click', function() {
+        disable_all();
+        nedm.send_command({cmd_name : 'rail_control', arguments:["in"],timeout: 5000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });
+    });
+    $('.rail_out').on('click', function() {
+        disable_all();
+        nedm.send_command({cmd_name : 'rail_control', arguments:["out"],timeout: 5000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });
+    });
+    $('.rail_ref').on('click', function() {
+        disable_all();
+        nedm.send_command({cmd_name : 'rail_control', arguments:["ref"],timeout: 5000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });
+    });
+    $('.rail_stop').on('click', function() {
+        disable_all();
+        nedm.send_command({cmd_name : 'rail_control', arguments:["stop"],timeout: 5000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });
+    });
+    
+    $('.nmr_set_para').on('click', function() {
+        disable_all();
+        var freq = $('.nmr_freq_val').val();
+        nedm.send_command({cmd_name : 'nmr_set_frequency', arguments: [freq], timeout: 5000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });
+        var amp = $('.nmr_amp_val').val();
+        nedm.send_command({cmd_name : 'nmr_set_amplitude', arguments: [amp], timeout: 5000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });
+        var dur = $('.nmr_dur_val').val();
+        nedm.send_command({cmd_name : 'nmr_set_pulselength', arguments: [dur], timeout: 5000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });                
+        
+    });
+    
+    $('.nmr_measure').on('click', function() {
+        disable_all();
+        nedm.send_command({cmd_name : 'nmr_measure', timeout: 20000,
+        callback: function(e,o) {
+            enable_all();
+            }
+        });
     });
 
 }
