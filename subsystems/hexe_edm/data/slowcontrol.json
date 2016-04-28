@@ -297,7 +297,7 @@
 		}
 		if (vars[laser_temp] && vars[laser_temp] > 30.0) {
 			$('.laser_temp').css('background-color', 'red');
-			if (vars[laser_status] && vars[laser_status] = 1) {
+			if (vars[laser_status] && vars[laser_status] == 1) {
 				$('.set_laser_status').trigger('change');
 			}
 		}
