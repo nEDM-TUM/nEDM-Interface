@@ -28,6 +28,12 @@
   "defaults" : """
     function(thediv, docobj) {
       // Called when page loaded, we can modify the page, set defaults
+      
+      // Open FFT window and set log scale
+      $('.fft_window', $(thediv)).collapsible("option", "collapsed", false);
+      $('.log_scale', $(thediv)).prop("checked", true)
+								.change()
+								.checkboxradio("refresh");
 
       // Select the module
       $('.selectSaveModules',$(thediv)).filter(':input').val(1).change();
@@ -60,11 +66,67 @@
       view_chan.selectmenu("refresh", true);
       save_chan.selectmenu("refresh", true);
 
+
+	  function adjustClkDiv(sampleFreq, refClock) {
+		  var ext_clkdiv = refClock/settings.divide/(sampleFreq*1000);
+		  x.sendObj({
+			cmd: "setClkDiv",
+			embed: true,
+			args: {
+				clkdiv : ext_clkdiv
+			}
+		  });
+		  fftg.resize();
+          ampg.resize();
+          frqg.resize();
+	  }
+
+
+	  // Initialize ext. clock plus readjust sample freq/clock divider
       $('.external_freq', $(thediv)).val(docobj.ext_frequency);
-      $('.set_freq_ext', $(thediv)).prop("checked", false);
-      if (docobj.ext_frequency !==0 ) {
+	  $('.set_freq_ext', $(thediv)).prop("checked", false);
+	  if (docobj.ext_frequency !==0 ) {
         $('.set_freq_ext', $(thediv)).trigger('click');
+        adjustClkDiv(5.0, docobj.ext_frequency);
       }
+      
+      
+      // Change layout
+      var ext_clk_html = $('.frequency_set', $(thediv)).parent().parent();
+      $('.external_freq', $(thediv)).parent().parent().hide();
+//	  $('.set_freq_ext', $(thediv)).parent().hide();
+	  $('.downsample', $(thediv)).parent().parent().hide();
+	  ext_clk_html.append('<label><input class="new_ext_clk" type="checkbox">Use external clock</label>').trigger("create");
+	  if ($('.set_freq_ext', $(thediv)).is(":checked")) {
+		  $( ".new_ext_clk" ).prop( "checked", true )
+                             .change()
+                             .checkboxradio( "refresh" );
+      }
+      else {
+		  $( ".new_ext_clk" ).prop( "checked", false )
+                             .change()
+                             .checkboxradio( "refresh" );
+      }
+      
+      // When clicking ext. clock button: don't set value to 0, adjust sample freq
+      $('.new_ext_clk', $(thediv)).on('click', function(ev) {
+		  var is_checked = $(ev.currentTarget).is(":checked");
+		  var sample_freq = parseFloat($('.frequency_set', $(thediv)).val());
+		  var editor = hdr_editor.get();
+		  if (is_checked) {
+			  $('.external_freq', $(thediv)).val(docobj.ext_frequency);
+		  }
+		  $('.set_freq_ext', $(thediv)).trigger('click');
+		  if (is_checked) {
+			adjustClkDiv(sample_freq, docobj.ext_frequency);
+			editor.external_clock = true;
+		  } else {
+			adjustClkDiv(sample_freq, settings.sysclk);
+			editor.external_clock = false;
+          }
+          hdr_editor.set(editor);
+	  });
+		  
     }
 
 """
