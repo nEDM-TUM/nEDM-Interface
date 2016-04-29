@@ -8,7 +8,7 @@ See the [API Documentation](http://nedm-tum.github.io/nEDM-Interface/) for more 
 Build instructions
 ------------------
 
-1.  Install kanso (http://kan.so/install).
+1.  Install kanso (http://kan.so/install). If kan.so is down please check the link https://github.com/kanso/kanso/issues/430 for temporary fix.
 2.  ```cd head; kanso install``` (This only needs to be done at the beginning, and when you update kanso packages.
 3.  To push everything to DB, type at the base directory:
 
