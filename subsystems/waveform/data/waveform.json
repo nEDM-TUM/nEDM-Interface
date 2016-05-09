@@ -81,7 +81,7 @@ function($theDOM, docobj)
 	var f_burst_time = "0.5";
 	var len = "40000";
 	var b0 = "1.2";
-	var ncyc = "36"
+	var ncyc = "36";
 	var angle = "10.0";
 	var cell = "3";
 	var b1;
@@ -384,7 +384,7 @@ function($theDOM, docobj)
 	document.oninput = function ()
 	{
 		UpdateResults();
-	}
+	};
 }
 """
 
