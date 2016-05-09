@@ -8,9 +8,7 @@
   "html": """
 <h3>Status</h3>
 <div id="status">Not Connected!</div>
-
 <b>Select Waveform:</b>
-
 <table>
 	<tr>
 		<td><select id="listOfWF" size="1"></select></td>
@@ -18,7 +16,6 @@
 	      	<td>
 			<a href="#popupDialog" data-rel="popup" data-position-to="window" data-transition="pop"
 				class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left">Delete selected Waveform</a>
-
 			<div data-role="popup" id="popupDialog" data-dismissible="false" style="max-width:500px;">
 				<div data-role="header"><h1>Delete Waveform?</h1></div>
 				<div role="main" class="ui-content">
@@ -36,21 +33,26 @@
 	</tr>
 </table>
 <br /><br />
-
 <h3>Preview of selected Waveform</h3>
 <div id="preview" style="width:600px; height:300px;"></div>
-
-
 <br /><br />
 <h3>Set Parameters</h3>
-
 <table>
+	<tr><th>Element</th><td><select id="element_" size="1" >
+	  <option value="3">Helium & Xenon</option>
+	  <option value="1">Helium</option>
+	  <option value="2">Xenon</option>
+	</select></td></tr>
 	<tr><th>B0 Field in muT (Float)</th><td><input type="text" id="b0_" size="30" /></td></tr>
 	<tr><th>First Burst Time (Float)</th> <td><input type="text" id="f_b_t" size="30" /></td></tr>
 	<tr><th>Measuring Time (Float)</th> <td><input type="text" id="m_t" size="30" /></td></tr>
-	<tr><th>Sigma (Float)</th> <td><input type="text" id="s_" size="30" /></td></tr>
+	<tr><th>Burst Width FWHM (Float)</th> <td><input type="text" id="s_" size="30" /></td></tr>
 	<tr><th>Sampling Frequency (Integer)</th> <td><input type="text" id="s_f" size="30" /></td></tr>
-	<tr><th>Length (Integer)</th> <td><input type="text" id="l_" size="30" /> </td></tr>
+	<tr><th>Length (Integer)</th> <td><input type="text" id="l_" size="30" disabled=true /> </td></tr>
+	<tr><th>Number of Bursts (Integer)</th> <td><input type="text" id="n_cyc" size="30" /> </td></tr>
+	<tr><th>Flip Angle Degree (Float)</th> <td><input type="text" id="angle_" size="30" /> </td></tr>
+	<tr><th>Resulting B1 Field (muT)</th> <td><input type="text" id="b1_" size="30" readOnly=true /> </td></tr>
+	<tr><th>Resulting Bandwidth (Hz)</th> <td><input type="text" id="band_" size="30" readOnly=true /> </td></tr>
 </table>
 <br /><br />
 <table>
@@ -60,9 +62,7 @@
 	</tr>
 </table>
 <br /><br />
-
 <h3>Save Waveform to Database</h3>
-
 <table>
 	<tr>
 		<th>Name: </th>
@@ -70,39 +70,36 @@
 		<td><button type="button" id="savebutton" size="400">Save</button></td>
 	</tr>
 </table>
-
 """,
   "script": """
 function($theDOM, docobj)
 {
 	var wsuri = "ws://" + docobj.wsuri;
-
 	var measuring_time = "2";
 	var sig = "1";
 	var sampling_freq = "100000";
 	var f_burst_time = "0.5";
 	var len = "40000";
 	var b0 = "1.2";
-
+	var ncyc = "36"
+	var angle = "10.0";
+	var cell = "3";
+	var b1;
+	var bandw;
 	var listNotEmpty = false;
 	var namesList;
-
 	var autobahn = require("autobahn");
 	var dygraph = require("dygraph-combined");
-
 	var socket = null;
 	var isopen = false;
-
 	socket = new WebSocket(wsuri);
 	socket.binaryType = "arraybuffer";
 	socket.onopen = function()
 	{
 		print("Connected!", true);
-
 		isopen = true;
 		sendCmd(["get NamesList"]);
 	};
-
 	function print(logText)
 	{
 		console.log(logText);
@@ -121,14 +118,10 @@ function($theDOM, docobj)
 			hdrLen = parseInt(str.slice(0, pos));
 			pos += 1;
 			hdr = str.slice(pos, pos + hdrLen);
-
 			var array = JSON.parse(hdr);
 			console.log("Received Text: ", array);
-
 			cmd = array[0];
-
 			cbdraw = document.getElementById("CB_draw").checked;
-
 			if(cmd === "NamesList") UpdateListOfWF(array[1]);
 			if(cmd === "Draw" && cbdraw)
 			{
@@ -154,16 +147,12 @@ function($theDOM, docobj)
 		else
 		{
 			var dv = new DataView(e.data);
-
 			hdrLen = dv.getInt32(0, true);
 			var start = 4+hdrLen;
-
 			var totalLength = (new Uint8Array(e.data)).length;
 			var dataLen = totalLength-start;
-
 			hdr = JSON.parse(String.fromCharCode.apply(
 					null, new Uint8Array(e.data, 4, hdrLen)));
-
 			console.log("Header: ", hdr);
 			cmd = hdr[0];
 			if(cmd === "Waveform")
@@ -178,8 +167,6 @@ function($theDOM, docobj)
 				{
 					data[i] = dv.getFloat64(i*8, true);
 				}
-
-
 				var graphdata = new Array(iMax);
 				for(i = 0; i < iMax; i++)
 					graphdata[i] = new Array(i / samplingFreq, data[i]);
@@ -187,7 +174,6 @@ function($theDOM, docobj)
 			}
 			else
 				print("Error: unknown cmd");
-
 		}
 	};
 	socket.onclose = function(e)
@@ -196,7 +182,6 @@ function($theDOM, docobj)
 		socket = null;
 		isopen = false;
 	};
-
 	function sendCmd(cmd)
 	{
 		cmd = JSON.stringify(cmd);
@@ -207,8 +192,6 @@ function($theDOM, docobj)
 		}
 		else print("Connection not opened.");
 	}
-
-
 	document.getElementById("sendButton").onclick = Send;
 	document.getElementById("restoreButton").onclick = Restore;
 	document.getElementById("savebutton").onclick = Save;
@@ -216,90 +199,83 @@ function($theDOM, docobj)
 	document.getElementById("listOfWF").onchange = SelectionChanged;
 	document.getElementById("deleteWF").onclick = DeleteWF;
 	document.getElementById("triggerWF").onclick = TriggerWF;
-
+	document.getElementById("element_").onchange = UpdateResults;
 	Restore();
-
+	UpdateResults();
 	function TriggerWF()
 	{
 		print("Triggering current Waveform");
 		sendCmd(["trigger WF"]);
 	}
-
 	function Send()
 	{
 		print("sending custom Waveform");
 		UpdateParameters();
 		sendCmd(["send CustomWF",
-			[b0, f_burst_time, sampling_freq, sig, measuring_time, len]
+			[b0, f_burst_time, sampling_freq, sig, measuring_time, len, ncyc, angle, cell]
 			]);
 	}
-
 	function Restore()
 	{
 		document.getElementById("f_b_t").value = "0.5";
 		document.getElementById("s_").value = "1";
 		document.getElementById("s_f").value = "100000";
-		document.getElementById("l_").value = "40000";
 		document.getElementById("b0_").value = "1.2";
 		document.getElementById("m_t").value = "2";
-
+		document.getElementById("n_cyc").value = "36";
+		document.getElementById("angle_").value = "10";
 		UpdateParameters();
 	}
-
 	function Save()
 	{
 		print("saving Waveform");
 		var name = GetDataNameFromTextbox();
 		UpdateParameters(name);
 		sendCmd(["save Waveform", name,
-			[b0, f_burst_time, sampling_freq, sig, measuring_time, len]]);
+			[b0, f_burst_time, sampling_freq, sig, measuring_time, len, ncyc, angle, cell]]);
 	}
-
 	function SendWF()
 	{
 		var name = GetDataNameFromList();
 		print("sending Waveform '" + name + "'");
 		sendCmd(["send Waveform", name]);
 	}
-
 	function SelectionChanged()
 	{
 		var cbdraw = document.getElementById("CB_draw").checked;
-
 		if(listNotEmpty && cbdraw)
 		{
 			var name = GetDataNameFromList();
 			console.log("Selected WF index: ", name);
-
 			print("Drawing saved Waveform: " + name);
 			sendCmd(["get Waveform", name]);
 		}
 	}
-
+	function ElementChanged()
+	{
+		var ce = document.getElementById("element_");
+		cell = ce.options[ce.selectedIndex].value;
+	
+	}
 	function DeleteWF()
 	{
 		var name = GetDataNameFromList();
 		sendCmd(["delete Waveform", name]);
 		listNotEmpty = false;
 	}
-
 	function Draw(data)
 	{
 		var cbdraw = document.getElementById("CB_draw").checked;
-
 		if(cbdraw)
 		{
-
 			console.log("Drawing: ", GetDataNameFromList());
 			var graph = document.getElementById("preview");
 			g = new dygraph.Dygraph(graph,
 				data, {labels: [ "Time t", "V"]}
 				);
 			print("ready");
-
 		}
 	}
-
 	function UpdateListOfWF(list)
 	{
 		namesList = list;
@@ -325,12 +301,9 @@ function($theDOM, docobj)
 			listNotEmpty = false;
 			$('#preview').empty();
 		}
-
-
 		$('#listOfWF').selectmenu("refresh");
 		console.log("List of Waveforms updated");
 	}
-
 	function GetDataNameFromList() // DONE!
 	{
 		var nameID = parseInt(document.getElementById("listOfWF").selectedIndex);
@@ -338,14 +311,12 @@ function($theDOM, docobj)
 		console.log("Name of selected index: ", dataName);
 		return dataName;
 	}
-
 	function GetDataNameFromTextbox()//Done!
 	{
 		var dataName = document.getElementById("name").value;
 		console.log("Name from Textbox: ", dataName);
 		return dataName;
 	}
-
 	function UpdateParameters() //DONE!
 	{
 		b0 = 		document.getElementById("b0_").value;
@@ -354,9 +325,67 @@ function($theDOM, docobj)
 		sig = 		document.getElementById("s_").value;
 		sampling_freq = document.getElementById("s_f").value;
 		len = 		document.getElementById("l_").value;
+		ncyc = 		document.getElementById("n_cyc").value;
+		angle = 	document.getElementById("angle_").value;
+		ElementChanged();
+		b1 = 		document.getElementById("b1_").value;
+		bandw = 	document.getElementById("band_").value;
+		
+	}
+	
+	function Calculate()
+	{
+		var pitimes2 = 6.2831853071795;
+		var sqrt2pi = 2.5066282746;
+		var b1g = (angle/360*pitimes2)/(sqrt2pi*sig/(2.35482));
+		var gam_he = 32.4341;
+		var gam_xe = 11.77717;
+		if (cell == 1){
+			b1 = b1g/(gam_he*pitimes2);
+		}
+		else if (cell == 2){
+			b1 = b1g/(gam_xe*pitimes2);
+		}
+		else if (cell == 3){
+			b1 = b1g/(gam_he*pitimes2) + b1g/(gam_xe*pitimes2);
+		}
+		
+		var bbconst = 1.662257;
+		bandw = bbconst/sig;
+		len = 0;
+		if (f_burst_time > 2*sig){
+			len = f_burst_time;
+		}
+		else{
+			len = 2*sig;
+		}
+		len = Math.ceil((len - (-(ncyc-1))*measuring_time - (-2*sig))*sampling_freq);
+	
+	}
+	
+	function UpdateResults()
+	{
+		UpdateParameters();
+		ConsistencyCheck();
+		Calculate();
+		document.getElementById("b1_").value = b1;
+		document.getElementById("band_").value = bandw;
+		document.getElementById("f_b_t").value = f_burst_time;
+		document.getElementById("l_").value = len;
+	}
+	
+	function ConsistencyCheck()
+	{
+		if (f_burst_time < 2*sig){
+			f_burst_time = 2*sig;
+		}
+	}
+	
+	document.oninput = function ()
+	{
+		UpdateResults();
 	}
 }
-
 """
 
 }
