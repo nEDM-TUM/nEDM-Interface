@@ -127,53 +127,53 @@
       }
       
       // Add channel names & conversion factor controls
-      $('.gain_options').before("<div data-role='collapsible' class='channel_options'><h4>Channel names and conversion factors</h4></div>")
-      $('.channel_options').collapsible()
-						   .children().eq(1).append("<div data-role='controlgroup' data-type='horizontal'>" +
+	  $('.gain_options').before("<div data-role='collapsible' class='channel_options'><h4>Channel names and conversion factors</h4></div>")
+	  $('.channel_options').collapsible()
+	  					   .children().eq(1).append("<div data-role='controlgroup' data-type='horizontal'>" +
 								   '<input type="button" value="Set channel names" class="setChannelNames">' +
 								   '<input type="button" value="Set conversion factor(s)" class="setConvFactors">' +
 								   '<input type="text" class="globalConvFactor" data-wrapper-class="controlgroup-textinput ui-btn">' +
 								   '<label><input type="checkbox" class="multipleFactors" data-wrapper-class="ui-last-child">Global factor</label>' +
 								   "</div>" +
 								   '<div class="ui-grid-c allChannelsOptions"><div class="ui-block-a"></div><div class="ui-block-b"></div><div class="ui-block-c"></div><div class="ui-block-d"></div></div>');
-      $('.setChannelNames').parent().controlgroup();
-      $('.globalConvFactor').textinput()
+	  $('.setChannelNames').parent().controlgroup();
+	  $('.globalConvFactor').textinput()
 							.parent().hide();
-      $.each($('.allChannelsOptions', $(thediv)).children(), function() { $(this).empty(); });
+	  $.each($('.allChannelsOptions', $(thediv)).children(), function() { $(this).empty(); });
           // No loop over modules and channels
-      var allChans = $.makeArray(
+	  var allChans = $.makeArray(
 		  $('.selectSaveModules').filter(':input')
                                  .children()
                                  .map(function() {return {number: $(this).val(), range: $(this).data('chan_range')};
 								 }));
-      var channel_div = $('<div/>').append($('<span/>').addClass('channel_name'));
-      var input_templ = $('<input/>').addClass('channel_name_eq').attr({'type':'text', 'placeholder':'Channel name'});
-      var factor_templ = $('<input/>').addClass('conv_factor').attr({'type':'text', 'placeholder':'Conversion factor, e.g. in T/V'});
-      if (typeof docobj.default_header_info.conversion_factor === "number") {
-		  factor_templ.attr('value', docobj.default_header_info.conversion_factor);
+	  var channel_div = $('<div/>').append($('<span/>').addClass('channel_name'));
+	  var input_templ = $('<input/>').addClass('channel_name_eq').attr({'type':'text', 'placeholder':'Channel name'});
+	  var factor_templ = $('<input/>').addClass('conv_factor').attr({'type':'text', 'placeholder':'Conversion factor, e.g. in T/V'});
+	  if (typeof docobj.default_header_info.conversion_factor === "number") {
+	  	  factor_templ.attr('value', docobj.default_header_info.conversion_factor);
 	  }
-      channel_div.append(input_templ);
-      channel_div.append(factor_templ);
-      var grid_list = [ "a", "b", "c", "d"];
-      var global_idx = 0;
-      for(var i=0;i<allChans.length;i++) {
-          var nl = allChans[i];
-          for(var j=0;j<nl.range.length;j++) {
-              var no = channel_div.clone();
-              $('.channel_name_eq', no).data("obj", { module : nl.number, channel : j });
-              if (j < Object.keys(docobj.default_header_info.channel_names).length) {
+	  channel_div.append(input_templ);
+	  channel_div.append(factor_templ);
+	  var grid_list = [ "a", "b", "c", "d"];
+	  var global_idx = 0;
+	  for(var i=0;i<allChans.length;i++) {
+		  var nl = allChans[i];
+		  for(var j=0;j<nl.range.length;j++) {
+			  var no = channel_div.clone();
+			  $('.channel_name_eq', no).data("obj", { module : nl.number, channel : j });
+			  if (j < Object.keys(docobj.default_header_info.channel_names).length) {
 				  $('.channel_name_eq', no).val(docobj.default_header_info.channel_names[j]);
 			  }
 			  $('.conv_factor', no).data("obj", { module : nl.number, channel : j });
 			  if (typeof docobj.default_header_info.conversion_factor === "object" && j < Object.keys(docobj.default_header_info.conversion_factor).length) {
 				  $('.conv_factor', no).val(docobj.default_header_info.conversion_factor[j]);
 			  }
-              $('.channel_name', no).text("Mod: " + nl.number + ", chan: " + j);
-              $('.allChannelsOptions .ui-block-' + grid_list[ global_idx % grid_list.length ], $(thediv)).append(no);
-              global_idx += 1;
-          }
-      }
-      $('.allChannelsOptions', $(thediv)).trigger('create');
+			  $('.channel_name', no).text("Mod: " + nl.number + ", chan: " + j);
+			  $('.allChannelsOptions .ui-block-' + grid_list[ global_idx % grid_list.length ], $(thediv)).append(no);
+			  global_idx += 1;
+		  }
+	  }
+	  $('.allChannelsOptions', $(thediv)).trigger('create');
       
       // When clicking ext. clock button: don't set value to 0, adjust sample freq
       $('.new_ext_clk', $(thediv)).on('click', function(ev) {
@@ -243,6 +243,12 @@
 		  }
 		  settings.conversion_factor = editor.conversion_factor;
 		  hdr_editor.set(editor);
+	  });
+	  
+	  // remove created divs etc on digitzer release, otherwise will be doubled when requesting again
+	  $('.relDigi', $(thediv)).on('click', function() {
+		  $('.new_ext_clk', $(thediv)).parent().remove();
+		  $('.channel_options', $(thediv)).remove();
 	  });
 		  
     }
