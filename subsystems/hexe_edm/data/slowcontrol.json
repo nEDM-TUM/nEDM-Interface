@@ -45,7 +45,10 @@
 			<label>Laser temperature (&#176 C)</label>
 			<input type='text' class='output_text laser_temp' disabled>
 		</div>
-		<div class='ui-block-e'></div>
+		<div class='ui-block-e'>
+			<label>Laser voltage (V)</label>
+			<input type='text' class='output_text laser_volt' disabled>
+		</div>
 	</div>
 	<div class='ui-grid-d'>
 		<div class='ui-block-a'>
@@ -252,7 +255,7 @@
 	var last_sync = new Date();
 	var clock_text = $('.last_checked');
 	var time_out = null;
-	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', laser_temp:'laser_temp', gas_system_pressure:'pressure_1', pol_coil_current:'pol_coil_current', mfc_he_pressure:'mfc_he_pres', mfc_xe_pressure:'mfc_xe_pres', mfc_n2_pressure:'mfc_n2_pres', mfc_he_mass_flow:'mfc_he_flow', mfc_xe_mass_flow:'mfc_xe_flow', mfc_n2_mass_flow:'mfc_n2_flow', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
+	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', laser_volt:'laser_volt', laser_temp:'laser_temp', gas_system_pressure:'pressure_1', pol_coil_current:'pol_coil_current', mfc_he_pressure:'mfc_he_pres', mfc_xe_pressure:'mfc_xe_pres', mfc_n2_pressure:'mfc_n2_pres', mfc_he_mass_flow:'mfc_he_flow', mfc_xe_mass_flow:'mfc_xe_flow', mfc_n2_mass_flow:'mfc_n2_flow', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
 
 	$('.output_text').attr('data-wrapper-class', 'monitoring_output');
 //	$('.output_text').textinput('refresh');
@@ -292,12 +295,12 @@
 	function update_vars(recent_vars) {
 		for (var v in recent_vars) {
 			if (vars[v]) {
-			  $('.' + vars[v]).val(recent_vars[v].valuetoPrecision(2));
+			  $('.' + vars[v]).val(recent_vars[v].value.toPrecision(3));
 			}
 		}
-		if (vars[laser_temp] && vars[laser_temp] > 30.0) {
+		if (vars.laser_temp && vars.laser_temp > 30.0) {
 			$('.laser_temp').css('background-color', 'red');
-			if (vars[laser_status] && vars[laser_status] == 1) {
+			if (vars.laser_status && vars.laser_status == 1) {
 				$('.set_laser_status').trigger('change');
 			}
 		}
