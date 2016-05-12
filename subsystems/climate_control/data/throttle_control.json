@@ -4,15 +4,15 @@
   "title" : "Throttle Control",
   "description" : "Control the temperature throttling",
   "order" : 0,
-  "available_channels" : [
-    0,
-    1,
-    62,
-    63
-  ],
+  "available_channels" : {
+      "0": "AC Inlet",
+      "1": "Warm Air",
+      "62": "Cold Air",
+      "63": "Electronic tent"
+  },
   "one_control" : """
 <div class="chan_top ui-body ui-body-a ui-corner-all">
-  <h3>Channel <span class="chan_num"></span></h3>
+  <h3>Channel <span class="chan_num"></span> - <span class="chan_name"></span></h3>
   <div class="not_yet_saved nedm-status-g"></div>
   <input type="range" value="50" min="0", max="100" step="1">
 </div>
@@ -35,10 +35,11 @@
        var submit_btn = $('.set_function', $(avar));
        var toastr = require("toastr");
 
-       anobj.available_channels.forEach( function(o) {
+       Object.keys(anobj.available_channels).forEach( function(o) {
           var j = $.parseHTML(anobj.one_control.trim());
           sent_values[o] = 50;
           $(".chan_num", j).text(o);
+          $(".chan_name", j).text(anobj.available_channels[o]);
           $(":input", j).attr( { "data-chan" : o });
           $('.all_temperature_controls', $(avar)).append(j);
        });
