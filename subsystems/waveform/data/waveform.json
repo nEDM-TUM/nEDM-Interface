@@ -4,7 +4,7 @@
   "type" : "control",
   "title" : "Sending a Waveform",
   "description" : "Sending a Waveform",
-  "wsuri"  : "192.168.1.113:9100",
+  "wsuri" : "192.168.1.113:9100",
   "html": """
 <h3>Status</h3>
 <div id="status">Not Connected!</div>
@@ -44,15 +44,17 @@
 	  <option value="2">Xenon</option>
 	</select></td></tr>
 	<tr><th>B0 Field in muT (Float)</th><td><input type="text" id="b0_" size="30" /></td></tr>
-	<tr><th>First Burst Time (Float)</th> <td><input type="text" id="f_b_t" size="30" /></td></tr>
+	<tr><th>First Burst Time (Float)</th> <td><input type="text" id="f_b_t" size="30" disabled=true /></td></tr>
 	<tr><th>Measuring Time (Float)</th> <td><input type="text" id="m_t" size="30" /></td></tr>
 	<tr><th>Burst Width FWHM (Float)</th> <td><input type="text" id="s_" size="30" /></td></tr>
 	<tr><th>Sampling Frequency (Integer)</th> <td><input type="text" id="s_f" size="30" /></td></tr>
 	<tr><th>Length (Integer)</th> <td><input type="text" id="l_" size="30" disabled=true /> </td></tr>
 	<tr><th>Number of Bursts (Integer)</th> <td><input type="text" id="n_cyc" size="30" /> </td></tr>
 	<tr><th>Flip Angle Degree (Float)</th> <td><input type="text" id="angle_" size="30" /> </td></tr>
-	<tr><th>Resulting B1 Field (muT)</th> <td><input type="text" id="b1_" size="30" readOnly=true /> </td></tr>
-	<tr><th>Resulting Bandwidth (Hz)</th> <td><input type="text" id="band_" size="30" readOnly=true /> </td></tr>
+	<tr><th>Resulting B1 Field (muT)</th> <td><input type="text" id="b1_" size="30" disabled=true /> </td></tr>
+	<tr><th>Resulting Bandwidth (Hz)</th> <td><input type="text" id="band_" size="30" disabled=true /> </td></tr>
+	<tr><th>4 sigma before peak (seconds) (+ Measuring Time for multiple bursts)</th> <td><input type="text" id="four_sig_start" size="30" disabled=true /> </td></tr>
+	<tr><th>4 sigma after peak (seconds) (+ Measuring Time for multiple bursts)</th> <td><input type="text" id="four_sig_stop" size="30" disabled=true /> </td></tr>
 </table>
 <br /><br />
 <table>
@@ -77,8 +79,8 @@ function($theDOM, docobj)
 	var wsuri = "ws://" + docobj.wsuri;
 	var measuring_time = "2";
 	var sig = "1";
-	var sampling_freq = "100000";
-	var f_burst_time = "0.5";
+	var sampling_freq = "10000";
+	var f_burst_time = "2.0";
 	var len = "40000";
 	var b0 = "1.2";
 	var ncyc = "36";
@@ -86,6 +88,8 @@ function($theDOM, docobj)
 	var cell = "3";
 	var b1;
 	var bandw;
+	var foursigtstart;
+	var foursigtstop;
 	var listNotEmpty = false;
 	var namesList;
 	var autobahn = require("autobahn");
@@ -172,6 +176,29 @@ function($theDOM, docobj)
 					graphdata[i] = new Array(i / samplingFreq, data[i]);
 				Draw(graphdata);
 			}
+			else if(cmd === "WfToForm")
+			{
+				sampling_freq = parseInt(hdr[1]);
+				b0 = parseInt(hdr[2]);
+				measuring_time = parseInt(hdr[3]);
+				sig = parseInt(hdr[4]);
+				ncyc = parseInt(hdr[5]);
+				angle = parseInt(hdr[6]);
+				Calculate();
+				document.getElementById("b0_").value = b0;
+				document.getElementById("m_t").value = measuring_time;
+				document.getElementById("s_").value = sig;
+				document.getElementById("s_f").value = sampling_freq;
+				document.getElementById("l_").value = len;
+				document.getElementById("n_cyc").value = ncyc;
+				document.getElementById("angle_").value = angle;
+				document.getElementById("b1_").value = b1;
+				document.getElementById("band_").value = bandw;
+				document.getElementById("f_b_t").value = f_burst_time;
+				document.getElementById("l_").value = len;
+				document.getElementById("four_sig_start").value = foursigtstart;
+				document.getElementById("four_sig_stop").value = foursigtstop;
+			}
 			else
 				print("Error: unknown cmd");
 		}
@@ -219,12 +246,12 @@ function($theDOM, docobj)
 	{
 		document.getElementById("f_b_t").value = "0.5";
 		document.getElementById("s_").value = "1";
-		document.getElementById("s_f").value = "100000";
+		document.getElementById("s_f").value = "10000";
 		document.getElementById("b0_").value = "1.2";
 		document.getElementById("m_t").value = "2";
 		document.getElementById("n_cyc").value = "36";
 		document.getElementById("angle_").value = "10";
-		UpdateParameters();
+		UpdateResults();
 	}
 	function Save()
 	{
@@ -242,6 +269,14 @@ function($theDOM, docobj)
 	}
 	function SelectionChanged()
 	{
+		if(listNotEmpty)
+		{		
+			var name1 = GetDataNameFromList();
+			console.log("Selected WF index: ", name1);
+			print("Loading saved Waveform: " + name1);
+			sendCmd(["load Waveform", name1]);
+		}
+
 		var cbdraw = document.getElementById("CB_draw").checked;
 		if(listNotEmpty && cbdraw)
 		{
@@ -330,6 +365,8 @@ function($theDOM, docobj)
 		ElementChanged();
 		b1 = 		document.getElementById("b1_").value;
 		bandw = 	document.getElementById("band_").value;
+		foursigtstart = 	document.getElementById("four_sig_start").value;
+		foursigtstop = 	document.getElementById("four_sig_stop").value;
 		
 	}
 	
@@ -352,34 +389,32 @@ function($theDOM, docobj)
 		
 		var bbconst = 1.662257;
 		bandw = bbconst/sig;
-		len = 0;
-		if (f_burst_time > 2*sig){
-			len = f_burst_time;
-		}
-		else{
-			len = 2*sig;
-		}
+		
+		
+		len = 2*sig;
+
 		len = Math.ceil((len - (-(ncyc-1))*measuring_time - (-2*sig))*sampling_freq);
+
+		f_burst_time = 2*sig;
+
+		foursigtstart = f_burst_time - 4*sig/2.35482;
+		foursigtstop = f_burst_time + 4*sig/2.35482;
 	
 	}
 	
 	function UpdateResults()
 	{
 		UpdateParameters();
-		ConsistencyCheck();
 		Calculate();
 		document.getElementById("b1_").value = b1;
 		document.getElementById("band_").value = bandw;
 		document.getElementById("f_b_t").value = f_burst_time;
 		document.getElementById("l_").value = len;
+		document.getElementById("four_sig_start").value = foursigtstart;
+		document.getElementById("four_sig_stop").value = foursigtstop;
 	}
 	
-	function ConsistencyCheck()
-	{
-		if (f_burst_time < 2*sig){
-			f_burst_time = 2*sig;
-		}
-	}
+	
 	
 	document.oninput = function ()
 	{
