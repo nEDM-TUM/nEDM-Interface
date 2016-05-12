@@ -515,14 +515,14 @@ class MyTrigger(Trigger):
               var arr = [_.range(0, time_step_ms*(length_per_ch / read_size), time_step_ms)];
               arr[0].length = length_per_ch / read_size;
               var scale_array = function(dict) {
-				  return function(x) {
+				  return function(x, j) {
 					  return x*unitDict[selUnit.val()];
 				  };
 			  };
               for (i = 0; i < numChannels; i++) {
 				  var unitDict = {"ADC":1, "V":10/Math.pow(2,23), "T":scaleWithConvFactor(i)};
                   var temp_arr = new arr_type(thedat, headerSize + i * length_per_ch, length_per_ch / read_size);
-                  arr[arr.length] = temp_arr.map(scale_array(unitDict));
+                  arr[arr.length] = $.map($.makeArray(temp_arr), scale_array(unitDict));
               }
               showFFT(arr, length_per_ch/ read_size);
               appendData(_.zip.apply(this, arr));
