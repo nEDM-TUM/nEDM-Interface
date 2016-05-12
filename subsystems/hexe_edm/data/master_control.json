@@ -40,10 +40,11 @@
       settings.conversion_factor = docobj.default_header_info.conversion_factor;
       
       // Open FFT window and set log scale
-      $('.fft_window', $(thediv)).collapsible("option", "collapsed", false);
-      $('.log_scale', $(thediv)).prop("checked", true)
-								.change()
-								.checkboxradio("refresh");
+//      should_show_fft = true;
+//      $('.fft_window', $(thediv)).collapsible("option", "collapsed", false);
+//      $('.log_scale', $(thediv)).prop("checked", true)
+//								.change()
+//								.checkboxradio("refresh");
 
       // Select the module
       $('.selectSaveModules',$(thediv)).filter(':input').val(1).change();
@@ -103,6 +104,15 @@
       
       // Change layout
       $('.auto_repeat').parent().hide();
+      $('.progressBar', $(thediv)).parent().parent().after('<div class="meas_display" data-role="controlgroup" data-type="horizontal"></div>');
+      $('.meas_display', $(thediv)).append($('select.selectSlowControl', $(thediv)).parent());
+      $('.meas_display', $(thediv)).controlgroup();
+      $('.meas_start_stop', $(thediv)).children().addClass('hexe_meas_start_stop');
+      $('.meas_start_stop', $(thediv)).append($('.unit_convert', $(thediv)).children().addClass('hexe_meas_units'));
+      $('.unit_convert', $(thediv)).hide();
+      $('.startButton', $(thediv)).parent().addClass('ui-last-child').after('<span style="margin:0 .2em"></span>');
+      $('.progressBar', $(thediv)).after('<span style="margin:0 .2em"></span>');
+//      $('.progressBar', $(thediv)).addClass('ui-progressbar ui-corner-all ui-shadow').attr({'role':'progressbar', 'style':'font-size:16px'});
       $('.software_trigger').hide();
       
       $('.header').parent().attr('data-role', 'collapsible')
@@ -112,9 +122,9 @@
       
       var ext_clk_html = $('.frequency_set', $(thediv)).parent().parent();
       $('.external_freq', $(thediv)).parent().parent().hide();
-//	  $('.set_freq_ext', $(thediv)).parent().hide();
+	  $('.set_freq_ext', $(thediv)).parent().hide();
 	  $('.downsample', $(thediv)).parent().parent().hide();
-	  ext_clk_html.append('<label><input class="new_ext_clk" type="checkbox">Use external clock</label>').trigger("create");
+	  ext_clk_html.append('<label class="ui-first-child ui-last-child"><input class="new_ext_clk" type="checkbox">Use external clock</label>').trigger("create");
 	  if ($('.set_freq_ext', $(thediv)).is(":checked")) {
 		  $( ".new_ext_clk" ).prop( "checked", true )
                              .change()
@@ -249,6 +259,9 @@
 	  $('.relDigi', $(thediv)).on('click', function() {
 		  $('.new_ext_clk', $(thediv)).parent().remove();
 		  $('.channel_options', $(thediv)).remove();
+		  $('.hexe_meas_units', $(thediv)).remove();
+		  $('.hexe_meas_start_stop', $(thediv)).append($('select.selectSlowControl', $(thediv)).parent());
+		  $('.hexe_meas_display', $(thediv)).remove();
 	  });
 		  
     }
