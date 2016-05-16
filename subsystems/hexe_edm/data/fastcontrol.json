@@ -251,25 +251,32 @@
     <div data-role="collapsible" class="HV_sequences">
 		<h3>HV Sequence</h3>
 		<div class="sequencesHV ui-grid-e" data-role="fieldcontain" data-type="horizontal">
-			<div class="ui-block-a step-1">
+
+			<div class="ui-block-a" style="width:5%"></div>
+			<div class="ui-block-b" style="width:19%"><label>HV value (kV)</label></div>
+			<div class="ui-block-c" style="width:13%"><label>HV supply</label></div>
+			<div class="ui-block-d" style="width:19%"><label>Step size (kV)</label></div>
+			<div class="ui-block-e" style="width:19%"><label>Ramp time (s)</label></div>
+			<div class="ui-block-f" style="width:25%"><label>Wait time until next step (s)</label></div>
+			<div class="ui-block-a step-1" style="width:5%">
 				<p value=1>1.</p>
 			</div>
-			<div class="ui-block-b step-1">
+			<div class="ui-block-b step-1" style="width:19%">
 				<input type="text" placeholder="HV (kV)" class="sequence_hv">
 			</div>
-			<div class="ui-block-c step-1">
+			<div class="ui-block-c step-1" style="width:13%">
 				<select>
-					<option value="1">Supply No. 1</option>
-					<option value="2">Supply No. 2</option>
+					<option value="1">No. 1</option>
+					<option value="2">No. 2</option>
 				</select>
 			</div>
-			<div class="ui-block-d step-1">
+			<div class="ui-block-d step-1" style="width:19%">
 				<input type="text" placeholder="Step size (kV)" class="sequence_step">
 			</div>
-			<div class="ui-block-e step-1">
+			<div class="ui-block-e step-1" style="width:19%">
 				<input type="text" class="sequence_ramp" disabled>
 			</div>
-			<div class="ui-block-f step-1">
+			<div class="ui-block-f step-1" style="width:25%">
 				<input type="text" placeholder="Wait time until next step" class="sequence_wait">
 			</div>
 		</div>
