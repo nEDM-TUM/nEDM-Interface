@@ -81,15 +81,15 @@
           <div class='ui-block-b' data-type='horizontal'>
 			<label>Coil 1/2</label>
             <select style="margin-left : auto; margin-right : auto;" class="set_coil_switch" data-role="slider">
-              <option value='1'>Coil 1</option>
-              <option value='2'>Coil 2</option>
+              <option value=1>Coil 1</option>
+              <option value=2>Coil 2</option>
             </select>
           </div>
           <div class='ui-block-c' data-type='horizontal'>
 			<label>Coils/Resistors</label>
             <select style='margin-left:auto; margin-right:auto' class='set_coil_res' data-role='slider'>
-              <option value='1'>Coil</option>
-              <option value='0'>&#937;</option>
+              <option value=1>Coil</option>
+              <option value=0>&#937;</option>
             </select>
           </div>
       </div>
@@ -97,13 +97,8 @@
 	<div class='ui-grid-a'>
       <div class='ui-block-a'>
 		  <h3>HV Controls</h3>
-		  <div class='ui-grid-a'>
-			  <div class='ui-block-a'>
-				<a href='#NMRPopup' data-rel='popup' class='ui-btn ui-corner-all'>NMR Controls</a>
-			  </div>
-			  <div class='ui-block-b'>
-				<a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
-			  </div>
+		  <div class='ui-grid-solo'>
+			  <a href='#HVPopup' data-rel='popup' class='ui-btn ui-corner-all'>HV Controls</a>
 		  </div>
       </div>
       <div class='ui-block-b'>
@@ -253,6 +248,33 @@
             <button class='set_value_class hv2 hexe_hv_ramp' value='stop'>Stop</button>
         </div>
     </div>
+    <div data-role="collapsible" class="HV_sequences">
+		<h3>HV Sequence</h3>
+		<div class="sequencesHV ui-grid-e" data-role="fieldcontain" data-type="horizontal">
+			<div class="ui-block-a step-1">
+				<p value=1>1.</p>
+			</div>
+			<div class="ui-block-b step-1">
+				<input type="text" placeholder="HV (kV)" class="sequence_hv">
+			</div>
+			<div class="ui-block-c step-1">
+				<select>
+					<option value="1">Supply No. 1</option>
+					<option value="2">Supply No. 2</option>
+				</select>
+			</div>
+			<div class="ui-block-d step-1">
+				<input type="text" placeholder="Step size (kV)" class="sequence_step">
+			</div>
+			<div class="ui-block-e step-1">
+				<input type="text" class="sequence_ramp" disabled>
+			</div>
+			<div class="ui-block-f step-1">
+				<input type="text" placeholder="Wait time until next step" class="sequence_wait">
+			</div>
+		</div>
+		<button class="add_sequence">Add step to sequence</button>
+    </div>
     <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
 </div>
 """,
@@ -350,24 +372,28 @@ function($theDiv, anobj) {
         });
     });
 
-    function init_coils(coilx) {
+//    function init_coils(coilx) {
+    function init_coils(){
         return function(e,o) {
             if (e !== null) return;
-            if (o.rows.length != 1) return;
-            if (o.rows[0].value === 0 && coilx === 0) {
+            if (!o.ok) return;
+            if (!o.return.ok) return;
+            var coil1 = o.return.return.set.coil1;
+            var coil2 = o.return.return.set.coil2;
+            if (!coil1 && !coil2) {
                 $('.set_coil_res').val(0);
                 $('.set_coil_res').slider('refresh');
             }
-            else if (o.rows[0].value == 1 && coilx === 0) {
-                $('.set_coil_res').val(1);
-                $('.set_coil_res').slider('refresh');
-                $('.set_coil_switch').val(2);
-                $('.set_coil_switch').slider('refresh');
-            }
-            else if (o.rows[0].value === 0 && coilx == 1) {
+            else if (coil1 && !coil2) {
                 $('.set_coil_res').val(1);
                 $('.set_coil_res').slider('refresh');
                 $('.set_coil_switch').val(1);
+                $('.set_coil_switch').slider('refresh');
+            }
+            else if (!coil1 && coil2) {
+                $('.set_coil_res').val(1);
+                $('.set_coil_res').slider('refresh');
+                $('.set_coil_switch').val(2);
                 $('.set_coil_switch').slider('refresh');
             }
             else {
@@ -376,24 +402,28 @@ function($theDiv, anobj) {
         };
     }
 
-    function check_coily(e,o) {
-        if (e !== null) return;
-        if (o.rows.length != 1) return;
-        nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value ('MSRcoil2', initcoils(o.rows[0].value));
-    }
+//    function check_coily(e,o) {
+//        if (e !== null) return;
+//        if (o.rows.length != 1) return;
+//        nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value ('MSRcoil2', initcoils(o.rows[0].value));
+//    }
 
     $(function() {
-        nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('MSRcoil1', check_coily);
+		nedm.get_database('nedm%2Finternal_coils').send_command({cmd_name: 'get_coil',
+			timeout:5000,
+			callback: init_coils()
+		});
+//        nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('MSRcoil1', check_coily);
     });
 
-    var coil_switch_select = "1";
-    var coil_or_resistor = '1';
+    var coil_switch_select = $('.set_coil_switch option:selected').val();
+    var coil_or_resistor = $('.set_coil_res option:selected').val();
 
     $('.set_coil_switch', $($theDiv)).on('change', function() {
         coil_switch_select = $('.set_coil_switch option:selected').val();
-        if (coil_or_resistor == '1') {
+        if (coil_or_resistor == 1) {
             disable_all();
-            var args = [coil_switch_select];
+            var args = [String(coil_switch_select)];
             nedm.get_database('nedm%2Finternal_coils').send_command({cmd_name: 'set_coil',
             arguments: args,
             timeout: 5000,
@@ -408,7 +438,7 @@ function($theDiv, anobj) {
         coil_or_resistor = $('.set_coil_res option:selected').val();
         disable_all();
         var args = [];
-        if (coil_or_resistor == '1') args = [coil_switch_select];
+        if (coil_or_resistor == 1) args = [String(coil_switch_select)];
         else args = ['0'];
         nedm.get_database('nedm%2Finternal_coils').send_command({cmd_name: 'set_coil',
         arguments: args,

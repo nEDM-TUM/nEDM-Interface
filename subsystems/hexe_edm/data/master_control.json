@@ -259,9 +259,10 @@
 	  $('.relDigi', $(thediv)).on('click', function() {
 		  $('.new_ext_clk', $(thediv)).parent().remove();
 		  $('.channel_options', $(thediv)).remove();
-		  $('.hexe_meas_units', $(thediv)).remove();
-		  $('.hexe_meas_start_stop', $(thediv)).append($('select.selectSlowControl', $(thediv)).parent());
-		  $('.hexe_meas_display', $(thediv)).remove();
+		  $('.unit_convert', $(thediv)).append($('.hexe_meas_units', $(thediv)));
+		  $('.meas_start_stop', $(thediv)).append($('select.selectSlowControl', $(thediv)).parent());
+		  $('.meas_display', $(thediv)).remove();
+		  $('.header', $(thediv)).parent().parent().collapsible("destroy");
 	  });
 		  
     }
