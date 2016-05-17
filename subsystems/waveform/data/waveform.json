@@ -231,8 +231,14 @@ function($theDOM, docobj)
 	UpdateResults();
 	function TriggerWF()
 	{
+		args = [];
+		args = [foursigtstart, foursigtstop, measuring_time, ncyc];
 		print("Triggering current Waveform");
-		sendCmd(["trigger WF"]);
+		nedm.get_database("nedm%2Fnmr_system").send_command({
+		cmd_name: 'send_delayed_trigger',
+		arguments: args,
+		timeout: 5000
+		});
 	}
 	function Send()
 	{
