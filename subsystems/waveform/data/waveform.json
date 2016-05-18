@@ -179,11 +179,11 @@ function($theDOM, docobj)
 			else if(cmd === "WfToForm")
 			{
 				sampling_freq = parseInt(hdr[1]);
-				b0 = parseInt(hdr[2]);
-				measuring_time = parseInt(hdr[3]);
-				sig = parseInt(hdr[4]);
+				b0 = parseFloat(hdr[2]);
+				measuring_time = parseFloat(hdr[3]);
+				sig = parseFloat(hdr[4]);
 				ncyc = parseInt(hdr[5]);
-				angle = parseInt(hdr[6]);
+				angle = parseFloat(hdr[6]);
 				Calculate();
 				document.getElementById("b0_").value = b0;
 				document.getElementById("m_t").value = measuring_time;
@@ -231,6 +231,7 @@ function($theDOM, docobj)
 	UpdateResults();
 	function TriggerWF()
 	{
+		
 		print("Triggering current Waveform");
 		sendCmd(["trigger WF"]);
 	}
