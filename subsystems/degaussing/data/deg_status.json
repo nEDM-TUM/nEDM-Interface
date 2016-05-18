@@ -2,7 +2,11 @@
     "_id"   : "deg_status",
     "type"  : "control",
     "title" : "Degaussing status",
-    "description" : "Indicates whether degaussing is running or not, green means degaussing in progress",
+    "description" : """Degaussing status display<br><br>
+Indicates whether degaussing is running or not, green means degaussing in progress. 
+<br>
+Order in which the relays should switch on (for MSR complete): 1,2,4,3,1
+""",
     "order" : 0,
     "html"  : """
         <div class='ui-field-contain'>
@@ -13,15 +17,20 @@
                 </tr>
             </table>
         </div>
+        <div class='code-editor-state ui-field-contain' style="height: 200px;text-align: left"></div>
     """,
     "script" : """
         function( $theDiv, anobj ) {
+            var toastr = require("toastr");
             nedm.get_database().get_most_recent_value("degaussing_state", function(err, latest) {
                 if (!err) {
                     console.log(err);
                 }
-                nedm.get_database().on('latest', set_status);
-            });
+                $(function() {
+                    nedm.get_database('nedm%2Fdegaussing').on('latest', update_status);
+                });
+                });
+
 
             function set_status(latest){
                 console.log(latest.degaussing_state.value);
@@ -34,7 +43,73 @@
                     $('.control-status').addClass("nedm-status-g");
                 }
             }
-            
+
+            function update_status(vars) {
+                var session = editor.session;
+                if ("degaussing_state" in vars) {
+                    if (vars.degaussing_state.value === 0) {
+                        $('.control-status').removeClass("nedm-status-g");
+                        $('.control-status').addClass("nedm-status-r");
+                    }
+                    if (vars.degaussing_state.value == 1) {
+                        $('.control-status').removeClass("nedm-status-r");
+                        $('.control-status').addClass("nedm-status-g");
+                    }
+                    session.insert({
+                        row: session.getLength(),
+                        column: 0}, 
+                        Date(vars.degaussing_state.time).toLocaleString() +"\\n");
+                    session.insert({
+                        row: session.getLength(),
+                        column: 0}, 
+                        "Running: "+(vars.degaussing_state.value === 1) +"\\n");
+                }
+                if ("state_0" in vars) {
+                    if (vars.state_0.value === 0) {outp = "Open";}
+                    else {outp = "Closed";}
+                    session.insert({
+                        row: session.getLength(),
+                        column: 0}, 
+                        "Relay 1: "+outp+"\\n");
+                }
+                if ("state_1" in vars) {
+                    if (vars.state_1.value === 0) {outp = "Open";}
+                    else {outp = "Closed";}
+                    session.insert({
+                        row: session.getLength(),
+                        column: 0}, 
+                        "Relay 2: "+outp+"\\n");
+                }
+                if ("state_2" in vars) {
+                    if (vars.state_2.value === 0) {outp = "Open";}
+                    else {outp = "Closed";}
+                    session.insert({
+                        row: session.getLength(),
+                        column: 0}, 
+                        "Relay 3: "+outp+"\\n");
+                }
+                if ("state_3" in vars) {
+                    if (vars.state_3.value === 0) {outp = "Open";}
+                    else {outp = "Closed";}
+                    session.insert({
+                        row: session.getLength(),
+                        column: 0}, 
+                        "Relay 4: "+outp+"\\n");
+                }
+                session.insert({
+                    row: session.getLength(),
+                    column: 0},
+                    "\\n");
+
+            }
+
+
+            var cmt = $(".code-editor-state", $($theDiv));
+            var editor = ace.edit(cmt[0]);
+            editor.setTheme("ace/theme/xcode");
+            cmt.data({editor : editor});
+            editor.setReadOnly(true);
+            editor.getSession().setValue("");
         }
     """
 }
