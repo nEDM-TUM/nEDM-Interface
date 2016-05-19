@@ -29,6 +29,7 @@
 	</tr>
 	<tr>
 		<td><button type="button" id="triggerWF">Trigger Waveform</button></td>
+		<td><button type="button" id="triggerDirect">Trigger directly</button></td>
 		<td><label><input type="checkbox" id="CB_draw">Show Waveform</label></td>
 	</tr>
 </table>
@@ -226,14 +227,26 @@ function($theDOM, docobj)
 	document.getElementById("listOfWF").onchange = SelectionChanged;
 	document.getElementById("deleteWF").onclick = DeleteWF;
 	document.getElementById("triggerWF").onclick = TriggerWF;
+	document.getElementById("triggerDirect").onclick = TriggerDirect;
 	document.getElementById("element_").onchange = UpdateResults;
 	Restore();
 	UpdateResults();
 	function TriggerWF()
 	{
-		
+		args = [];
+		args = [foursigtstart, foursigtstop, measuring_time, ncyc];
 		print("Triggering current Waveform");
+		nedm.get_database("nedm%2Fnmr_system").send_command({
+		cmd_name: 'send_delayed_trigger',
+		arguments: args,
+		timeout: 6000
+		});
+	}
+	function TriggerDirect()
+	{
+		print("Triggering Waveform directly");
 		sendCmd(["trigger WF"]);
+		
 	}
 	function Send()
 	{
