@@ -259,7 +259,7 @@
 			<div class="ui-block-e" style="width:19%"><label>Ramp time (s)</label></div>
 			<div class="ui-block-f" style="width:25%"><label>Wait time until next step (s)</label></div>
 			<div class="ui-block-a step-1" style="width:5%">
-				<p value=1>1.</p>
+				<label value=1>1.</label>
 			</div>
 			<div class="ui-block-b step-1" style="width:19%">
 				<input type="text" placeholder="HV (kV)" class="sequence_hv">
@@ -371,7 +371,7 @@ function($theDiv, anobj) {
     $('.pulse', $($theDiv)).on('click', function(ev, ui) {
         $(ev.currentTarget).button("option", "disabled", true);
         nedm.get_database("nedm%2Fnmr_system").send_command({
-        cmd_name: 'send_trigger',
+        cmd_name: 'send_delayed_trigger',
         timeout: 5000,
         callback: function(e,o){
             $(ev.currentTarget).button("option", "disabled", false);
