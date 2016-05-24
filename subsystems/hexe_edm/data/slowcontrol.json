@@ -161,13 +161,13 @@
 			<div class='ui-block-c'>
 				<fieldset data-role='controlgroup' data-type='horizontal'>
 					<button class='set_value_class set_mfc_flow'>Set flow [sccm]</button>
-					<input type='text' class='input_val mfc_flow' size='1' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+					<input type='text' class='input_val mfc_flow' size='2' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
 				</fieldset>
 			</div>
 			<div class='ui-block-d'>
 				<fieldset data-role='controlgroup' data-type='horizontal'>
-					<button class='set_value_class set_mfc_pres'>Set p [bar]</button>
-					<input type='text' class='input_val mfc_pres' size='1' value='1.0' data-wrapper-class='controlgroup-textinput ui-btn'>
+					<label><input type='checkbox' class='set_mfc_pres' checked="checked">Fill to p [bar]</label>
+					<input type='text' class='input_val mfc_pres' size='5' value='1.5' data-wrapper-class='controlgroup-textinput ui-btn'>
 				</fieldset>
 			</div>
 		</div>
@@ -180,13 +180,13 @@
 		<div class='ui-block-a' style='width:25%'>
 			<fieldset data-role='controlgroup' data-type='horizontal'>
 				<button class='set_value_class setTemp'>Set Temp (V)</button>
-				<input type='text' class='input_val temp_val' size='1' value='2.9' data-wrapper-class='controlgroup-textinput ui-btn'>
+				<input type='text' class='input_val temp_val' size='4' value='2.9' data-wrapper-class='controlgroup-textinput ui-btn'>
 			</fieldset>
 			</div>
 		<div class='ui-block-b' style='width:50%'>
 			<fieldset data-role='controlgroup' data-type='horizontal'>
 				<button class='set_value_class setFlow'>Set Flow (&#37)</button>
-				<input type='text' class='input_val flow_val' size='1' value='5' data-wrapper-class='controlgroup-textinput ui-btn'>
+				<input type='text' class='input_val flow_val' size='5' value='5' data-wrapper-class='controlgroup-textinput ui-btn'>
 				<button class='set_flow_min'>Min</button>
 				<button class='set_flow_max'>Max</button>
 			</fieldset>
@@ -212,7 +212,7 @@
 		<div class='ui-block-b' style='width:25%'>
 			<fieldset data-role='controlgroup' data-type='horizontal'>
 				<button class='set_value_class setLaserPower'>Set Current (A)</button>
-				<input type='text' class='input_val laser_power' size='1' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+				<input type='text' class='input_val laser_power' size='2' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
 			</fieldset>
 		</div>
 		<div class='ui-block-c' style='width:50%'>
@@ -228,7 +228,7 @@
 		<div class='ui-block-a'>
 			<fieldset data-role='controlgroup' data-type='horizontal'>
 				<button class='set_value_class set_pol_coil_cur'>Set Current (A)</button>
-				<input type='text' class='input_val pol_coil_cur' size='1' value='4.0' data-wrapper-class='controlgroup-textinput ui-btn'>
+				<input type='text' class='input_val pol_coil_cur' size='3' value='4.0' data-wrapper-class='controlgroup-textinput ui-btn'>
 			</fieldset>
 		</div>
 		<div class='ui-block-b'>
@@ -255,7 +255,7 @@
 	var last_sync = new Date();
 	var clock_text = $('.last_checked');
 	var time_out = null;
-	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', laser_volt:'laser_volt', laser_temp:'laser_temp', gas_filling_pressure:'pressure_1', gas_system_pressure:'pressure_2', pol_coil_current:'pol_coil_current', mfc_he_pressure:'mfc_he_pres', mfc_xe_pressure:'mfc_xe_pres', mfc_n2_pressure:'mfc_n2_pres', mfc_he_mass_flow:'mfc_he_flow', mfc_xe_mass_flow:'mfc_xe_flow', mfc_n2_mass_flow:'mfc_n2_flow', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
+	var vars = {oven_temp1:'oven_temp1', oven_temp2:'oven_temp2', heater_power:'oven_settemp', heater_flow:'oven_flow', laser_current:'laser_current', laser_voltage:'laser_volt', laser_temp:'laser_temp', gas_filling_pressure:'pressure_1', gas_system_pressure:'pressure_2', pol_coil_current:'pol_coil_current', mfc_he_pressure:'mfc_he_pres', mfc_xe_pressure:'mfc_xe_pres', mfc_n2_pressure:'mfc_n2_pres', mfc_he_mass_flow:'mfc_he_flow', mfc_xe_mass_flow:'mfc_xe_flow', mfc_n2_mass_flow:'mfc_n2_flow', hv_monitor_1:'hv1', hv_monitor_2:'hv2', hv_leakage_monitor:'leakage_current', read_msr_bx:'b_x_current', read_msr_by:'b_y_current', read_msr_bz:'b_z_current'};
 
 	$('.output_text').attr('data-wrapper-class', 'monitoring_output');
 //	$('.output_text').textinput('refresh');
@@ -315,6 +315,26 @@
 //      run_clock();
 //    });
 
+	function check_mfc_pres() {
+		goal = $('.mfc_pres').val();
+		mfc_n2_cur = $('.mfc_n2_pres').val();
+		if (!mfc_n2_cur) {
+			toastr.error("No pressure data from N2 MFCs, setting final pressure not possible!");
+		}
+		else {
+			if (mfc_n2_cur > goal) {
+				nedm.send_command({cmd_name : 'set_mfcs', arguments : [{he:0, xe:0, n2:0}], timeout: 5000,
+				callback: function(e,o) {
+					enable_all();
+					}
+				});
+			}
+			else {
+				time_out = setTimeout(check_mfc_pres, 1000);
+			}
+		}
+	}
+
 	$('.set_mfc_flow').on('click', function() {
 		disable_all();
 		args = {he:0.0, xe:0.0, n2:0.0};
@@ -333,27 +353,9 @@
 			enable_all();
 			}
 		});
-	});
-	
-	$('.set_mfc_pres').on('click', function check_mfc_pres() {
-		goal = $('.mfc_pres').val();
-		mfc_he_cur = $('.mfc_he_pres').val();
-		mfc_xe_cur = $('.mfc_xe_pres').val();
-		mfc_n2_cur = $('.mfc_n2_pres').val();
-		if (!mfc_he_cur && !mfc_xe_cur && !mfc_n2_cur) {
-			toastr.error("No pressure data from MFCs, setting final pressure not possible!");
-		}
-		else {
-			if (mfc_he_cur > goal || mfc_xe_cur > goal || mfc_n2_cur > goal) {
-				nedm.send_command({cmd_name : 'set_mfcs', arguments : [{he:0, xe:0, n2:0}], timeout: 5000,
-				callback: function(e,o) {
-					enable_all();
-					}
-				});
-			}
-			else {
-				time_out = setTimeout(check_mfc_pres, 1000);
-			}
+		var fill2press = $('.set_mfc_pres', $(thediv)).is(":checked");
+		if (fill2press) {
+			check_mfc_pres();
 		}
 	});
 
