@@ -64,9 +64,10 @@
         var n = docobj.default_header_info.channel_names[k];
         view_chan.find('option[value="' + k + '"]').text(n);
         save_chan.find('option[value="' + k + '"]').text(n);
-        sel.append($('<option/>').val(parseInt(k) + 1).text(n));
+//        sel.append($('<option/>').val(parseInt(k) + 1).text(n));
       }
-      sel.selectmenu("refresh");
+	  for (var k in view_chan) 
+//      sel.selectmenu("refresh");
 
       for (var i=0;i<docobj.view_channels.length;i++) {
         view_chan.find('option[value="' + docobj.view_channels[i] + '"]').attr('selected', 'selected');
@@ -76,6 +77,25 @@
       }
       view_chan.selectmenu("refresh", true);
       save_chan.selectmenu("refresh", true);
+      
+      // Only allow Amp channel selection from viewed channels
+      $('.selectSlowControl option:selected', $(thediv)).map(function() {
+		  cur_val = $(this).val()
+		  cur_text = $(this).text()
+		  sel.append($('<option/>').val(parseInt(cur_val) + 1).text(cur_text));
+	  });
+	  sel.selectmenu("refresh");
+	  
+	  // When changing viewed channels, change selection
+	 $('.selectSlowControl', $(thediv)).on('change', function() {
+		 sel.empty();
+		 $('.selectSlowControl option:selected', $(thediv)).map(function() {
+			 cur_val = $(this).val()
+			 cur_text = $(this).text()
+			 sel.append($('<option/>').val(parseInt(cur_val) + 1).text(cur_text));
+		 });
+		 sel.selectmenu("refresh");
+	 });
 
 
 	  function adjustClkDiv(sampleFreq, refClock) {
