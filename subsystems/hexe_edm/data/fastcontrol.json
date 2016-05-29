@@ -151,12 +151,12 @@
     <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
 </div>
 
-<div data-role='popup' data-transition='pop' style='width:120%' data-position-to='window' id='HVPopup' class='ui-content'>
+<div data-role='popup' data-transition='pop' data-position-to='window' id='HVPopup' class='ui-content'>
     <h3>HV Controls</h3>
 <!--    <button style='background-color:#FF0000' class='hv_emergency_stop'>Emergency OFF</button> -->
     <div class='hv_control ui-grid-a'>
       <div class='hv_1_control ui-block-a'>
-        <h4>Positive</h4>
+        <h4>HV supply No. 1</h4>
         <div data-role='controlgroup' data-type='horizontal'>
             <select style="margin-left : auto; margin-right : auto;" class="set_hv1_status" data-role="slider">
                 <option value=0>OFF</option>
@@ -174,7 +174,7 @@
         </div>
       </div>
       <div class='hv_2_control ui-block-b'>
-        <h4>Negative</h4>
+        <h4>HV supply No. 2</h4>
         <div data-role='controlgroup' data-type='horizontal'>
             <select style="margin-left : auto; margin-right : auto;" class="set_hv2_status" data-role="slider">
                 <option value=0>OFF</option>
@@ -220,16 +220,28 @@
     </div>
     <div class='hv_control ui-grid-c' data-role='fieldcontain'>
         <div class='hv_1_control ui-block-a'>
-            <button class='set_value_class set_hexe_hv hv1'>Set HV (kV)</button>
+			<button class='set_value_class set_hexe_hv hv1'>Set HV (kV)</button>
             <button class='set_value_class set_hexe_hv_step hv1' value='10'>Set step size (kV/0.5s)</button>
         </div>
         <div class='hv_1_control ui-block-b'>
-            <input type='text' class='input_val hexe_hv1_value' size='1' data-wrapper-class='controlgroup-textinput ui-btn'>
-            <input type='text' class='input_val hexe_hv1_step' size='1' value=0.1 data-wrapper-class='controlgroup-textinput ui-btn'>
+			<fieldset data-role='controlgroup' data-type='horizontal' style="padding-top:.5em; padding-left:.3125em; padding-right:.3125em;">
+				<select class='hexe_hv1_sign'>
+					<option value='pos'>+</option>
+					<option value='neg'>-</option>
+				</select>
+				<input type='text' class='input_val hexe_hv1_value' data-wrapper-class='ui-btn controlgroup-textinput hexe_hv_custom_width'>
+			</fieldset>
+            <input type='text' class='input_val hexe_hv1_step' value=0.1 data-wrapper-class='controlgroup-textinput ui-btn'>
         </div>
         <div class='hv_2_control ui-block-c'>
-            <input type='text' class='input_val hexe_hv2_value' size='1' data-wrapper-class='controlgroup-textinput ui-btn'>
-            <input type='text' class='input_val hexe_hv2_step' size='1' value = 0.1 data-wrapper-class='controlgroup-textinput ui-btn'>
+			<fieldset data-role='controlgroup' data-type='horizontal' style="padding-top:.5em; padding-left:.3125em; padding-right:.3125em;">
+				<select class='hexe_hv2_sign'>
+					<option value='pos'>+</option>
+					<option value='neg'>-</option>
+				</select>
+				<input type='text' class='input_val hexe_hv2_value' data-wrapper-class='ui-btn controlgroup-textinput hexe_hv_custom_width' data-wrapper>
+			</fieldset>
+            <input type='text' class='input_val hexe_hv2_step' value = 0.1 data-wrapper-class='controlgroup-textinput ui-btn'>
         </div>
         <div class='hv_2_control ui-block-d'>
             <button class='set_value_class set_hexe_hv hv2'>Set HV (kV)</button>
@@ -253,34 +265,44 @@
 		<div class="sequencesHV ui-grid-e" data-role="fieldcontain" data-type="horizontal">
 
 			<div class="ui-block-a" style="width:5%"></div>
-			<div class="ui-block-b" style="width:19%"><label>HV value (kV)</label></div>
-			<div class="ui-block-c" style="width:13%"><label>HV supply</label></div>
-			<div class="ui-block-d" style="width:19%"><label>Step size (kV)</label></div>
-			<div class="ui-block-e" style="width:19%"><label>Ramp time (s)</label></div>
-			<div class="ui-block-f" style="width:25%"><label>Wait time until next step (s)</label></div>
+			<div class="ui-block-b" style="width:19%; padding-left:5px;"><label>HV value (kV)</label></div>
+			<div class="ui-block-c" style="width:13%; padding-left:5px;"><label>HV supply</label></div>
+			<div class="ui-block-d" style="width:19%; padding-left:5px;"><label>Step size (kV)</label></div>
+			<div class="ui-block-e" style="width:19%; padding-left:5px;"><label>Ramp time (s)</label></div>
+			<div class="ui-block-f" style="width:25%; padding-left:5px;"><label>Wait time until next step (s)</label></div>
 			<div class="ui-block-a step-1" style="width:5%">
-				<label value=1>1.</label>
+				<label style='padding-top:8px' value=1>1.</label>
 			</div>
 			<div class="ui-block-b step-1" style="width:19%">
-				<input type="text" placeholder="HV (kV)" class="sequence_hv">
+				<fieldset data-role='controlgroup' data-type='horizontal' style='padding-top:8px'>
+					<select class='sequence_sign'>
+						<option value='pos'>+</option>
+						<option value='neg'>-</option>
+					</select>
+					<input type="text" class="sequence_hv" size=5 data-wrapper-class='controlgroup-textinput ui-btn'>
+				</fieldset>
 			</div>
 			<div class="ui-block-c step-1" style="width:13%">
-				<select>
+				<select class='sequence_no'>
 					<option value="1">No. 1</option>
 					<option value="2">No. 2</option>
 				</select>
 			</div>
 			<div class="ui-block-d step-1" style="width:19%">
-				<input type="text" placeholder="Step size (kV)" class="sequence_step">
+				<input type="text" class="sequence_step" data-wrapper-class='controlgroup-textinput ui-btn'>
 			</div>
 			<div class="ui-block-e step-1" style="width:19%">
-				<input type="text" class="sequence_ramp" disabled>
+				<input type="text" class="sequence_ramp" data-wrapper-class='controlgroup-textinput ui-btn' disabled>
 			</div>
 			<div class="ui-block-f step-1" style="width:25%">
-				<input type="text" placeholder="Wait time until next step" class="sequence_wait">
+				<input type="text" class="sequence_wait" data-wrapper-class='controlgroup-textinput ui-btn'>
 			</div>
 		</div>
 		<button class="add_sequence">Add step to sequence</button>
+		<div data-role='controlgroup' data-type='horizontal'>
+			<button class='start_seq'>Start sequence</button>
+			<button class='stop_seq'>Stop sequence</button>
+		</div>
     </div>
     <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
 </div>
@@ -544,7 +566,7 @@ function($theDiv, anobj) {
               toastr.error("Can't calculate ramp time - Error reading current HV value");
             }
         else {
-            val_old = Math.abs(o.rows[0].value);
+            val_old = o.rows[0].value;
             calc = 0;
             if (hv_value[0] >= val_old) {
                 calc = (hv_value[0] - val_old)/(2*hv_stepsize[0]);
@@ -566,7 +588,7 @@ function($theDiv, anobj) {
               toastr.error("Can't calculate ramp time - Error reading current HV value");
             }
         else {
-            val_old = Math.abs(o.rows[0].value);
+            val_old = o.rows[0].value;
             calc = 0;
             if (hv_value[1] >= val_old) {
                 calc = (hv_value[1] - val_old)/(2*hv_stepsize[1]);
@@ -582,13 +604,19 @@ function($theDiv, anobj) {
         var v = 0.0;
         if ($(this).hasClass('hv1')) {
           v = parseFloat($('.hexe_hv1_value').val());
-          hv_value[0] = v;
+          if ($('.hexe_hv1_sign option:selected').val() == 'neg') {
+			  v=(-1)*v;
+		  }
+		  hv_value[0] = v;  
           toastr.info('HV value set for HV1');
           $('.output_HV_value_1').val(hv_value[0]);
           nedm.get_database('nedm%2Fhexe_edm').get_most_recent_value('hv_monitor_1', calc_ramptime_1);
         }
         else {
           v = parseFloat($('.hexe_hv2_value').val());
+          if ($('.hexe_hv2_sign option:selected').val() == 'neg') {
+			  v=(-1)*v;
+		  }
           hv_value[1] = v;
           toastr.info('HV value set for HV2');
           $('.output_HV_value_2').val(hv_value[1]);
@@ -617,8 +645,23 @@ function($theDiv, anobj) {
     });
 
     var time_out = null;
+    
+    var sign_change_up = [false, false];
+    var sign_change_down = [false, false];
 
     function ramp_up(start, step, end, no) {
+		if ((start*end) < 0) {
+			sign_change_up[no-1] = true;
+		}
+		else {
+			if (sign_change_up[no-1]) {
+				nedm.send_command({cmd_name: 'change_hv_sign',
+				arguments: [no, 0],
+				timeout: 5000
+				});
+				sign_change_up[no-1] = false;
+			}
+		}
         var args = [];
         if (start < end) {
             args = [no, start];
@@ -639,6 +682,18 @@ function($theDiv, anobj) {
     }
 
     function ramp_down(start, step, end, no) {
+		if ((start*end) < 0) {
+			sign_change_down[no-1] = true;
+		}
+		else {
+			if (sign_change_down[no-1]) {
+				nedm.send_command({cmd_name: 'change_hv_sign',
+				arguments: [no, 0],
+				timeout: 5000
+				});
+				sign_change_down[no-1] = false;
+			}
+		}
         var args = [];
         if (start > end) {
             args = [no, start];
@@ -682,7 +737,7 @@ function($theDiv, anobj) {
                 toastr.error("Can't read current HV value!");
             }
             else {
-                var v = Math.abs(o.rows[0].value);
+                var v = o.rows[0].value;
                 if (fin >= v) {
                     ramp_up(v, step_size, fin, hv_supply);
                 }
@@ -731,38 +786,6 @@ function($theDiv, anobj) {
     $('.rail_stop').on('click', function() {
         disable_all();
         nedm.send_command({cmd_name : 'rail_control', arguments:["stop"],timeout: 5000,
-        callback: function(e,o) {
-            enable_all();
-            }
-        });
-    });
-    
-    $('.nmr_set_para').on('click', function() {
-        disable_all();
-        var freq = $('.nmr_freq_val').val();
-        nedm.send_command({cmd_name : 'nmr_set_frequency', arguments: [freq], timeout: 5000,
-        callback: function(e,o) {
-            enable_all();
-            }
-        });
-        var amp = $('.nmr_amp_val').val();
-        nedm.send_command({cmd_name : 'nmr_set_amplitude', arguments: [amp], timeout: 5000,
-        callback: function(e,o) {
-            enable_all();
-            }
-        });
-        var dur = $('.nmr_dur_val').val();
-        nedm.send_command({cmd_name : 'nmr_set_pulselength', arguments: [dur], timeout: 5000,
-        callback: function(e,o) {
-            enable_all();
-            }
-        });                
-        
-    });
-    
-    $('.nmr_measure').on('click', function() {
-        disable_all();
-        nedm.send_command({cmd_name : 'nmr_measure', timeout: 20000,
         callback: function(e,o) {
             enable_all();
             }
