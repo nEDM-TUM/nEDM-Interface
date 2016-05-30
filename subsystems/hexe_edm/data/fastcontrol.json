@@ -265,21 +265,21 @@
 		<div class="sequencesHV ui-grid-e" data-role="fieldcontain" data-type="horizontal">
 
 			<div class="ui-block-a" style="width:5%"></div>
-			<div class="ui-block-b" style="width:19%; padding-left:5px;"><label>HV value (kV)</label></div>
+			<div class="ui-block-b" style="width:24%; padding-left:5px;"><label>HV value (kV)</label></div>
 			<div class="ui-block-c" style="width:13%; padding-left:5px;"><label>HV supply</label></div>
-			<div class="ui-block-d" style="width:19%; padding-left:5px;"><label>Step size (kV)</label></div>
+			<div class="ui-block-d" style="width:17%; padding-left:5px;"><label>Step size (kV)</label></div>
 			<div class="ui-block-e" style="width:19%; padding-left:5px;"><label>Ramp time (s)</label></div>
-			<div class="ui-block-f" style="width:25%; padding-left:5px;"><label>Wait time until next step (s)</label></div>
+			<div class="ui-block-f" style="width:22%; padding-left:5px;"><label>Wait time until next step (s)</label></div>
 			<div class="ui-block-a step-1" style="width:5%">
-				<label style='padding-top:8px' value=1>1.</label>
+				<label style='padding-top:16px' value=1>1.</label>
 			</div>
-			<div class="ui-block-b step-1" style="width:19%">
+			<div class="ui-block-b step-1" style="width:24%">
 				<fieldset data-role='controlgroup' data-type='horizontal' style='padding-top:8px'>
 					<select class='sequence_sign'>
-						<option value='pos'>+</option>
-						<option value='neg'>-</option>
+						<option value=1>+</option>
+						<option value=-1>-</option>
 					</select>
-					<input type="text" class="sequence_hv" size=5 data-wrapper-class='controlgroup-textinput ui-btn'>
+					<input type="text" class="sequence_hv" size=15 data-wrapper-class='controlgroup-textinput ui-btn'>
 				</fieldset>
 			</div>
 			<div class="ui-block-c step-1" style="width:13%">
@@ -288,20 +288,28 @@
 					<option value="2">No. 2</option>
 				</select>
 			</div>
-			<div class="ui-block-d step-1" style="width:19%">
+			<div class="ui-block-d step-1" style="width:17%">
 				<input type="text" class="sequence_step" data-wrapper-class='controlgroup-textinput ui-btn'>
 			</div>
 			<div class="ui-block-e step-1" style="width:19%">
 				<input type="text" class="sequence_ramp" data-wrapper-class='controlgroup-textinput ui-btn' disabled>
 			</div>
-			<div class="ui-block-f step-1" style="width:25%">
+			<div class="ui-block-f step-1" style="width:22%">
 				<input type="text" class="sequence_wait" data-wrapper-class='controlgroup-textinput ui-btn'>
 			</div>
 		</div>
 		<button class="add_sequence">Add step to sequence</button>
-		<div data-role='controlgroup' data-type='horizontal'>
-			<button class='start_seq'>Start sequence</button>
-			<button class='stop_seq'>Stop sequence</button>
+		<div class='ui-grid-a'>
+			<div class='ui-block-a'>
+				<fieldset data-role='controlgroup' data-type='horizontal'>
+					<button class='start_seq'>Start sequence</button>
+					<button class='stop_seq'>Stop sequence</button>
+					<button class='stop_total'>Stop now</button>
+				</fieldset>
+			</div>
+			<div class='ui-block-b'>
+				<button class='seq_apply'>Apply</button>
+			</div>
 		</div>
     </div>
     <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
@@ -645,6 +653,7 @@ function($theDiv, anobj) {
     });
 
     var time_out = null;
+    var seq_timeout = null;
     
     var sign_change_up = [false, false];
     var sign_change_down = [false, false];
@@ -758,6 +767,106 @@ function($theDiv, anobj) {
         else clearTimeout(time_out);
         enable_all();
     });
+    
+    var seq_step = 2;
+    $('.add_sequence').on('click', function() {
+		$('.sequencesHV').append(
+			'<div class="ui-block-a step-' + String(seq_step) + '" style="width:5%">' + 
+				"<label style='padding-top:16px' value=" + String(seq_step) + ">" + String(seq_step) + ".</label>" + 
+			'</div>' +
+			'<div class="ui-block-b step-' + String(seq_step) + '" style="width:24%">' +
+				"<fieldset data-role='controlgroup' data-type='horizontal' style='padding-top:8px'>" +
+					"<select class='sequence_sign'>" + 
+						"<option value=1>+</option>" +
+						"<option value=-1>-</option>" +
+					"</select>" +
+					'<input type="text" class="sequence_hv" size=15 data-wrapper-class="controlgroup-textinput ui-btn">' +
+				"</fieldset>" +
+			"</div>" +
+			'<div class="ui-block-c step-' + String(seq_step) + '" style="width:13%">' +
+				"<select class='sequence_no'>" +
+					'<option value="1">No. 1</option>' +
+					'<option value="2">No. 2</option>' +
+				"</select>" +
+			"</div>" +
+			'<div class="ui-block-d step-' + String(seq_step) + '" style="width:17%">' +
+				'<input type="text" class="sequence_step" data-wrapper-class="controlgroup-textinput ui-btn">' +
+			"</div>" +
+			'<div class="ui-block-e step-' + String(seq_step) + '" style="width:19%">' +
+				'<input type="text" class="sequence_ramp" data-wrapper-class="controlgroup-textinput ui-btn" disabled>' +
+			"</div>" +
+			'<div class="ui-block-f step-' + String(seq_step) + '" style="width:22%">' +
+				'<input type="text" class="sequence_wait" data-wrapper-class="controlgroup-textinput ui-btn">' +
+			"</div>"
+		).trigger('create');
+		seq_step = seq_step+1;
+	});
+	
+	var seq_dict = {"supply":[], "value":[], "step":[], "ramp":[], "wait":[]};
+	
+	$('.seq_apply').on('click', function() {
+		seq_dict.supply = [];
+		seq_dict.value = [];
+		seq_dict.step = [];
+		seq_dict.wait = [];
+		var sup_no = null;
+		function check_sup_no(el) {
+			return el == sup_no;
+		}
+		for (i=1; i<seq_step; i++) {
+			var index = '.step-'+String(i);
+			var val = parseFloat($('.sequence_hv', index).val()) * parseInt($('.sequence_sign option:selected', index).val());
+			var step = parseFloat($('.sequence_step', index).val());
+			sup_no = parseInt($('.sequence_no option:selected', index).val());
+			var wait = parseFloat($('.sequence_wait', index).val());
+			var old = 0;
+			var old_i = seq_dict.supply.reverse().findIndex(check_sup_no);
+			if (old_i != -1) {
+				old = seq_dict.value.reverse()[old_i];
+			}
+			if (!wait) {wait = 0.0;}
+			if (val && step) {
+				seq_dict.supply.push(sup_no);
+				seq_dict.value.push(val);
+				seq_dict.step.push(step);
+				seq_dict.wait.push(wait);
+				calc = Math.abs(val-old)/(2*step);
+				$('.sequence_ramp', index).val(calc);
+				seq_dict.ramp.push(calc);
+			} else {
+				toastr.error("Information missing in sequence (step "+String(i)+"), skipping");
+				$('.sequence_ramp', index).val("");
+			}
+		}
+	});
+            
+	
+	$('.start_seq').on('click', function() {
+		if (seq_timeout) clearTimeout(seq_timeout);
+		var hv_val = [0, 0];
+		function sequence_stepping(i) {
+			toastr.info('one seq step');
+			if (seq_dict.value[i] > hv_val[seq_dict.supply[i]-1]) {
+				ramp_up(hv_val[seq_dict.supply[i]-1], seq_dict.step[i], seq_dict.value[i], seq_dict.supply[i]);
+			} else {
+				ramp_down(hv_val[seq_dict.supply[i]-1], seq_dict.step[i], seq_dict.value[i], seq_dict.supply[i]);
+			}
+			hv_val[seq_dict.supply[i]-1] = seq_dict.value[i];
+			if (i<seq_dict.value.length-1) {
+				seq_timeout = setTimeout(sequence_stepping, (seq_dict.ramp[i]+seq_dict.wait[i])*1000, i+1);
+			}
+		}
+		sequence_stepping(0);	
+	});
+	
+	$('.stop_seq').on('click', function() {
+		clearTimeout(seq_timeout);
+	});
+	
+	$('.stop_total').on('click', function() {
+		clearTimeout(time_out);
+		clearTimeout(seq_timeout);
+	});
     
     $('.rail_in').on('click', function() {
         disable_all();
