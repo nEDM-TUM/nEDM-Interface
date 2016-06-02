@@ -691,13 +691,13 @@ function($theDiv, anobj) {
     }
 
     function ramp_down(start, step, end, no) {
-		if ((start*end) < 0) {
+		if ((start*end) <= 0) {
 			sign_change_down[no-1] = true;
 		}
 		else {
 			if (sign_change_down[no-1]) {
 				nedm.send_command({cmd_name: 'change_hv_sign',
-				arguments: [no, 0],
+				arguments: [no, 1],
 				timeout: 5000
 				});
 				sign_change_down[no-1] = false;
