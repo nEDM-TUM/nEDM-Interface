@@ -1,0 +1,293 @@
+{
+    "_id" : "onlinenmr",
+    "type" : "page",
+    "title" : "Online NMR",
+    "description" : "Control for Online Nuclear Magnetic Resonance Measurements",
+    "body" : """
+
+
+    
+
+<h1>NMR Controls</h1>
+
+<h2>Measurements</h2>
+<div class='ui-grid-d'>
+    <div class='ui-block-a'>
+        <p>Frequency (Hz):</p>
+        <input type='text' size='1' class='input_val nmr_freq_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+    <div class='ui-block-b'>
+        <p>Amplitude (V):</p>
+        <input type='text' size='1' class='input_val nmr_amp_val' value='0.2' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+    <div class='ui-block-c'>
+        <p>Pulse Length (s):</p>
+        <input type='text' size='1' class='input_val nmr_dur_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+    <div class='ui-block-d'>
+        <p>Iterations (s):</p>
+        <input type='text' size='1' class='input_val nmr_iteration_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+    <div class='ui-block-e'>
+        <p>Time between Measurements (s):</p>
+        <input type='text' size='1' class='input_val nmr_waittime_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+</div>
+<div class='ui-grid-b'>
+    <div class='ui-block-a'><button id='measure_once_button' class='set_value_class nmr_measure'>Measure Once</button></div>
+    <div class='ui-block-b'><button id='measure_avg_button' class='set_value_class nmr_measure_avg'>Measure Average</button></div>
+    <div class='ui-block-c'><button class='set_value_class nmr_stop_measurement'>Stop Measurement</button></div>
+</div>    
+
+<h2>Plotting</h2>
+<div class='ui-grid-c'>
+    <div class='ui-block-a'>
+        <p>Year:</p>
+        <input type='text' size='1' class='input_val nmr_year' value='' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+    <div class='ui-block-b'>
+        <p>Month:</p>
+        <input type='text' size='1' class='input_val nmr_month' value='' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+    <div class='ui-block-c'>
+        <p>Day:</p>
+        <input type='text' size='1' class='input_val nmr_day' value='' data-wrapper-class='controlgroup-textinput ui-btn'>
+    </div>
+    <div class='ui-block-d'>
+        <p>&nbsp</p>
+        <button class='set_value_class nmr_loadlist'>Apply Filter</button>
+    </div>
+</div>
+<form id="myForm">
+  <select id="selectMeasurement">
+    <option>Select Measurement</option>
+  </select>
+</form>
+<button class='set_value_class nmr_plotselected'>Plot</button>
+
+<h3>Raw Signal</h3>
+<div id="graphdiv"></div>
+<h3>FFT Signal</h3>
+<div id="graphdiv2"></div>
+
+
+
+""",
+"script" : """
+var disable_all = function() 
+{
+    $(':input').addClass('ui-disabled');
+};
+
+var enable_all = function() 
+{
+    $(':input').removeClass('ui-disabled');
+};
+
+var last_sync = new Date();
+var clock_text = $('.last_checked');
+var time_out = null;
+
+
+    
+$('.nmr_measure').on('click', function() {
+    disable_all();
+    var freq = $('.nmr_freq_val').val();
+    var amp = $('.nmr_amp_val').val();
+    var dur = $('.nmr_dur_val').val();
+    nedm.send_command({cmd_name : 'nmr_measure', arguments : [freq, amp, dur], timeout: 20000,
+    callback: function(e,o) {
+            enable_all();
+        }
+    });
+});
+
+$('.nmr_measure_avg').on('click', function() {
+    document.getElementById('measure_once_button').disabled = true;
+    document.getElementById('measure_avg_button').disabled = true;
+    var freq = $('.nmr_freq_val').val();
+    var amp = $('.nmr_amp_val').val();
+    var dur = $('.nmr_dur_val').val();
+    var iteration = $('.nmr_iteration_val').val();
+    var waittime = $('.nmr_waittime_val').val();
+    nedm.send_command({cmd_name : 'nmr_measure_avg', arguments: [freq, amp, dur, iteration, waittime], timeout: 20000,
+    callback: function(e,o) {
+            document.getElementById('measure_once_button').disabled = false;
+	    document.getElementById('measure_avg_button').disabled = false;
+        }
+    });
+    
+});
+$('.nmr_stop_measurement').on('click', function() {
+    nedm.send_command({cmd_name : 'nmr_stop_measurement', timeout: 20000,
+    callback: function(e,o) {
+            document.getElementById('measure_once_button').disabled = false;
+	    document.getElementById('measure_avg_button').disabled = false;
+        }
+    });
+});
+
+  
+
+
+    
+var g = new nedm.Dygraph(document.getElementById("graphdiv"),
+    [[0],[0]],
+    {
+    labels: ["X","Y"],
+    drawPoints: false,
+    showRoller: false,
+    xlabel : "time (ms)",
+    ylabel : "ADC units",
+    connectSeparatedPoints: true
+          
+    });
+var f = new nedm.Dygraph(document.getElementById("graphdiv2"),
+    [[0],[0]],
+    {
+    labels:["X","Y"],
+    drawPoints: false,
+    showRoller: false,
+    xlabel : "Frequency (Hz)",
+    ylabel : "ADC units",
+    connectSeparatedPoints: true
+          
+    }); 
+       
+g.resize();
+f.resize();
+
+    
+function raw_fileplotter(data, testStatus, jqXHR) 
+{
+    var a0 = data.split("\\n");
+    var a1 = [];
+    for (i=1; i < 20000; i++)
+    {
+        var stringxy = a0[i].split("\\t");
+        var floatxy = [parseFloat(stringxy[0]), parseFloat(stringxy[1])];
+        a1.push(floatxy);
+    }
+    g.updateOptions({'file': a1});
+}
+    
+    
+function fft_fileplotter(data, testStatus, jqXHR) 
+{
+    var a0 = data.split("\\n");
+    var a1 = [];
+    for (i=1; i < 10000; i++)
+    {
+        var stringxy = a0[i].split("\\t");
+        var floatxy = [parseFloat(stringxy[0]), parseFloat(stringxy[1])];
+        a1.push(floatxy);
+    }
+    f.updateOptions({'file': a1});
+}
+    
+function plot_raw_data(docid)
+{
+    var path = "http://192.168.1.9/_attachments/nedm%2Fhexe_edm/nmr" + "/raw_nmr_" + docid + ".txt";
+    $.ajax({
+        dataType: "text",
+        url: path,
+        success: raw_fileplotter
+    });
+}
+    
+function plot_fft_data(docid)
+{
+    var path = "http://192.168.1.9/_attachments/nedm%2Fhexe_edm/nmr" +"/fft_nmr_" + docid + ".txt";
+    $.ajax({
+        dataType: "text",
+        url: path,
+        success: fft_fileplotter
+    });
+}
+
+function file_filter(filelist,year,month,day)
+{
+    var filteredlist=[];
+    for (var i=0; i<filelist.length;i++)
+    {
+        if(filelist[i].substring(0,3)=="raw")
+        {
+            if(year==="")
+            {
+                filteredlist.push(filelist[i].substring(8,25));
+            }
+        
+            else if(filelist[i].substring(8,12)==year)
+            {
+                if(month==="")
+                {
+                    filteredlist.push(filelist[i].substring(8,25));
+                }
+                else if(filelist[i].substring(13,15)==month)
+                {
+                    if(day==="")
+                    {
+                        filteredlist.push(filelist[i].substring(8,25));
+                    }
+                    else if(filelist[i].substring(16,18)==day)
+                    {
+                        filteredlist.push(filelist[i].substring(8,25));
+                    }    
+                
+                }
+            }   
+        }
+    }    
+    
+    var select = document.getElementById("selectMeasurement");
+    
+    for(i=select.options.length-1;i>=0;i--)
+    {
+        select.remove(i);
+    }
+
+    
+    
+    for (i=0;i<filteredlist.length;i++)
+    {
+        var opt = filteredlist[i];
+        var el = document.createElement("option");
+        el.textContent = opt;
+        el.value = opt;
+        select.appendChild(el);     
+    }
+    
+}
+
+function dlist(data, testStatus, jqXHR)
+{
+    var filelist = Object.keys(data.external_docs);
+    var year = $('.nmr_year').val();
+    var month = $('.nmr_month').val();
+    var day = $('.nmr_day').val();
+    file_filter(filelist,year,month,day);
+}
+
+$('.nmr_loadlist').on('click', function() 
+{
+    $.ajax({
+    dataType : "json",
+    url: "http://192.168.1.9/nedm%2Fhexe_edm/nmr",
+    success: dlist
+    });
+
+});
+
+$('.nmr_plotselected').on('click', function() 
+{
+    var el = document.getElementById("selectMeasurement"); 
+    var docid = el.options[el.selectedIndex].value;
+    plot_fft_data(docid);
+    plot_raw_data(docid);
+});
+   
+    
+
+
+"""
+}

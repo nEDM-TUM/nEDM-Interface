@@ -135,7 +135,12 @@ class MyTrigger(Trigger):
     </div>
     <div class="digitizerControl ui-disabled">
         <div class="show_plot"></div>
-        <div data-role="controlgroup" data-type="horizontal">
+        <div class="unit_convert" data-role="controlgroup" data-type="horizontal">
+			<label><input type="radio" name="selectUnit" checked="checked" class="ADCconv" value="ADC">ADC units</label>
+			<label><input type="radio" name="selectUnit" class="ADCconv" value="V">V</label>
+			<label><input type="radio" name="selectUnit" class="ADCconv" value="T">Converted (physical) unit</label>
+		</div>
+        <div class="meas_start_stop" data-role="controlgroup" data-type="horizontal">
             <input type="button" value="Stop" class="stopButton" disabled>
             <input type="button" value="Start" class="startButton">
             <select class='selectSlowControl' multiple='multiple' data-native-menu='false'>
@@ -267,11 +272,22 @@ class MyTrigger(Trigger):
         setDefaults = eval( '(' + docobj.defaults + ')' );
         /* jshint ignore:end */
       }
-
+      
       // Do the reset
       var frq_axis = false;
       var toastr = require("toastr");
       var _ = require("underscore");
+      var selUnit = $('.ADCconv:checked', $(thediv));
+      var scaleWithConvFactor = function(i) {
+          var edit = hdr_editor.get();
+          if (!edit.conversion_factor)  {
+              return 1;
+          } else if (typeof edit.conversion_factor == "number") {
+              return edit.conversion_factor*10/Math.pow(2,23);
+          } else {
+              return edit.conversion_factor[String(i)]*10/Math.pow(2,23);
+          }
+      };
       var data = [];
       var fft_data = [];
       var labels = ["time", "ch0"];
@@ -281,7 +297,7 @@ class MyTrigger(Trigger):
           drawPoints: false,
           showRoller: false,
           xlabel : "time (ms)",
-          ylabel : "ADC units",
+          ylabel : selUnit.parent().text(),
           connectSeparatedPoints: true,
           labels: ["time (ms)"]
       });
@@ -295,7 +311,7 @@ class MyTrigger(Trigger):
           drawPoints: false,
           showRoller: false,
           xlabel : "frequency (kHz)",
-          ylabel : "ADC units",
+          ylabel : selUnit.parent().text(),
           labels: ["frequency (kHz)"]
       });
 
@@ -303,7 +319,7 @@ class MyTrigger(Trigger):
           drawPoints: false,
           showRoller: false,
           xlabel : "Time [s]",
-          ylabel : "ADC units",
+          ylabel : selUnit.parent().text(),
           labels: ["Time"]
       });
 
@@ -498,8 +514,15 @@ class MyTrigger(Trigger):
               var time_step_ms = 1.0/(settings.current_frequency_khz);
               var arr = [_.range(0, time_step_ms*(length_per_ch / read_size), time_step_ms)];
               arr[0].length = length_per_ch / read_size;
+              var scale_array = function(dict) {
+				  return function(x, j) {
+					  return x*unitDict[selUnit.val()];
+				  };
+			  };
               for (i = 0; i < numChannels; i++) {
-                  arr[arr.length] = new arr_type(thedat, headerSize + i * length_per_ch, length_per_ch / read_size);
+				  var unitDict = {"ADC":1, "V":10/Math.pow(2,23), "T":scaleWithConvFactor(i)};
+                  var temp_arr = new arr_type(thedat, headerSize + i * length_per_ch, length_per_ch / read_size);
+                  arr[arr.length] = $.map($.makeArray(temp_arr), scale_array(unitDict));
               }
               showFFT(arr, length_per_ch/ read_size);
               appendData(_.zip.apply(this, arr));
@@ -1049,6 +1072,14 @@ class MyTrigger(Trigger):
               }));
           };
       }
+      
+      $('.ADCconv', $(thediv)).on("click", function() {
+		selUnit = $(this);
+		g.updateOptions({ylabel:selUnit.parent().text()});
+		fftg.updateOptions({ylabel:selUnit.parent().text()});
+		ampg.updateOptions({ylabel:selUnit.parent().text()});
+	  });
+      
       $('.set_frequency', $(thediv)).on("click", function() {
         var clkdiv = parseFloat($('.frequency_set', $(thediv)).val());
         if (settings.ext_frequency !== 0) {

@@ -6,7 +6,14 @@
   "include_only_digitizers" : ["digitizer.2.nedm1"],
   "default_header_info" : {
               "full_scale": 20,
-              "conversion_factor": 0.985e-9,
+			  "conversion_factor": {
+						"0" : 0.944e-9,
+						"1" : 0.948e-9,
+						"2" : 0.950e-9,
+						"3" : 0.940e-9,
+						"4" : 0.946e-9,
+						"5" : 0.948e-9
+			  },
               "external_clock": True,
               "channel_names" : {
                         "0" : "SQUID_X1",
@@ -17,8 +24,8 @@
                         "5" : "SQUID_Z2",
                         "6" : "Lockin_XE",
                         "7" : "Lockin_HE",
-                        "8" : "CH9",
-                        "9" : "CH10"
+                        "8" : "CH8",
+                        "9" : "CH9"
               },
               "measurement_type": "hexe_edm",
   },
@@ -27,7 +34,17 @@
   "save_channels" : [0,1,2,3,4,5,6,7,8,9],
   "defaults" : """
     function(thediv, docobj) {
+		
+//              "conversion_factor": 0.985e-9,
       // Called when page loaded, we can modify the page, set defaults
+      settings.conversion_factor = docobj.default_header_info.conversion_factor;
+      
+      // Open FFT window and set log scale
+//      should_show_fft = true;
+//      $('.fft_window', $(thediv)).collapsible("option", "collapsed", false);
+//      $('.log_scale', $(thediv)).prop("checked", true)
+//								.change()
+//								.checkboxradio("refresh");
 
       // Select the module
       $('.selectSaveModules',$(thediv)).filter(':input').val(1).change();
@@ -47,9 +64,10 @@
         var n = docobj.default_header_info.channel_names[k];
         view_chan.find('option[value="' + k + '"]').text(n);
         save_chan.find('option[value="' + k + '"]').text(n);
-        sel.append($('<option/>').val(parseInt(k) + 1).text(n));
+//        sel.append($('<option/>').val(parseInt(k) + 1).text(n));
       }
-      sel.selectmenu("refresh");
+	  for (var k in view_chan) 
+//      sel.selectmenu("refresh");
 
       for (var i=0;i<docobj.view_channels.length;i++) {
         view_chan.find('option[value="' + docobj.view_channels[i] + '"]').attr('selected', 'selected');
@@ -59,12 +77,214 @@
       }
       view_chan.selectmenu("refresh", true);
       save_chan.selectmenu("refresh", true);
+      
+      // Only allow Amp channel selection from viewed channels
+      $('.selectSlowControl option:selected', $(thediv)).map(function() {
+		  cur_val = $(this).val()
+		  cur_text = $(this).text()
+		  sel.append($('<option/>').val(parseInt(cur_val) + 1).text(cur_text));
+	  });
+	  sel.selectmenu("refresh");
+	  
+	  // When changing viewed channels, change selection
+	 $('.selectSlowControl', $(thediv)).on('change', function() {
+		 sel.empty();
+		 $('.selectSlowControl option:selected', $(thediv)).map(function() {
+			 cur_val = $(this).val()
+			 cur_text = $(this).text()
+			 sel.append($('<option/>').val(parseInt(cur_val) + 1).text(cur_text));
+		 });
+		 sel.selectmenu("refresh");
+	 });
 
+
+	  function adjustClkDiv(sampleFreq, refClock) {
+		  var ext_clkdiv = refClock/settings.divide/(sampleFreq*1000);
+		  x.sendObj({
+			cmd: "setClkDiv",
+			embed: true,
+			args: {
+				clkdiv : ext_clkdiv
+			}
+		  });
+		  fftg.resize();
+          ampg.resize();
+          frqg.resize();
+	  }
+
+
+	  // Initialize ext. clock plus readjust sample freq/clock divider
       $('.external_freq', $(thediv)).val(docobj.ext_frequency);
-      $('.set_freq_ext', $(thediv)).prop("checked", false);
-      if (docobj.ext_frequency !==0 ) {
+	  $('.set_freq_ext', $(thediv)).prop("checked", false);
+	  if (docobj.ext_frequency !==0 ) {
         $('.set_freq_ext', $(thediv)).trigger('click');
+        adjustClkDiv(5.0, docobj.ext_frequency);
       }
+      
+      
+      // Change layout
+      $('.auto_repeat').parent().hide();
+      $('.progressBar', $(thediv)).parent().parent().after('<div class="meas_display" data-role="controlgroup" data-type="horizontal"></div>');
+      $('.meas_display', $(thediv)).append($('select.selectSlowControl', $(thediv)).parent());
+      $('.meas_display', $(thediv)).controlgroup();
+      $('.meas_start_stop', $(thediv)).children().addClass('hexe_meas_start_stop');
+      $('.meas_start_stop', $(thediv)).append($('.unit_convert', $(thediv)).children().addClass('hexe_meas_units'));
+      $('.unit_convert', $(thediv)).hide();
+      $('.startButton', $(thediv)).parent().addClass('ui-last-child').after('<span style="margin:0 .2em"></span>');
+      $('.progressBar', $(thediv)).after('<span style="margin:0 .2em"></span>');
+//      $('.progressBar', $(thediv)).addClass('ui-progressbar ui-corner-all ui-shadow').attr({'role':'progressbar', 'style':'font-size:16px'});
+      $('.software_trigger').hide();
+      
+      $('.header').parent().attr('data-role', 'collapsible')
+						   .removeClass('ui-body ui-body-a ui-corner-all')
+						   .collapsible();
+      hdr_editor.setMode('view');
+      
+      var ext_clk_html = $('.frequency_set', $(thediv)).parent().parent();
+      $('.external_freq', $(thediv)).parent().parent().hide();
+	  $('.set_freq_ext', $(thediv)).parent().hide();
+	  $('.downsample', $(thediv)).parent().parent().hide();
+	  ext_clk_html.append('<label class="ui-first-child ui-last-child"><input class="new_ext_clk" type="checkbox">Use external clock</label>').trigger("create");
+	  if ($('.set_freq_ext', $(thediv)).is(":checked")) {
+		  $( ".new_ext_clk" ).prop( "checked", true )
+                             .change()
+                             .checkboxradio( "refresh" );
+      }
+      else {
+		  $( ".new_ext_clk" ).prop( "checked", false )
+                             .change()
+                             .checkboxradio( "refresh" );
+      }
+      
+      // Add channel names & conversion factor controls
+	  $('.gain_options').before("<div data-role='collapsible' class='channel_options'><h4>Channel names and conversion factors</h4></div>")
+	  $('.channel_options').collapsible()
+	  					   .children().eq(1).append("<div data-role='controlgroup' data-type='horizontal'>" +
+								   '<input type="button" value="Set channel names" class="setChannelNames">' +
+								   '<input type="button" value="Set conversion factor(s)" class="setConvFactors">' +
+								   '<input type="text" class="globalConvFactor" data-wrapper-class="controlgroup-textinput ui-btn">' +
+								   '<label><input type="checkbox" class="multipleFactors" data-wrapper-class="ui-last-child">Global factor</label>' +
+								   "</div>" +
+								   '<div class="ui-grid-c allChannelsOptions"><div class="ui-block-a"></div><div class="ui-block-b"></div><div class="ui-block-c"></div><div class="ui-block-d"></div></div>');
+	  $('.setChannelNames').parent().controlgroup();
+	  $('.globalConvFactor').textinput()
+							.parent().hide();
+	  $.each($('.allChannelsOptions', $(thediv)).children(), function() { $(this).empty(); });
+          // No loop over modules and channels
+	  var allChans = $.makeArray(
+		  $('.selectSaveModules').filter(':input')
+                                 .children()
+                                 .map(function() {return {number: $(this).val(), range: $(this).data('chan_range')};
+								 }));
+	  var channel_div = $('<div/>').append($('<span/>').addClass('channel_name'));
+	  var input_templ = $('<input/>').addClass('channel_name_eq').attr({'type':'text', 'placeholder':'Channel name'});
+	  var factor_templ = $('<input/>').addClass('conv_factor').attr({'type':'text', 'placeholder':'Conversion factor, e.g. in T/V'});
+	  if (typeof docobj.default_header_info.conversion_factor === "number") {
+	  	  factor_templ.attr('value', docobj.default_header_info.conversion_factor);
+	  }
+	  channel_div.append(input_templ);
+	  channel_div.append(factor_templ);
+	  var grid_list = [ "a", "b", "c", "d"];
+	  var global_idx = 0;
+	  for(var i=0;i<allChans.length;i++) {
+		  var nl = allChans[i];
+		  for(var j=0;j<nl.range.length;j++) {
+			  var no = channel_div.clone();
+			  $('.channel_name_eq', no).data("obj", { module : nl.number, channel : j });
+			  if (j < Object.keys(docobj.default_header_info.channel_names).length) {
+				  $('.channel_name_eq', no).val(docobj.default_header_info.channel_names[j]);
+			  }
+			  $('.conv_factor', no).data("obj", { module : nl.number, channel : j });
+			  if (typeof docobj.default_header_info.conversion_factor === "object" && j < Object.keys(docobj.default_header_info.conversion_factor).length) {
+				  $('.conv_factor', no).val(docobj.default_header_info.conversion_factor[j]);
+			  }
+			  $('.channel_name', no).text("Mod: " + nl.number + ", chan: " + j);
+			  $('.allChannelsOptions .ui-block-' + grid_list[ global_idx % grid_list.length ], $(thediv)).append(no);
+			  global_idx += 1;
+		  }
+	  }
+	  $('.allChannelsOptions', $(thediv)).trigger('create');
+      
+      // When clicking ext. clock button: don't set value to 0, adjust sample freq
+      $('.new_ext_clk', $(thediv)).on('click', function(ev) {
+		  var is_checked = $(ev.currentTarget).is(":checked");
+		  var sample_freq = parseFloat($('.frequency_set', $(thediv)).val());
+		  var editor = hdr_editor.get();
+		  if (is_checked) {
+			  $('.external_freq', $(thediv)).val(docobj.ext_frequency);
+		  }
+		  $('.set_freq_ext', $(thediv)).trigger('click');
+		  if (is_checked) {
+			adjustClkDiv(sample_freq, docobj.ext_frequency);
+			editor.external_clock = true;
+		  } else {
+			adjustClkDiv(sample_freq, settings.sysclk);
+			editor.external_clock = false;
+          }
+          hdr_editor.set(editor);
+	  });
+	  
+	  // En-/disable one or multiple conversion factors
+	  $('.multipleFactors', $(thediv)).on('click', function() {
+		  $('.globalConvFactor', $(thediv)).parent().toggle();
+	  });
+	  
+	  // Functions for channel names & conversion factor
+	  $('.setChannelNames', $(thediv)).on('click', function() {
+		  var all_names = $.makeArray($('.channel_name_eq').map(function() {
+			  var o = $(this).data('obj');
+			  o.name = $(this).val();
+			  return o;
+		  }));
+		  var editor = hdr_editor.get();
+		  all_names.map(function(n) {
+			  if (n.name) {
+				  view_chan.find('option[value="' + n.channel + '"]').text(n.name);
+				  save_chan.find('option[value="' + n.channel + '"]').text(n.name);
+				  sel.find('option[value="' + String(parseInt(n.channel) + 1) + '"]').text(n.name);
+				  editor.channel_names[n.channel] = n.name;
+			  }
+		  });
+		  view_chan.selectmenu("refresh", true);
+		  save_chan.selectmenu("refresh", true);
+		  sel.selectmenu("refresh", true);
+		  hdr_editor.set(editor);
+		  toastr.info("Channel names changed");
+	  });
+	  
+	  $('.setConvFactors', $(thediv)).on('click', function() {
+		  var editor = hdr_editor.get();
+		  if ($('.multipleFactors', $(thediv)).is(":checked")) {
+			  editor.conversion_factor = parseFloat($('.globalConvFactor', $(thediv)).val());
+			  toastr.info("Global conversion factor set to " + editor.conversion_factor);
+		  } else {
+			  var all_factors = $.makeArray($('.conv_factor').map(function() {
+				  var o = $(this).data('obj');
+				  o.factor = parseFloat($(this).val());
+				  return o;
+			  }));
+			  editor.conversion_factor = {};
+			  all_factors.map(function(cf) {
+				  if (cf.factor) {
+				      editor.conversion_factor[cf.channel] = cf.factor;
+				  }
+			  });
+			  toastr.info("Conversion factors changed");
+		  }
+		  settings.conversion_factor = editor.conversion_factor;
+		  hdr_editor.set(editor);
+	  });
+	  
+	  // remove created divs etc on digitzer release, otherwise will be doubled when requesting again
+	  $('.relDigi', $(thediv)).on('click', function() {
+		  $('.new_ext_clk', $(thediv)).parent().remove();
+		  $('.channel_options', $(thediv)).remove();
+		  $('.unit_convert', $(thediv)).append($('.hexe_meas_units', $(thediv)));
+		  $('.meas_start_stop', $(thediv)).append($('select.selectSlowControl', $(thediv)).parent());
+		  $('.meas_display', $(thediv)).remove();
+		  $('.header', $(thediv)).parent().parent().collapsible("destroy");
+	  });
+		  
     }
 
 """
