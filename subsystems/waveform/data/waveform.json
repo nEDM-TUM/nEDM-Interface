@@ -29,6 +29,7 @@
 	</tr>
 	<tr>
 		<td><button type="button" id="triggerWF">Trigger Waveform</button></td>
+		<td><button type="button" id="triggerDirect">Trigger directly</button></td>
 		<td><label><input type="checkbox" id="CB_draw">Show Waveform</label></td>
 	</tr>
 </table>
@@ -179,11 +180,11 @@ function($theDOM, docobj)
 			else if(cmd === "WfToForm")
 			{
 				sampling_freq = parseInt(hdr[1]);
-				b0 = parseInt(hdr[2]);
-				measuring_time = parseInt(hdr[3]);
-				sig = parseInt(hdr[4]);
+				b0 = parseFloat(hdr[2]);
+				measuring_time = parseFloat(hdr[3]);
+				sig = parseFloat(hdr[4]);
 				ncyc = parseInt(hdr[5]);
-				angle = parseInt(hdr[6]);
+				angle = parseFloat(hdr[6]);
 				Calculate();
 				document.getElementById("b0_").value = b0;
 				document.getElementById("m_t").value = measuring_time;
@@ -226,13 +227,26 @@ function($theDOM, docobj)
 	document.getElementById("listOfWF").onchange = SelectionChanged;
 	document.getElementById("deleteWF").onclick = DeleteWF;
 	document.getElementById("triggerWF").onclick = TriggerWF;
+	document.getElementById("triggerDirect").onclick = TriggerDirect;
 	document.getElementById("element_").onchange = UpdateResults;
 	Restore();
 	UpdateResults();
 	function TriggerWF()
 	{
+		args = [];
+		args = [foursigtstart, foursigtstop, measuring_time, ncyc];
 		print("Triggering current Waveform");
+		nedm.get_database("nedm%2Fnmr_system").send_command({
+		cmd_name: 'send_delayed_trigger',
+		arguments: args,
+		timeout: 6000
+		});
+	}
+	function TriggerDirect()
+	{
+		print("Triggering Waveform directly");
 		sendCmd(["trigger WF"]);
+		
 	}
 	function Send()
 	{
