@@ -329,6 +329,7 @@
 //    });
 
 	function check_mfc_pres() {
+//		toastr.info('executing check_mfc_pres');
 		goal = $('.mfc_pres').val();
 		mfc_n2_cur = $('.mfc_n2_pres').val();
 		if (!mfc_n2_cur) {
@@ -336,10 +337,7 @@
 		}
 		else {
 			if (mfc_n2_cur > goal) {
-				nedm.send_command({cmd_name : 'set_mfcs', arguments : [{he:0, xe:0, n2:0}], timeout: 5000,
-				callback: function(e,o) {
-					enable_all();
-					}
+				nedm.send_command({cmd_name : 'set_mfcs', arguments : [{he:0, xe:0, n2:0}], timeout: 5000
 				});
 			}
 			else {
@@ -350,6 +348,7 @@
 
 	$('.set_mfc_flow').on('click', function() {
 		disable_all();
+		if (time_out) clearTimeout(time_out);
 		args = {he:0.0, xe:0.0, n2:0.0};
 		mfc_select = $('.which_mfc option:selected').val();
 		flow = $('.mfc_flow').val();
@@ -364,12 +363,12 @@
 		nedm.send_command({cmd_name : 'set_mfcs', arguments : [args], timeout: 5000,
 		callback: function(e,o) {
 			enable_all();
+			var fill2press = $('.set_mfc_pres').is(":checked");
+			if (fill2press) {
+				check_mfc_pres();
+				}
 			}
 		});
-		var fill2press = $('.set_mfc_pres', $(thediv)).is(":checked");
-		if (fill2press) {
-			check_mfc_pres();
-		}
 	});
 
 	var heat_vals = ['V', '2.9'];
