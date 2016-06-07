@@ -639,21 +639,9 @@ function($theDiv, anobj) {
     
     var sign_change_up = [false, false];
     var sign_change_down = [false, false];
-
-    function ramp_up(start, step, end, no) {
-		if ((start*end) < 0 || parseFloat(start) === 0.0) {
-			sign_change_up[no-1] = true;
-		}
-		else {
-			if (sign_change_up[no-1]) {
-				nedm.send_command({cmd_name: 'change_hv_sign',
-				arguments: [no, 0],
-				timeout: 5000
-				});
-				sign_change_up[no-1] = false;
-			}
-		}
-        var args = [];
+    
+    function inner_ramp_up(start, step, end, no) {
+		var args = [];
         if (start < end) {
             args = [no, start];
             nedm.send_command({cmd_name: 'set_high_voltage',
@@ -670,22 +658,31 @@ function($theDiv, anobj) {
             timeout: 5000
             });
         }
-    }
+	}
 
-    function ramp_down(start, step, end, no) {
+    function ramp_up(start, step, end, no) {
 		if ((start*end) < 0 || parseFloat(start) === 0.0) {
-			sign_change_down[no-1] = true;
+			sign_change_up[no-1] = true;
+			inner_ramp_up(start, step, end, no);
 		}
 		else {
-			if (sign_change_down[no-1]) {
+			if (sign_change_up[no-1]) {
 				nedm.send_command({cmd_name: 'change_hv_sign',
-				arguments: [no, 1],
-				timeout: 5000
+				arguments: [no, 0],
+				timeout: 5000,
+				callback: function(e, o) {
+					sign_change_up[no-1] = false;
+					inner_ramp_up(start, step, end, no);
+					}
 				});
-				sign_change_down[no-1] = false;
+			} else {
+				inner_ramp_up(start, step, end, no);
 			}
-		}
-        var args = [];
+		}   
+    }
+    
+    function inner_ramp_down(start, step, end, no) {
+		var args = [];
         if (start > end) {
             args = [no, start];
             nedm.send_command({cmd_name: 'set_high_voltage',
@@ -702,6 +699,27 @@ function($theDiv, anobj) {
             timeout: 5000
             });
         }
+	}
+
+    function ramp_down(start, step, end, no) {
+		if ((start*end) < 0 || parseFloat(start) === 0.0) {
+			sign_change_down[no-1] = true;
+			inner_ramp_down(start, step, end, no);
+		}
+		else {
+			if (sign_change_down[no-1]) {
+				nedm.send_command({cmd_name: 'change_hv_sign',
+				arguments: [no, 1],
+				timeout: 5000,
+				callback: function(e, o) {
+					sign_change_down[no-1] = false;
+					inner_ramp_down(start, step, end, no);
+					}
+				});
+			} else {
+				inner_ramp_down(start, step, end, no);
+			}
+		}
     }
 
     $('.hexe_hv_ramp').on('click', function() {
