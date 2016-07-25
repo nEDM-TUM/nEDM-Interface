@@ -5,6 +5,7 @@ import os
 import glob
 from check_jshint import check_string
 import re
+import traceback
 try:
     import pexpect
     import json
@@ -176,9 +177,10 @@ def check_dict(adic):
         elif type(v) == type("") and re.search("\w*function", v):
             try:
                 check_string(v, ["W025"])
-            except Exception, e:
+            except:
                 print "\n  Error in: \n", k
-                raise e
+                traceback.print_exc()
+                raise
 
 def check_javascript(adoc):
     anid = adoc["_id"]
@@ -212,9 +214,10 @@ def upload_data(host, db_name, folder, check_js):
         if base_n == "_security.json" : continue
         try:
             bulk_docs.append(eval(open(af).read()))
-        except Exception as e:
+        except:
             print "Error with file: ", af
-            raise(e)
+            traceback.print_exc()
+            raise
 
     # We need to deal with possible conflicts
     # Here we grab the rev number from current documents
@@ -286,8 +289,10 @@ def main(server = None):
         except ValueError:
             print ".nedmrc found, but not formatted properly.  Ignoring..."
             pass
-    elif server is None:
-        server = "http://localhost:5984"
+    else:
+        print("No .nedmrc file found in current directory")
+        if server is None:
+            server = "localhost:5984"
 
     dbnames = [(db, os.path.basename(db)) for db
                  in glob.glob("subsystems/*") if os.path.isdir(db)]

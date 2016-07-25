@@ -2,7 +2,8 @@ import subprocess
 import re
 from distutils.spawn import find_executable
 
-if find_executable("jshint") is None:
+_jshint = find_executable("jshint")
+if _jshint is None:
     raise Exception("jshint couldn't be found, please install!")
 
 class JSException(Exception):
@@ -20,7 +21,7 @@ def output_line_column(err):
 
 def check_string(astr, ignore_warnings=[]):
     pip = subprocess.PIPE
-    p = subprocess.Popen(["jshint", "--verbose", "-"], stdin=pip, stdout=pip)
+    p = subprocess.Popen([_jshint, "--verbose", "-"], stdin=pip, stdout=pip)
     warning_str = ""
     for aw in ignore_warnings:
         warning_str += "/* jshint -%s */\n" % aw

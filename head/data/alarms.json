@@ -12,6 +12,7 @@
                     <th data-priority='3'>Description</th>
                     <th data-priority='4'>Last event</th>
                     <th data-priority='5'>More info</th>
+                    <th data-priority='5'>Code</th>
                   </tr>
                 </thead>
                 <tbody style='display:none;' class='alarm_row_clone'>
@@ -21,7 +22,7 @@
                   <td class='alarm_last_event'>No events</td>
                   <td class='alarm_more_info'><button class='ui-btn ui-icon-carat-r ui-btn-icon-notext'>More info
                   </button>
-                  <div data-role='popup' data-theme='a' class='alarmpopup' >
+                  <div data-role='popup' data-theme='a' class='alarmpopup ui-content' >
                     <a href='#' data-rel='back' data-role='button' data-theme='a' data-icon='delete' data-iconpos='notext' class='ui-btn-right'>Close</a>
                     <a href='#' data-role='button' data-icon='nedm-stopped' data-iconpos='right' class='load_more_data'>Load 5 more alarms...</a>
                     <table data-role='table' data-mode='reflow' class='ui-responsive alarm_table_fired'>
@@ -39,6 +40,28 @@
                       </tbody>
                     </table>
                   </div></td>
+                  <td class='alarm_code_info'><button class='ui-btn ui-icon-gear ui-btn-icon-notext'>Code
+                  </button>
+                  <div data-role='popup' data-theme='a' class='alarmcodepopupclone ui-content' >
+                    <a href='#' data-rel='back' data-role='button' data-theme='a' data-icon='delete' data-iconpos='notext' class='ui-btn-right'>Close</a>
+                    <h4>Edit Alarm (admin only)</h4>
+                    <h5>Name:</h5>
+                    <input type='text' class='alarm_name' value='Unique name'>
+                    <h5>Description:</h5>
+                    <input type='text' class='alarm_desc' value='Unique description'>
+                    <h5>Emails:</h5>
+                    <input type='text' class='alarm_emails' value=''>
+                    <h5>Code:</h5>
+                    <div class='alarm_code code_editor'>
+                    </div>
+                    <div data-role='fieldcontain'>
+                      <fieldset data-role='controlgroup' data-type='horizontal'>
+                        <button class='ui-btn ui-corner-all edit_alarm'>Submit</button>
+                        <button class='ui-btn ui-corner-all delete_alarm'>Delete</button>
+                      </fieldset>
+                    </div>
+                  </div></td>
+
                 </tbody>
               </table>
             </div>
@@ -51,7 +74,7 @@
               <h5>Emails:</h5>
               <input type='text' class='alarm_emails' value=''>
               <h5>Code:</h5>
-              <div class='alarm_code code_editor'># the following is simple an example...
+              <div class='alarm_code code_editor'># the following is simply an example...
 _last_value = None
 def main(db):
     global _last_value
@@ -126,40 +149,99 @@ def main(db):
       );
     };
 
+    var the_row = $('.alarm_row_clone', theCurrentPage);
+
+    function addAlarmRow(d, prettyname, db_name) {
+      var the_table = $('.alarm_table', theCurrentPage);
+      var nc = the_row.clone();
+
+      function helperFunc(p) {
+          return function() { p.popup('open'); };
+      }
+      function popupOpener(p) {
+        p.on("popupafteropen", function() {
+          p.data("editor").resize();
+        });
+      }
+
+      $('.system_name', $(nc)).html(prettyname);
+      $('.alarm_name', $(nc)).html(d.name);
+      $('.alarm_desc', $(nc)).html(d.description);
+      nc.show();
+      nc.removeClass('alarm_row_clone');
+      var popup = $('.alarmpopup', theCurrentPage).clone()
+                                  .removeClass('alarmpopup')
+                                  .attr({id : d._id + '-popup'});
+      $('.load_more_data', $(popup))
+        .data( { db    : db_name,
+                 popup : popup,
+                    id : d._id,
+             last_date : null,
+              disp_row : nc} )
+        .on('click', load_new_alarm_info);
+      nc.append(popup);
+      popup.popup().popup('close');
+      $('.alarm_more_info :input', $(nc)).on('click', helperFunc(popup));
+
+      var popup_code = $('.alarmcodepopupclone', theCurrentPage).clone()
+                                  .removeClass('alarmcodepopupclone')
+                                  .addClass('alarmcodepopup')
+                                  .attr({id : d._id + '-codepopup'})
+                                  .data({doc: d});
+
+      var new_ed = ace.edit($('.alarm_code', popup_code)[0]);
+      new_ed.getSession().setMode('ace/mode/python');
+      new_ed.setTheme('ace/theme/xcode');
+
+      popup_code.data({
+        doc : d,
+        editor: new_ed,
+        db : db_name,
+        prettyname : prettyname }
+      );
+      new_ed.getSession().setValue(d.code);
+      popupOpener(popup_code);
+
+
+      $('.alarm_desc', popup_code).val(d.description);
+      $('.alarm_name', popup_code).val(d.name);
+      $('.alarm_emails', popup_code).val(d.emails.join(","));
+      $('.alarm_code_info :input', $(nc)).on('click', helperFunc(popup_code));
+      nc.append(popup_code);
+      popup_code.popup().popup('close');
+      $('.edit_alarm', popup_code).on('click',
+        CreateSubmitFunction(popup_code, function() {
+          popup_code.popup().popup('close');
+          nc.remove();
+          popup_code.remove();
+        })
+      );
+      $('.delete_alarm', popup_code).on('click', function() {
+        nedm.get_database(db_name).removeDoc(d, function(e, o) {
+          if (e) {
+            toastr.error(JSON.stringify(e), "Not deleted");
+          } else {
+            // remove everything
+            popup_code.popup().popup('close');
+            nc.remove();
+            popup_code.remove();
+          }
+        });
+      });
+
+      the_table.append(nc);
+      $('.load_more_data', $(popup)).trigger('click');
+
+    }
+
     var get_alarm_info = function() {
       nedm.get_database_info( function(all_dbs) {
-          var the_table = $('.alarm_table');
-          var the_row = $('.alarm_row_clone');
           function retFunction(x) {
             return function( e, o ) {
               if (e !== null) return;
               var r = o.rows;
-              function helperFunc(p) {
-                  return function() { p.popup('open'); };
-              }
               for (var i=0;i<r.length;i++) {
-                var nc = the_row.clone();
-                var d = r[i].doc;
-                $('.system_name', $(nc)).html(all_dbs[x].prettyname);
-                $('.alarm_name', $(nc)).html(d.name);
-                $('.alarm_desc', $(nc)).html(d.description);
-                nc.show();
-                nc.removeClass('alarm_row_clone');
-                var popup = $('.alarmpopup').clone()
-                                            .removeClass('alarmpopup')
-                                            .attr({id : d._id + '-popup'});
-                $('.load_more_data', $(popup))
-                  .data( { db    : 'nedm%2F' + x,
-                           popup : popup,
-                              id : d._id,
-                       last_date : null,
-                        disp_row : nc} )
-                  .on('click', load_new_alarm_info);
-                nc.append(popup);
-                popup.popup().popup('close');
-                $(':input', $('.alarm_more_info', $(nc))).on('click', helperFunc(popup));
-                the_table.append(nc);
-                $('.load_more_data', $(popup)).trigger('click');
+                addAlarmRow(r[i].doc, all_dbs[x].prettyname, "nedm%2F" + x);
               }
             };
           }
@@ -176,25 +258,54 @@ def main(db):
           }
       });
     };
-    var submit_new_alarm = function() {
-        var the_db = nedm.get_database($('.alarm_database_select :selected').val());
+    var toastr = require("toastr");
+    function CreateSubmitFunction(enclosing_div, callback_func) {
+      return function() {
+        var the_db_name = enclosing_div.data("db");
+        if (!the_db_name) {
+          the_db_name = $('.alarm_database_select :selected', theCurrentPage).val();
+        }
+        var prettyname = enclosing_div.data("prettyname");
+        if (!prettyname) {
+          prettyname = $('.alarm_database_select :selected', theCurrentPage).text();
+        }
+        var the_db = nedm.get_database(the_db_name);
         var an_obj = { type : 'alarm' };
-        an_obj.description = $('.adv_options .alarm_desc').val();
-        an_obj.name = $('.adv_options .alarm_name').val();
-        an_obj.emails = $('.adv_options .alarm_emails').val().split(',').map(
-          function(j) { return $.trim(j); });
-        an_obj.code = $('.adv_options .alarm_code').text();
-        the_db.updateDoc(an_obj, "nedm_default", "insert_with_timestamp",
-          function(err, obj) {
-            if(err) toastr.error("Document wasn't writting", JSON.stringify(err));
-            else toastr.info("Success");
+        function newDoc(x, cbck) {
+          the_db.updateDoc(x, "nedm_default", "insert_with_timestamp", cbck);
+        }
+        function oldDoc(x, cbck) {
+          the_db.saveDoc(x, cbck);
+        }
+        var the_func = newDoc;
+        if (enclosing_div.data('doc')) {
+          an_obj = enclosing_div.data('doc');
+          the_func = oldDoc;
+        }
+        an_obj.description = $('.alarm_desc', enclosing_div).val();
+        an_obj.name = $('.alarm_name', enclosing_div).val();
+        an_obj.emails = $('.alarm_emails', enclosing_div).val().split(',').map(
+          function(j) { return $.trim(j);
         });
-    };
-    var editor = null;
-    $(document).on('pageinit', function(ev) {
-      if ( $(ev.target).attr('data-url').indexOf("page/alarms") === -1 ) return;
+        an_obj.code = enclosing_div.data('editor').getSession().getValue();
+        the_func(an_obj,
+          function(err, obj) {
+            if(err) toastr.error(JSON.stringify(err), "Not written");
+            else {
+              toastr.info("Success");
+              nedm.get_database(the_db_name).getDoc(obj.id, function(e, o) {
+                if (e) return; // could have just been deleted
+                addAlarmRow(o, prettyname, the_db_name);
+              });
+              if (callback_func) callback_func(obj);
+            }
+        });
+
+      };
+    }
+    nedm.page.once("load", function() {
       get_alarm_info();
-      var db_sel = $('.alarm_database_select').filter(':input');
+      var db_sel = $('.alarm_database_select', theCurrentPage).filter(':input');
       nedm.get_database_info( function(dbs) {
           db_sel.empty();
           for(var v in dbs) {
@@ -202,11 +313,12 @@ def main(db):
           }
           db_sel.selectmenu('refresh', true);
       });
-      $('.adv_options .submit_new_alarm').on('click', submit_new_alarm);
 
-      editor = ace.edit($('.adv_options .alarm_code')[0]);
+      var editor = ace.edit($('.adv_options .alarm_code', theCurrentPage)[0]);
       editor.getSession().setMode('ace/mode/python');
       editor.setTheme('ace/theme/xcode');
+      $('.adv_options', theCurrentPage).data('editor', editor);
+      $('.adv_options .submit_new_alarm', theCurrentPage).on('click', CreateSubmitFunction($('.adv_options', theCurrentPage)));
     });
 """
 }
