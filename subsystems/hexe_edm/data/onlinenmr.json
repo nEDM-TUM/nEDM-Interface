@@ -25,11 +25,11 @@
         <input type='text' size='1' class='input_val nmr_dur_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
     </div>
     <div class='ui-block-d'>
-        <p>Iterations (s):</p>
+        <p>Iterations:</p>
         <input type='text' size='1' class='input_val nmr_iteration_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
     </div>
     <div class='ui-block-e'>
-        <p>Time between Measurements (s):</p>
+        <p>Waiting Time (s):</p>
         <input type='text' size='1' class='input_val nmr_waittime_val' value='0' data-wrapper-class='controlgroup-textinput ui-btn'>
     </div>
 </div>
@@ -74,6 +74,15 @@
 
 """,
 "script" : """
+var is_local = false; //so I don't have to change all IP's when testing
+if (is_local)
+{
+    var domain="http://127.0.0.1";
+}
+else
+{
+    var domain="http://192.168.1.9";
+}
 var disable_all = function() 
 {
     $(':input').addClass('ui-disabled');
@@ -129,7 +138,7 @@ $('.nmr_stop_measurement').on('click', function() {
 
   
 
-
+//creating dygraph elements
     
 var g = new nedm.Dygraph(document.getElementById("graphdiv"),
     [[0],[0]],
@@ -138,8 +147,9 @@ var g = new nedm.Dygraph(document.getElementById("graphdiv"),
     drawPoints: false,
     showRoller: false,
     xlabel : "time (ms)",
-    ylabel : "ADC units",
-    connectSeparatedPoints: true
+    ylabel : "Voltage (V)",
+    connectSeparatedPoints: true,
+    titleHeight : 17
           
     });
 var f = new nedm.Dygraph(document.getElementById("graphdiv2"),
@@ -149,45 +159,34 @@ var f = new nedm.Dygraph(document.getElementById("graphdiv2"),
     drawPoints: false,
     showRoller: false,
     xlabel : "Frequency (Hz)",
-    ylabel : "ADC units",
-    connectSeparatedPoints: true
+    ylabel : "Voltage (V)",
+    connectSeparatedPoints: true,
+    titleHeight : 17
           
     }); 
        
-g.resize();
-f.resize();
+//g.resize();
+//f.resize();
 
+
+//==============================PLOTTER===================================================
     
-function raw_fileplotter(data, testStatus, jqXHR) 
+
+//button click that selects the file id from the dropdown menu and starts function avalanche
+$('.nmr_plotselected').on('click', function() 
 {
-    var a0 = data.split("\\n");
-    var a1 = [];
-    for (i=1; i < 20000; i++)
-    {
-        var stringxy = a0[i].split("\\t");
-        var floatxy = [parseFloat(stringxy[0]), parseFloat(stringxy[1])];
-        a1.push(floatxy);
-    }
-    g.updateOptions({'file': a1});
-}
-    
-    
-function fft_fileplotter(data, testStatus, jqXHR) 
-{
-    var a0 = data.split("\\n");
-    var a1 = [];
-    for (i=1; i < 10000; i++)
-    {
-        var stringxy = a0[i].split("\\t");
-        var floatxy = [parseFloat(stringxy[0]), parseFloat(stringxy[1])];
-        a1.push(floatxy);
-    }
-    f.updateOptions({'file': a1});
-}
-    
+    var el = document.getElementById("selectMeasurement"); 
+    var docid = el.options[el.selectedIndex].value;
+    plot_fft_data(docid);
+    plot_raw_data(docid);
+});
+
+
+//these two functions get called next and sent an ajax request to the file url. The ajax request then executes the fileplotter 
+//functions as a callback that contains the data
 function plot_raw_data(docid)
 {
-    var path = "http://192.168.1.9/_attachments/nedm%2Fhexe_edm/nmr" + "/raw_nmr_" + docid + ".txt";
+    var path = domain+"/_attachments/nedm%2Fhexe_edm/nmr" + "/raw_nmr_" + docid + ".txt";
     $.ajax({
         dataType: "text",
         url: path,
@@ -197,7 +196,7 @@ function plot_raw_data(docid)
     
 function plot_fft_data(docid)
 {
-    var path = "http://192.168.1.9/_attachments/nedm%2Fhexe_edm/nmr" +"/fft_nmr_" + docid + ".txt";
+    var path = domain+"/_attachments/nedm%2Fhexe_edm/nmr" +"/fft_nmr_" + docid + ".txt";
     $.ajax({
         dataType: "text",
         url: path,
@@ -205,8 +204,76 @@ function plot_fft_data(docid)
     });
 }
 
+
+//takes data string and puts it into a list dygraph can work with. The dygraph elements get updated by these lists
+function raw_fileplotter(data, testStatus, jqXHR) 
+{
+    var a0 = data.split("\\n");
+    var a1 = [];
+    var para = a0[0];//first line in the file is the parameters
+    for (i=1; i < 20000; i++)
+    {
+        var stringxy = a0[i].split("\\t");
+        var floatxy = [parseFloat(stringxy[0]), parseFloat(stringxy[1])];
+        a1.push(floatxy);
+    }
+    g.updateOptions({'file': a1, 'title':para});
+}
+    
+    
+function fft_fileplotter(data, testStatus, jqXHR) 
+{
+    var a0 = data.split("\\n");
+    var a1 = [];
+    var para = a0[0];
+    for (i=2; i < 10000; i++)//i=2 to remove parameter line and 0 Hz divergence
+    {
+        var stringxy = a0[i].split("\\t");
+        var floatxy = [parseFloat(stringxy[0]), parseFloat(stringxy[1])];
+        a1.push(floatxy);
+    }
+    f.updateOptions({'file': a1,'title':para});
+}
+    
+
+
+
+
+//=======================================FILEFILTER=====================================================
+
+//load file list on refresh
+$.ajax({
+    dataType : "json",
+    url: domain+"/nedm%2Fhexe_edm/nmr",
+    success: dlist
+});
+
+//loads a list of data files on button click
+$('.nmr_loadlist').on('click', function() 
+{
+    $.ajax({
+    dataType : "json",
+    url: domain+"/nedm%2Fhexe_edm/nmr",
+    success: dlist
+    });
+
+});
+
+//callback of above, takes the json string of nmr document containing the list of attachment files and passes it onto file_filter function
+function dlist(data, testStatus, jqXHR)
+{
+    var filelist = Object.keys(data.external_docs);
+    var year = $('.nmr_year').val();
+    var month = $('.nmr_month').val();
+    var day = $('.nmr_day').val();
+    file_filter(filelist,year,month,day);
+}
+
+
+//this function filteres the list of files according to year, month, day and puts a filtered list into the dropdown menu  
 function file_filter(filelist,year,month,day)
 {
+    //reads filenames and looks for the date in the filename
     var filteredlist=[];
     for (var i=0; i<filelist.length;i++)
     {
@@ -238,16 +305,16 @@ function file_filter(filelist,year,month,day)
             }   
         }
     }    
-    
+    //dropdown menu
     var select = document.getElementById("selectMeasurement");
-    
+    //this clears the dropdown menu
     for(i=select.options.length-1;i>=0;i--)
     {
         select.remove(i);
     }
 
     
-    
+    //adds new filtered filelist to dropdown
     for (i=0;i<filteredlist.length;i++)
     {
         var opt = filteredlist[i];
@@ -259,33 +326,8 @@ function file_filter(filelist,year,month,day)
     
 }
 
-function dlist(data, testStatus, jqXHR)
-{
-    var filelist = Object.keys(data.external_docs);
-    var year = $('.nmr_year').val();
-    var month = $('.nmr_month').val();
-    var day = $('.nmr_day').val();
-    file_filter(filelist,year,month,day);
-}
 
-$('.nmr_loadlist').on('click', function() 
-{
-    $.ajax({
-    dataType : "json",
-    url: "http://192.168.1.9/nedm%2Fhexe_edm/nmr",
-    success: dlist
-    });
 
-});
-
-$('.nmr_plotselected').on('click', function() 
-{
-    var el = document.getElementById("selectMeasurement"); 
-    var docid = el.options[el.selectedIndex].value;
-    plot_fft_data(docid);
-    plot_raw_data(docid);
-});
-   
     
 
 
