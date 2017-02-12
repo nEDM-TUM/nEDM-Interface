@@ -69,8 +69,25 @@ def compare_documents(ondb, topush):
     if len(diffs.symmetric_difference(ok_differences)) > 0: return False
 
     for k in topush:
-        if ondb[k] != topush[k]:
-            return False
+        if type(ondb[k]) != type(topush[k]):
+            if type(ondb[k]) != type('string'.decode('utf-8')):
+                try: ondb_var = ondb[k].decode('utf-8')
+                except UnicodeEncodeError:
+                     print ondb[k], type(ondb[k]), type(topush[k])
+            try: topush_var = topush[k].decode('utf-8')
+            except UnicodeEncodeError:
+                 print topush[k], type(ondb[k]), type(topush[k])
+            if ondb[k] != topush_var:
+                print "ondb not equal to topush"
+                return False
+
+            #if type(ondb[k]) == type('string'.decode('utf-8')):
+            #    print "what is going on? ", type(ondb[k].decode('utf-8'))
+            #    print type(topush[k].decode('utf-8'))
+        else:
+            if ondb[k] != topush[k]:
+                print "ondb not equal to topush"
+                return False
     return True
 
 """
