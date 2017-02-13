@@ -46,7 +46,7 @@ Order in which the relays should switch on (for MSR complete): 1,2,4,3,1
 
             function update_status(vars) {
                 var session = editor.session;
-                if ("degaussing_state" in vars) {
+                if ("degaussing_state" in vars) {
                     if (vars.degaussing_state.value === 0) {
                         $('.control-status').removeClass("nedm-status-g");
                         $('.control-status').addClass("nedm-status-r");
@@ -64,7 +64,7 @@ Order in which the relays should switch on (for MSR complete): 1,2,4,3,1
                         column: 0}, 
                         "Running: "+(vars.degaussing_state.value === 1) +"\\n");
                 }
-                if ("state_0" in vars) {
+                if ("state_0" in vars) {
                     if (vars.state_0.value === 0) {outp = "Open";}
                     else {outp = "Closed";}
                     session.insert({
@@ -72,7 +72,7 @@ Order in which the relays should switch on (for MSR complete): 1,2,4,3,1
                         column: 0}, 
                         "Relay 1: "+outp+"\\n");
                 }
-                if ("state_1" in vars) {
+                if ("state_1" in vars) {
                     if (vars.state_1.value === 0) {outp = "Open";}
                     else {outp = "Closed";}
                     session.insert({
@@ -80,7 +80,7 @@ Order in which the relays should switch on (for MSR complete): 1,2,4,3,1
                         column: 0}, 
                         "Relay 2: "+outp+"\\n");
                 }
-                if ("state_2" in vars) {
+                if ("state_2" in vars) {
                     if (vars.state_2.value === 0) {outp = "Open";}
                     else {outp = "Closed";}
                     session.insert({
@@ -88,7 +88,7 @@ Order in which the relays should switch on (for MSR complete): 1,2,4,3,1
                         column: 0}, 
                         "Relay 3: "+outp+"\\n");
                 }
-                if ("state_3" in vars) {
+                if ("state_3" in vars) {
                     if (vars.state_3.value === 0) {outp = "Open";}
                     else {outp = "Closed";}
                     session.insert({
