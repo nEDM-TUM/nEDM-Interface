@@ -348,7 +348,7 @@ class MyTrigger(Trigger):
         if (!should_show_fft) return;
         // All should be already a factor of 2.
         var len = the_data[0].length;
-        var power_of_2 = Math.exp(Math.floor(Math.log(len) / Math.log(2) +0.999999999) * Math.log(2));
+        var power_of_2 = Math.round(Math.exp(Math.floor(Math.log(len) / Math.log(2) +0.999999999) * Math.log(2)));
         if (!the_fft || the_fft.bufferSize !== power_of_2) {
           var dsp = require("dsp");
           the_fft = new dsp.FFT(power_of_2, settings.current_frequency_khz*1000);
@@ -363,7 +363,7 @@ class MyTrigger(Trigger):
         var len_of_fft = power_of_2/2 ;
         var timestep = length_channel / nyquist_freq / 1000.0 / 2.0;
         var arr = [_.range(0 , freq_step*(len_of_fft), freq_step)];
-        arr[0].length = len_of_fft;
+        arr[0].length = Math.round(len_of_fft);
         arr[0] = _.rest(arr[0]);
         function Parabel(value , index) {
                 return value / len /len * 4 * (index *index - len * index );
